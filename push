@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Check if any arguments are provided
+if [ "$#" -eq 0 ]; then
+    git add .
+else
+    for file in "$@"; do
+	git add "$file"
+    done
+fi
+
+echo 'Enter the commit message:'
+read commitMessage
+
+git commit -m "$commitMessage"
+
+git push
