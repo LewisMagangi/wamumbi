@@ -124,7 +124,7 @@ export default function Home() {
             <div className="size-full flex flex-col items-center justify-center">
               <div className="relative bg-zinc-100 aspect-video overflow-hidden rounded-xl">
                 <Image
-                  src="/hero2.png"
+                  src="/hero.png"
                   alt="Wamumbi Charity Foundation"
                   width={1536}
                   height={1024}
@@ -192,9 +192,9 @@ export default function Home() {
                 Our Impact
               </h2>
               <p className="max-w-2xl mx-auto opacity-90">
-                Through the generous support of our donors and volunteers, we've
-                been able to make a significant difference in the lives of many
-                children.
+                Through the generous support of our donors and volunteers,
+                we&apos;ve been able to make a significant difference in the
+                lives of many children.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -233,10 +233,10 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-600 italic mb-4">
-                  "The Wamumbi Foundation has been a blessing to our family.
-                  After losing my parents, I didn't think I would be able to
-                  continue my education. Now I'm in my final year of high school
-                  with plans for university."
+                  &quot;The Wamumbi Foundation has been a blessing to our
+                  family. After losing my parents, I didn&apos;t think I would
+                  be able to continue my education. Now I&apos;m in my final
+                  year of high school with plans for university.&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
@@ -250,10 +250,10 @@ export default function Home() {
               </div>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-600 italic mb-4">
-                  "As a guardian to my three orphaned grandchildren, I was
-                  struggling to provide for their needs. The foundation's
+                  &quot;As a guardian to my three orphaned grandchildren, I was
+                  struggling to provide for their needs. The foundation&apos;s
                   support with food, education, and healthcare has lifted a huge
-                  burden from my shoulders."
+                  burden from my shoulders.&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
@@ -265,10 +265,10 @@ export default function Home() {
               </div>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-600 italic mb-4">
-                  "The community workshops organized by Wamumbi Foundation have
-                  equipped me with skills to better support the orphaned
+                  &quot;The community workshops organized by Wamumbi Foundation
+                  have equipped me with skills to better support the orphaned
                   children in my care. Their holistic approach makes a real
-                  difference."
+                  difference.&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
