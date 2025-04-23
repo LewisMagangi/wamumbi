@@ -29,51 +29,45 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop navigation links */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-4">
+          {/* Donate button in the middle */}
+          <div className="hidden md:flex items-center justify-center flex-grow">
+            <Button variant="ghost" asChild>
+              <Link href="/donate">Donate</Link>
+            </Button>
+          </div>
+          
+          {/* Authentication buttons on the right */}
+          <div className="hidden md:flex items-center space-x-4">
+            <SignedOut>
+              <div className="inline-block">
+                <SignInButton mode="modal">
+                  <Button variant="ghost">
+                    Sign In
+                  </Button>
+                </SignInButton>
+              </div>
+              <div className="inline-block">
+                <SignUpButton mode="modal">
+                  <Button variant="ghost">
+                    Get Started
+                  </Button>
+                </SignUpButton>
+              </div>
+            </SignedOut>
+            
+            <SignedIn>
               <Button variant="ghost" asChild>
-                <Link href="/">Home</Link>
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/about">About</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/events">Events</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/contact">Contact</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/donate">Donate</Link>
-              </Button>
-              
-              {/* Authentication buttons */}
-              <SignedOut>
-                {/* Get Started button styled like other buttons */}
-                <div className="inline-block">
-                  <SignUpButton mode="modal">
-                    <Button variant="ghost">
-                      Get Started
-                    </Button>
-                  </SignUpButton>
-                </div>
-              </SignedOut>
-              
-              <SignedIn>
-                <Button variant="ghost" asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-                <UserButton 
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-8 w-8"
-                    }
-                  }} 
-                />
-              </SignedIn>
-            </div>
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8"
+                  }
+                }} 
+              />
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -116,27 +110,22 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - updated with Donate first for emphasis */}
       <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
-          <Button variant="ghost" asChild className="justify-start">
-            <Link href="/">Home</Link>
-          </Button>
-          <Button variant="ghost" asChild className="justify-start">
-            <Link href="/about">About</Link>
-          </Button>
-          <Button variant="ghost" asChild className="justify-start">
-            <Link href="/events">Events</Link>
-          </Button>
-          <Button variant="ghost" asChild className="justify-start">
-            <Link href="/contact">Contact</Link>
-          </Button>
           <Button variant="ghost" asChild className="justify-start">
             <Link href="/donate">Donate</Link>
           </Button>
           
           {/* Mobile Authentication Links */}
           <SignedOut>
+            <div className="py-2">
+              <SignInButton mode="modal">
+                <Button variant="ghost" className="w-full justify-start">
+                  Sign In
+                </Button>
+              </SignInButton>
+            </div>
             <div className="py-2">
               <SignUpButton mode="modal">
                 <Button variant="ghost" className="w-full justify-start">
