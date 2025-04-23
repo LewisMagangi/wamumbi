@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { ArrowRight } from "lucide-react"
 import { 
   SignInButton, 
   SignUpButton, 
@@ -48,8 +49,8 @@ export default function Navbar() {
               </div>
               <div className="inline-block">
                 <SignUpButton mode="modal">
-                  <Button variant="ghost">
-                    Get Started
+                  <Button variant="ghost" className="flex items-center gap-1">
+                    Get Started <ArrowRight className="h-4 w-4" />
                   </Button>
                 </SignUpButton>
               </div>
@@ -128,8 +129,8 @@ export default function Navbar() {
             </div>
             <div className="py-2">
               <SignUpButton mode="modal">
-                <Button variant="ghost" className="w-full justify-start">
-                  Get Started
+                <Button variant="ghost" className="w-full justify-start flex items-center gap-1">
+                  Get Started <ArrowRight className="h-4 w-4" />
                 </Button>
               </SignUpButton>
             </div>
