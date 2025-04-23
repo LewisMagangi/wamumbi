@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  donations Donation[]
+  events    Event[]    @relation("EventOrganizer")
+  attendees EventAttendee[]
+}
+
+// Donation model
+model Donation {
+  id        String   @id @default(uuid())
+  amount    Float
+  currency  String   @default("USD")
+  status    String   @default("pending") // pending, completed, failed
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  campaignId String?
+  campaign  Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Campaign model for fundraising campaigns
+model Campaign {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  target      Float
+  raised      Float    @default(0)
+  imageUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  donations   Donation[]
+}
+
+// Events model
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  imageUrl    String?
+  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
+  organizerId String
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  attendees   EventAttendee[]
+}
+
+// Event Attendees - join table for users attending events
+model EventAttendee {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  status    String   @default("registered") // registered, attended, cancelled
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, eventId])
+}
