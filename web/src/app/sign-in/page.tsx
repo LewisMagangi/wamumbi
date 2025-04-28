@@ -24,6 +24,7 @@ export default function SignInPage() {
           path="/sign-in"
           routing="path"
           signUpUrl="/sign-up"
+          identityType="username_email"
         />
       </div>
     </div>
