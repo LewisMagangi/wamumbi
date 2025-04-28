@@ -57,13 +57,18 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  }
+  
+  /* Add some padding-top to the main content to account for fixed navbar */
+  main {
+    padding-top: 4rem;
   }
 }
