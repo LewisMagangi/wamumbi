@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Wamumbi",
-  description: "Wamumbi platform",
+  title: "Wamumbi Charity Foundation",
+  description: "A charity foundation for the needy",
 };
 
 export default function RootLayout({

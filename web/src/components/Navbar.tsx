@@ -32,9 +32,18 @@ export default function Navbar() {
 
           {/* Donate button in the middle */}
           <div className="hidden md:flex items-center justify-center flex-grow">
-            <Button variant="ghost" asChild>
-              <Link href="/donate">Donate</Link>
-            </Button>
+            <SignedIn>
+              <Button variant="ghost" asChild className="bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
+                <Link href="/donate">
+                  Donate <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </SignedIn>
+            <SignedOut>
+              <Button variant="ghost" asChild>
+                <Link href="/donate">Donate</Link>
+              </Button>
+            </SignedOut>
           </div>
           
           {/* Authentication buttons on the right */}
@@ -49,7 +58,7 @@ export default function Navbar() {
               </div>
               <div className="inline-block">
                 <SignUpButton mode="modal">
-                  <Button variant="ghost" className="flex items-center gap-1">
+                  <Button variant="ghost" className="flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Button>
                 </SignUpButton>
@@ -58,7 +67,9 @@ export default function Navbar() {
             
             <SignedIn>
               <Button variant="ghost" asChild>
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard">
+                  Dashboard
+                </Link>
               </Button>
               <UserButton 
                 afterSignOutUrl="/"
@@ -114,9 +125,18 @@ export default function Navbar() {
       {/* Mobile menu - updated with Donate first for emphasis */}
       <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
-          <Button variant="ghost" asChild className="justify-start">
-            <Link href="/donate">Donate</Link>
-          </Button>
+          <SignedIn>
+            <Button variant="ghost" asChild className="justify-start bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
+              <Link href="/donate">
+                Donate <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </SignedIn>
+          <SignedOut>
+            <Button variant="ghost" asChild className="justify-start">
+              <Link href="/donate">Donate</Link>
+            </Button>
+          </SignedOut>
           
           {/* Mobile Authentication Links */}
           <SignedOut>
@@ -129,7 +149,7 @@ export default function Navbar() {
             </div>
             <div className="py-2">
               <SignUpButton mode="modal">
-                <Button variant="ghost" className="w-full justify-start flex items-center gap-1">
+                <Button variant="ghost" className="w-full justify-start flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
                   Get Started <ArrowRight className="h-4 w-4" />
                 </Button>
               </SignUpButton>
@@ -138,7 +158,9 @@ export default function Navbar() {
           
           <SignedIn>
             <Button variant="ghost" asChild className="justify-start">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard">
+                Dashboard
+              </Link>
             </Button>
           </SignedIn>
         </div>
