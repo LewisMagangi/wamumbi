@@ -6,11 +6,14 @@ import { usePermissions } from '../../hooks/usePermissions';
 export const TeamOverview = () => {
   const { canEdit } = usePermissions();
   
-  // In a real app, this would fetch from an API
   const { data: teams, isLoading } = useQuery({
-    queryKey: ['/api/teams'],
-    enabled: true
-  });
+  queryKey: ['/api/teams'],
+  queryFn: async () => {
+    const res = await fetch('/api/teams');
+    if (!res.ok) throw new Error('Network response was not ok');
+    return res.json();
+  },
+});
 
   if (isLoading) {
     return (

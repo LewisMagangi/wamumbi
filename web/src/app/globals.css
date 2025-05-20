@@ -27,18 +27,22 @@
 @layer components {
   .card {
     @apply bg-white rounded-lg shadow p-5;
+    @apply sm:p-4 md:p-6 lg:p-8;
   }
   
   .btn-primary {
     @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors;
+    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4;
   }
   
   .btn-success {
     @apply bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors;
+    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4;
   }
   
   .btn-danger {
     @apply bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors;
+    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4
   }
 }
 

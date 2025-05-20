@@ -17,11 +17,14 @@ type Donation = {
 export const RecentDonations = () => {
   const { role } = useAuth();
   
-  // In a real app, this would fetch from an API
-  const { data: donationsData, isLoading } = useQuery<Donation[]>({
-    queryKey: ['/api/donations'],
-    enabled: true
-  });
+  const { data: donationsData, isLoading } = useQuery({
+  queryKey: ['/api/donations'],
+  queryFn: async () => {
+    const res = await fetch('/api/donations');
+    if (!res.ok) throw new Error('Network response was not ok');
+    return res.json();
+  },
+});
 
   // Function to format relative time
   const getTimeAgo = (dateString: string) => {

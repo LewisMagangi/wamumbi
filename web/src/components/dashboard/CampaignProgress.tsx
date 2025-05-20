@@ -1,50 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { EditPermissionGate } from '../auth/PermissionGate';
 
 export const CampaignProgress = () => {
-  // In a real app, this would be a real API call
+  // Fetch campaigns from API
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ['/api/campaigns'],
-    enabled: true
+    queryFn: async () => {
+      const res = await fetch('/api/campaigns');
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    },
+    enabled: true,
   });
 
-  // Function to calculate days left
-  const getDaysLeft = (endDateStr: string) => {
-    const endDate = new Date(endDateStr);
-    const today = new Date();
-    const diffTime = endDate.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  if (isLoading) {
-    return (
-      <div className="card p-6 animate-pulse">
-        <div className="flex justify-between items-center mb-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-16"></div>
-        </div>
-        
-        <div className="space-y-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-200 rounded w-10"></div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5"></div>
-              <div className="flex justify-between items-center">
-                <div className="h-3 bg-gray-200 rounded w-24"></div>
-                <div className="h-3 bg-gray-200 rounded w-20"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Sample campaign data for development
+  // Fallback sample data for development
   const sampleCampaigns = [
     {
       id: 1,
@@ -69,8 +39,56 @@ export const CampaignProgress = () => {
     }
   ];
 
-  // Use real data if available and is an array, otherwise use sample data
-  const campaignData = Array.isArray(campaigns) ? campaigns : sampleCampaigns;
+  // Use real data if available, otherwise use sample data
+  const campaignData = Array.isArray(campaigns) && campaigns.length > 0 ? campaigns : sampleCampaigns;
+
+  // Store client-calculated values in state
+  const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Only run on client
+    const now = new Date();
+    setClientCampaigns(
+      campaignData.map((campaign) => {
+        const endDate = new Date(campaign.endDate);
+        const diffTime = endDate.getTime() - now.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return {
+          ...campaign,
+          daysLeft,
+          raisedFormatted: campaign.raised.toLocaleString(),
+          goalFormatted: campaign.goal.toLocaleString(),
+        };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(campaignData)]);
+
+  if (isLoading || clientCampaigns.length === 0) {
+    return (
+      <div className="card p-6 animate-pulse">
+        <div className="flex justify-between items-center mb-4">
+          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-16"></div>
+        </div>
+        <div className="space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-10"></div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5"></div>
+              <div className="flex justify-between items-center">
+                <div className="h-3 bg-gray-200 rounded w-24"></div>
+                <div className="h-3 bg-gray-200 rounded w-20"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card">
@@ -82,49 +100,51 @@ export const CampaignProgress = () => {
               <i className="ri-add-line mr-1"></i>Add
             </button>
           </EditPermissionGate>
-          
           <button className="text-sm text-gray-600 hover:text-gray-800 flex items-center">
             View All <i className="ri-arrow-right-s-line ml-1"></i>
           </button>
         </div>
       </div>
-      
       <div className="space-y-6">
-        {campaignData.map((campaign) => {
+        {clientCampaigns.map((campaign) => {
           const percentage = Math.min(Math.round((campaign.raised / campaign.goal) * 100), 100);
-          const daysLeft = getDaysLeft(campaign.endDate);
-          
           return (
             <div key={campaign.id} className="space-y-2">
               <div className="flex justify-between items-center">
                 <h3 className="font-medium">{campaign.title}</h3>
                 <span className="text-sm font-medium">{percentage}%</span>
               </div>
-              
               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
+                <div
                   className={`h-2.5 rounded-full ${
-                    percentage < 30 ? 'bg-red-500' : percentage < 70 ? 'bg-yellow-400' : 'bg-green-500'
+                    percentage < 30
+                      ? 'bg-red-500'
+                      : percentage < 70
+                      ? 'bg-yellow-400'
+                      : 'bg-green-500'
                   }`}
                   style={{ width: `${percentage}%` }}
                 ></div>
               </div>
-              
               <div className="flex justify-between items-center text-sm">
                 <div className="text-gray-600">
-                  <span className="font-medium">${campaign.raised.toLocaleString()}</span>
+                  <span className="font-medium">${campaign.raisedFormatted}</span>
                   <span className="mx-1">of</span>
-                  <span>${campaign.goal.toLocaleString()}</span>
+                  <span>${campaign.goalFormatted}</span>
                 </div>
-                
                 <div className="flex items-center text-xs">
                   <i className="ri-time-line mr-1 text-gray-500"></i>
-                  <span className={`font-medium ${daysLeft < 7 ? 'text-red-600' : 'text-gray-600'}`}>
-                    {daysLeft > 0 ? `${daysLeft} days left` : 'Campaign ended'}
+                  <span
+                    className={`font-medium ${
+                      campaign.daysLeft < 7 ? 'text-red-600' : 'text-gray-600'
+                    }`}
+                  >
+                    {campaign.daysLeft > 0
+                      ? `${campaign.daysLeft} days left`
+                      : 'Campaign ended'}
                   </span>
                 </div>
               </div>
-              
               <EditPermissionGate resource="campaigns">
                 <div className="flex justify-end mt-2">
                   <button className="text-gray-500 hover:text-gray-700 text-xs mr-2">

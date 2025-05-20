@@ -13,11 +13,14 @@ type DashboardStats = {
 export const StatisticsCards = () => {
   const { role } = useAuth();
   
-  // In a real app, this would fetch from an API
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['/api/dashboard/stats'],
-    enabled: true
-  });
+  const { data: stats, isLoading } = useQuery({
+  queryKey: ['/api/dashboard/stats'],
+  queryFn: async () => {
+    const res = await fetch('/api/dashboard/stats');
+    if (!res.ok) throw new Error('Network response was not ok');
+    return res.json();
+  },
+});
 
   // Default sample stats for development
   const sampleStats = {
