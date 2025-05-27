@@ -67,43 +67,6 @@ export default function Dashboard() {
         </div>
         
         <div className="prose max-w-none">
-          <p className="text-gray-600">
-            This dashboard implements role-based access control. Different users have different permissions based on their roles:
-          </p>
-          
-          <ul className="mt-4 space-y-3">
-            <li className="flex items-start">
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold mr-2 mt-0.5">Admin</span>
-              <div>
-                <p className="font-medium text-gray-800">Full access to all features</p>
-                <p className="text-sm text-gray-600">Can edit all content, export reports, and manage users</p>
-              </div>
-            </li>
-            
-            <li className="flex items-start">
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold mr-2 mt-0.5">Team Leader</span>
-              <div>
-                <p className="font-medium text-gray-800">Team and project management</p>
-                <p className="text-sm text-gray-600">Can edit team information, project details, and manage team communications</p>
-              </div>
-            </li>
-            
-            <li className="flex items-start">
-              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold mr-2 mt-0.5">Volunteer</span>
-              <div>
-                <p className="font-medium text-gray-800">Limited edit access</p>
-                <p className="text-sm text-gray-600">Can view most information and participate in team discussions</p>
-              </div>
-            </li>
-            
-            <li className="flex items-start">
-              <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold mr-2 mt-0.5">Donor</span>
-              <div>
-                <p className="font-medium text-gray-800">Donation-focused view</p>
-                <p className="text-sm text-gray-600">Can view campaigns and make donations, but limited edit access</p>
-              </div>
-            </li>
-          </ul>
 
           <EditPermissionGate 
             resource="campaigns"
