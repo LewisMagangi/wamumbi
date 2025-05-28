@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useQuery } from '@tanstack/react-query';
 
 // Define user roles
-export type UserRole = 'admin' | 'volunteer' | 'donor' | 'team_leader' | 'guest';
+export type UserRole = 'admin' | 'volunteer' | 'donor' | 'team_leader' | 'Volunteer';
 
 // Define user type
 export interface AuthUser {
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         create: ['comments', 'discussions', 'registrations', 'polls'],
         update: ['profile', 'teams', 'discussions', 'polls']
       },
-      guest: {
+      Volunteer: {
         read: ['campaigns', 'events', 'blog'],
         create: [],
         update: []

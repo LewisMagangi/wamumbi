@@ -21,7 +21,7 @@ export const CampaignProgress = () => {
       title: "Clean Water Initiative",
       goal: 50000,
       raised: 32500,
-      endDate: "2023-12-31"
+      endDate: "2025-12-31"
     },
     {
       id: 2,

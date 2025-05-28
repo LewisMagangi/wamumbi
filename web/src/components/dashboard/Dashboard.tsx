@@ -18,9 +18,9 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Charity Dashboard</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Welcome back, {user?.name || 'Guest'}! 
+            Welcome back, {user?.name || 'Volunteer'}! 
             <span className="ml-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800 capitalize">
-              {user?.role || 'Guest'}
+              {user?.role || 'Volunteer'}
             </span>
           </p>
         </div>
