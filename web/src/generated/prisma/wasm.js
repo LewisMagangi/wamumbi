@@ -179,7 +179,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\User\\Documents\\GitHub\\wamumbi\\web\\src\\generated\\prisma",
+      "value": "/Users/mamicha/Desktop/wamumbi/web/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -188,14 +188,14 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin",
         "native": true
       }
     ],
     "previewFeatures": [
       "driverAdapters"
     ],
-    "sourceFilePath": "C:\\Users\\User\\Documents\\GitHub\\wamumbi\\web\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/mamicha/Desktop/wamumbi/web/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
