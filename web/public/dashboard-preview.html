@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Styling Preview - Wamumbi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'hsl(0, 0%, 100%)',
+                        foreground: 'hsl(0, 0%, 3.9%)',
+                        border: 'hsl(0, 0%, 89.8%)',
+                        muted: {
+                            DEFAULT: 'hsl(0, 0%, 96.1%)',
+                            foreground: 'hsl(0, 0%, 45.1%)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-white to-rose-50">
+    <div class="min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Welcome Header -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-rose-900 to-rose-600 bg-clip-text text-transparent">
+                            Welcome back, John!
+                        </h1>
+                        <p class="text-gray-600 text-lg mt-2">
+                            Thank you for being part of the Wamumbi family. Here's your impact overview.
+                        </p>
+                    </div>
+                    <div class="hidden md:block">
+                        <button class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                            Make a Donation
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Total Donations</p>
+                            <p class="text-2xl font-bold text-rose-600">$2,450</p>
+                        </div>
+                        <div class="bg-rose-100 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <svg class="h-4 w-4 text-green-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span class="text-green-600 font-medium">+12%</span>
+                        <span class="text-gray-600 ml-1">from last month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Children Helped</p>
+                            <p class="text-2xl font-bold text-blue-600">127</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <svg class="h-4 w-4 text-green-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span class="text-green-600 font-medium">+8</span>
+                        <span class="text-gray-600 ml-1">this month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Programs Supported</p>
+                            <p class="text-2xl font-bold text-green-600">12</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-600">Active programs</span>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Education Funds</p>
+                            <p class="text-2xl font-bold text-purple-600">$890</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-600">Towards education</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Quick Actions -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <h2 class="text-xl font-semibold mb-6">Quick Actions</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button class="h-20 flex flex-col items-center justify-center border border-gray-200 rounded-lg hover:bg-rose-50 hover:border-rose-200 transition-colors">
+                                <svg class="h-6 w-6 mb-2 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                <span>Make a Donation</span>
+                            </button>
+                            
+                            <button class="h-20 flex flex-col items-center justify-center border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                <svg class="h-6 w-6 mb-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>View Profile</span>
+                            </button>
+                            
+                            <button class="h-20 flex flex-col items-center justify-center border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-200 transition-colors">
+                                <svg class="h-6 w-6 mb-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                <span>View Impact</span>
+                            </button>
+                            
+                            <button class="h-20 flex flex-col items-center justify-center border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-colors">
+                                <svg class="h-6 w-6 mb-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                <span>Read Stories</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 class="text-xl font-semibold mb-6">Recent Updates</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-rose-100 p-2 rounded-lg">
+                                <svg class="h-4 w-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">New donation received</p>
+                                <p class="text-xs text-gray-600">2 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">5 children joined program</p>
+                                <p class="text-xs text-gray-600">1 day ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-green-100 p-2 rounded-lg">
+                                <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Housing program update</p>
+                                <p class="text-xs text-gray-600">3 days ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-purple-100 p-2 rounded-lg">
+                                <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Education milestone reached</p>
+                                <p class="text-xs text-gray-600">1 week ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full mt-4 flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <span>View all updates</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="mt-12 bg-gradient-to-r from-rose-600 to-rose-700 rounded-xl p-8 text-white">
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold mb-4">
+                        Ready to make an even bigger impact?
+                    </h2>
+                    <p class="text-rose-100 mb-6 max-w-2xl mx-auto">
+                        Your contributions have already helped transform lives. Join us in reaching even more children 
+                        and families in need across our community.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button class="bg-white text-rose-600 px-6 py-3 rounded-lg font-medium flex items-center gap-2 justify-center hover:bg-gray-100 transition-colors">
+                            Donate Now
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </button>
+                        <button class="border border-white text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 justify-center hover:bg-white hover:text-rose-600 transition-colors">
+                            Learn More
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Notice -->
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-blue-800 text-center">
+                    <strong>Preview Mode:</strong> This is a preview of the styled dashboard. The actual dashboard requires authentication.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
