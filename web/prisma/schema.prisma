@@ -14,63 +14,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enum for user roles
+enum UserRole {
+  MEMBER
+  ADMIN
+  SUPER_ADMIN
+}
+
+// Enum for donation status
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
 // User model
 model User {
-  id        String   @id @default(uuid())
-  clerkId   String   @unique
-  email     String   @unique
-  name      String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  donations Donation[]
-  events    Event[]    @relation("EventOrganizer")
-  attendees EventAttendee[]
+  id           String         @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  clerkId      String?        @unique
+  roles        UserRole[]     @default([MEMBER])
+  imageUrl     String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  donations    Donation[]
+  events       Event[]        @relation("EventOrganizer")
+  attendees    EventAttendee[]
+  blogs        Blog[]
+  createdReports Report[]
+  teamMembers  TeamMember[]
+}
+
+// Blog model
+model Blog {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  filename    String
+  imageUrl    String?
+  published   Boolean  @default(false)
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // Donation model
 model Donation {
-  id        String   @id @default(uuid())
-  amount    Float
-  currency  String   @default("USD")
-  status    String   @default("pending") // pending, completed, failed
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  campaignId String?
-  campaign  Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String         @id @default(uuid())
+  paymentId   String         @unique
+  amount      Float
+  currency    String         @default("USD")
+  donor       User           @relation(fields: [donorId], references: [id])
+  donorId     String
+  campaignId  String?
+  campaign    Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  status      DonationStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 // Campaign model for fundraising campaigns
 model Campaign {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  target      Float
-  raised      Float    @default(0)
-  imageUrl    String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  donations   Donation[]
+  id           String      @id @default(uuid())
+  title        String
+  description  String      @db.Text
+  target       Float
+  raised       Float       @default(0)
+  imageUrl     String?
+  active       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  donations    Donation[]
+  startDate    DateTime
+  endDate      DateTime?
 }
 
 // Events model
 model Event {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  location    String
-  startDate   DateTime
-  endDate     DateTime
-  imageUrl    String?
-  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
-  organizerId String
-  capacity    Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  attendees   EventAttendee[]
+  id           String         @id @default(uuid())
+  title        String
+  description  String         @db.Text
+  location     String
+  startDate    DateTime
+  endDate      DateTime
+  imageUrl     String?
+  organizer    User           @relation("EventOrganizer", fields: [organizerId], references: [id])
+  organizerId  String
+  capacity     Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  attendees    EventAttendee[]
 }
 
 // Event Attendees - join table for users attending events
@@ -85,4 +122,54 @@ model EventAttendee {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, eventId])
+}
+
+// Report model
+model Report {
+  id            String   @id @default(uuid())
+  title         String
+  totalDonation Float    @default(0)
+  totalEvents   Int      @default(0)
+  activeVolunteers Int    @default(0)
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  reportData    Json?    // For storing additional flexible report data
+}
+
+// Partner model
+model Partner {
+  id           String   @id @default(uuid())
+  name         String
+  description  String   @db.Text
+  imageUrl     String?
+  websiteUrl   String?
+  dateJoined   DateTime @default(now())
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Team model
+model Team {
+  id          String       @id @default(uuid())
+  name        String
+  description String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  members     TeamMember[]
+}
+
+// TeamMember - join table for users in teams
+model TeamMember {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  role      String   @default("member") // Could be leader, member, etc
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, teamId])
 }
