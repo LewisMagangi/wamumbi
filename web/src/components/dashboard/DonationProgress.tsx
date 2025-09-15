@@ -1,36 +1,10 @@
 // components/dashboard/DonationProgress.tsx
 'use client';
-import { FC, useEffect, useState } from 'react';
-
-interface Campaign {
-  id: number;
-  title: string;
-  description: string;
-  goal: number;
-  raised: number;
-  endDate: string;
-}
+import { FC } from 'react';
+import { trpc } from '@/app/_trpc/client';
 
 const DonationProgress: FC = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/campaigns');
-        const data = await response.json();
-        setCampaigns(data);
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCampaigns();
-  }, []);
+  const { data: campaigns, isLoading, error } = trpc.campaigns.getAll.useQuery();
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
@@ -46,11 +20,17 @@ const DonationProgress: FC = () => {
             </div>
           ))}
         </div>
+      ) : error ? (
+        <div className="text-red-500 text-sm">
+          Error loading campaigns: {error.message}
+        </div>
       ) : (
         <div className="space-y-6">
-          {campaigns.map((campaign) => {
-            const percentage = Math.min(Math.round((campaign.raised / campaign.goal) * 100), 100);
-            const daysLeft = Math.ceil((new Date(campaign.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          {campaigns?.map((campaign) => {
+            const percentage = Math.min(campaign.progressPercentage, 100);
+            const daysLeft = campaign.createdAt 
+              ? Math.ceil((new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+              : null;
             
             return (
               <div key={campaign.id} className="space-y-2">
@@ -61,20 +41,19 @@ const DonationProgress: FC = () => {
                 
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div 
-                    className={`h-2.5 rounded-full ${
+                    className={`h-2.5 rounded-full transition-all duration-300 progress-bar-${Math.min(percentage, 100)} ${
                       percentage < 30 ? 'bg-red-500' : percentage < 70 ? 'bg-yellow-400' : 'bg-green-500'
                     }`}
-                    style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
                 
                 <div className="flex justify-between text-sm text-gray-500">
-                  <span>${campaign.raised.toLocaleString()} raised</span>
-                  <span>Goal: ${campaign.goal.toLocaleString()}</span>
+                  <span>${Number(campaign.currentAmount).toLocaleString()} raised</span>
+                  <span>Goal: ${Number(campaign.goalAmount).toLocaleString()}</span>
                 </div>
                 
                 <div className="text-xs text-gray-500">
-                  {daysLeft > 0 ? (
+                  {daysLeft && daysLeft > 0 ? (
                     <span>{daysLeft} days left</span>
                   ) : (
                     <span>Campaign ended</span>

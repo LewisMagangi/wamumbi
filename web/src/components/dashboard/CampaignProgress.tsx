@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@/app/_trpc/client';
 import { EditPermissionGate } from '../auth/PermissionGate';
 
+interface Campaign {
+  id: string;
+  title: string;
+  goal: number;
+  raised: number;
+  endDate: string | Date;
+  daysLeft?: number;
+  raisedFormatted?: string;
+  goalFormatted?: string;
+}
+
 export const CampaignProgress = () => {
-  // Fetch campaigns from API
-  const { data: campaigns, isLoading } = useQuery({
-    queryKey: ['/api/campaigns'],
-    queryFn: async () => {
-      const res = await fetch('/api/campaigns');
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    },
-    enabled: true,
-  });
+  // Use tRPC query instead of fetch
+  const { data: campaigns, isLoading, error } = trpc.campaigns.getActive.useQuery();
+
+  if (error) {
+    console.error('Failed to fetch campaigns:', error);
+  }
 
   // Fallback sample data for development
   const sampleCampaigns = [
     {
-      id: 1,
+      id: "1",
       title: "Clean Water Initiative",
       goal: 50000,
       raised: 32500,
       endDate: "2025-12-31"
     },
     {
-      id: 2,
+      id: "2",
       title: "Education for All",
       goal: 25000,
       raised: 12800,
       endDate: "2023-11-15"
     },
     {
-      id: 3,
+      id: "3",
       title: "Hunger Relief Program",
       goal: 15000,
       raised: 9300,
@@ -43,7 +50,7 @@ export const CampaignProgress = () => {
   const campaignData = Array.isArray(campaigns) && campaigns.length > 0 ? campaigns : sampleCampaigns;
 
   // Store client-calculated values in state
-  const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
+  const [clientCampaigns, setClientCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
     // Only run on client
@@ -116,14 +123,13 @@ export const CampaignProgress = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full ${
+                  className={`h-2.5 rounded-full transition-all duration-300 progress-bar-${percentage} ${
                     percentage < 30
                       ? 'bg-red-500'
                       : percentage < 70
                       ? 'bg-yellow-400'
                       : 'bg-green-500'
                   }`}
-                  style={{ width: `${percentage}%` }}
                 ></div>
               </div>
               <div className="flex justify-between items-center text-sm">
@@ -136,10 +142,10 @@ export const CampaignProgress = () => {
                   <i className="ri-time-line mr-1 text-gray-500"></i>
                   <span
                     className={`font-medium ${
-                      campaign.daysLeft < 7 ? 'text-red-600' : 'text-gray-600'
+                      (campaign.daysLeft ?? 0) < 7 ? 'text-red-600' : 'text-gray-600'
                     }`}
                   >
-                    {campaign.daysLeft > 0
+                    {(campaign.daysLeft ?? 0) > 0
                       ? `${campaign.daysLeft} days left`
                       : 'Campaign ended'}
                   </span>
@@ -147,10 +153,18 @@ export const CampaignProgress = () => {
               </div>
               <EditPermissionGate resource="campaigns">
                 <div className="flex justify-end mt-2">
-                  <button className="text-gray-500 hover:text-gray-700 text-xs mr-2">
+                  <button 
+                    className="text-gray-500 hover:text-gray-700 text-xs mr-2"
+                    title="Edit campaign"
+                    aria-label="Edit campaign"
+                  >
                     <i className="ri-edit-line mr-1"></i>Edit
                   </button>
-                  <button className="text-gray-500 hover:text-gray-700 text-xs">
+                  <button 
+                    className="text-gray-500 hover:text-gray-700 text-xs"
+                    title="More options"
+                    aria-label="More options"
+                  >
                     <i className="ri-more-2-line"></i>
                   </button>
                 </div>

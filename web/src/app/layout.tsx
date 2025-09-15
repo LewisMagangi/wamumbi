@@ -26,15 +26,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <TrpcProvider>
-      <ClerkProvider>
-        <html lang="en">
-          <body>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <TrpcProvider>
             <Navbar />
             {children}
-          </body>
-        </html>
-      </ClerkProvider>
-    </TrpcProvider>
+          </TrpcProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

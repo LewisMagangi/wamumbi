@@ -1,19 +1,14 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@/app/_trpc/client';
 import { EditPermissionGate } from '../auth/PermissionGate';
-import { usePermissions } from '../../hooks/usePermissions';
 
 export const TeamOverview = () => {
-  const { canEdit } = usePermissions();
-  
-  const { data: teams, isLoading } = useQuery({
-  queryKey: ['/api/teams'],
-  queryFn: async () => {
-    const res = await fetch('/api/teams');
-    if (!res.ok) throw new Error('Network response was not ok');
-    return res.json();
-  },
-});
+  // Use tRPC query instead of fetch
+  const { data: teams, isLoading, error } = trpc.teams.getOverview.useQuery();
+
+  if (error) {
+    console.error('Failed to fetch teams:', error);
+  }
 
   if (isLoading) {
     return (
@@ -42,10 +37,10 @@ export const TeamOverview = () => {
 
   // Sample teams data for development
   const sampleTeams = [
-    { id: 1, name: "Water Project Team", memberCount: 12, color: "#3B82F6" },
-    { id: 2, name: "Education Team", memberCount: 8, color: "#10B981" },
-    { id: 3, name: "Hunger Relief Team", memberCount: 15, color: "#EF4444" },
-    { id: 4, name: "Healthcare Team", memberCount: 10, color: "#8B5CF6" }
+    { id: 1, name: "Water Project Team", memberCount: 12, color: "bg-blue-500" },
+    { id: 2, name: "Education Team", memberCount: 8, color: "bg-green-500" },
+    { id: 3, name: "Hunger Relief Team", memberCount: 15, color: "bg-red-500" },
+    { id: 4, name: "Healthcare Team", memberCount: 10, color: "bg-purple-500" }
   ];
 
   // Use real data if available, otherwise use sample data
@@ -75,8 +70,7 @@ export const TeamOverview = () => {
             className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-              style={{ backgroundColor: team.color }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${team.color}`}
             >
               {team.name.charAt(0)}
             </div>
@@ -95,7 +89,11 @@ export const TeamOverview = () => {
             </div>
             
             <EditPermissionGate resource="teams">
-              <button className="text-gray-400 hover:text-gray-600">
+              <button 
+                className="text-gray-400 hover:text-gray-600"
+                title="Team options"
+                aria-label="Team options"
+              >
                 <i className="ri-more-2-fill"></i>
               </button>
             </EditPermissionGate>

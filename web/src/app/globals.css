@@ -1,3 +1,6 @@
+/* Import progress bar styles */
+@import './progress-bars.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

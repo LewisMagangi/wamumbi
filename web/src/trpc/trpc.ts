@@ -1,6 +1,6 @@
 import { TRPCError, initTRPC } from "@trpc/server"
 import { currentUser } from "@clerk/nextjs/server"
-import { db } from "@/db"
+import { prisma } from "@/lib/prisma";
 
 const t = initTRPC.create()
 const middleware = t.middleware
@@ -12,9 +12,9 @@ const isAuth = middleware(async (opts) => {
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
 
-  const dbUser = await db.user.findFirst({
+  const dbUser = await prisma.user.findFirst({
     where: {
-      id: user.emailAddresses[0].emailAddress,
+      email: user.emailAddresses[0].emailAddress,
     },
   })
 
@@ -30,5 +30,6 @@ const isAuth = middleware(async (opts) => {
 })
 
 export const router = t.router
+export const procedure = t.procedure
 export const publicProcedure = t.procedure
 export const privateProcedure = t.procedure.use(isAuth)

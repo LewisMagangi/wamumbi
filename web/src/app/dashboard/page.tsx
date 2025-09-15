@@ -1,7 +1,5 @@
 'use client';
-import { currentUser } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import DonationProgress from '@/components/dashboard';
 import { 
@@ -9,7 +7,7 @@ import {
   UpcomingEvents 
 } from '@/components/dashboard';
 import TeamCards from '@/components/dashboard';
-import React from 'react';
+import { trpc } from '@/app/_trpc/client';
 
 // Define the dashboard stats interface
 interface DashboardStats {
@@ -51,24 +49,9 @@ const StatCards: React.FC<StatCardsProps> = ({ stats }) => {
 
 // Client component for dashboard content
 function DashboardContent() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Use tRPC query instead of fetch
+  const { data: stats, isLoading, error } = trpc.dashboard.getStats.useQuery();
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/dashboard/stats');
-        const data = await response.json();
-        setStats(data);
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
-    fetchDashboardData();
-  }, []);
   return (
     <>
       <Head>
@@ -83,10 +66,15 @@ function DashboardContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white p-6 rounded-lg shadow animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
               </div>
             ))}
+          </div>
+        ) : error ? (
+          // Error state
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            Error loading dashboard data: {error.message}
           </div>
         ) : (
           // Stat cards section

@@ -1,26 +1,17 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@/app/_trpc/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { AdminGate } from '../auth/PermissionGate';
-
-type DashboardStats = {
-  activeVolunteers?: number;
-  monthlyDonations?: number;
-  upcomingEvents?: number;
-  activeProjects?: number;
-};
 
 export const StatisticsCards = () => {
   const { role } = useAuth();
   
-  const { data: stats, isLoading } = useQuery({
-  queryKey: ['/api/dashboard/stats'],
-  queryFn: async () => {
-    const res = await fetch('/api/dashboard/stats');
-    if (!res.ok) throw new Error('Network response was not ok');
-    return res.json();
-  },
-});
+  // Use tRPC query instead of fetch
+  const { data: stats, isLoading, error } = trpc.dashboard.getStats.useQuery();
+
+  if (error) {
+    console.error('Failed to fetch dashboard stats:', error);
+  }
 
   // Default sample stats for development
   const sampleStats = {
@@ -172,8 +163,7 @@ export const StatisticsCards = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div 
-                    className="bg-amber-500 h-1.5 rounded-full" 
-                    style={{ width: `${statsData.activeProjects.completionRate}%` }}
+                    className={`bg-amber-500 h-1.5 rounded-full transition-all duration-300 progress-bar-${statsData.activeProjects.completionRate}`}
                   ></div>
                 </div>
               </div>
