@@ -156,7 +156,6 @@ Key properties to extract from mockups:
 **Features**:
 
 - Fixed positioning with backdrop blur effect
-- Fixed positioning with backdrop blur effect
 - Responsive design with mobile hamburger menu
 - Integrated Clerk authentication (SignIn/SignUp/UserButton)
 - Prominent donation CTA with rose accent color
