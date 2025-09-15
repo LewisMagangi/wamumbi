@@ -441,7 +441,7 @@ This document outlines the technical and functional requirements for the Wamumbi
   "projectId": "integer (optional)",
   "eventId": "integer (optional)",
   "location": "string (optional)",
-  "superviserNotes": "string (optional)"
+  "supervisorNotes": "string (optional)"
 }
 ```
 
