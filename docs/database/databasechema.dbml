@@ -1,0 +1,424 @@
+// Charity Management System Database Schema - Normalized for 3NF
+
+// Lookup tables for better normalization
+Table categories {
+  id integer [primary key, increment]
+  name varchar(100) [unique, not null]
+  description text
+  type enum('team', 'campaign', 'blog') [not null]
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table user_roles {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  permissions json [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table user_statuses {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  is_active boolean [not null, default: true]
+}
+
+Table addresses {
+  id integer [primary key, increment]
+  street_line_1 varchar(255) [not null]
+  street_line_2 varchar(255)
+  city varchar(100) [not null]
+  state varchar(100) [not null]
+  postal_code varchar(20) [not null]
+  country varchar(100) [not null, default: 'United States']
+  latitude decimal(10,8)
+  longitude decimal(11,8)
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table users {
+  id integer [primary key, increment]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  phone varchar(20)
+  role_id integer [ref: > user_roles.id, not null]
+  status_id integer [ref: > user_statuses.id, not null]
+  profile_image varchar(255)
+  address_id integer [ref: > addresses.id, null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  last_login timestamp
+}
+
+Table teams {
+  id integer [primary key, increment]
+  name varchar(100) [not null]
+  description text
+  category_id integer [ref: > categories.id, not null]
+  team_leader_id integer [ref: > users.id]
+  status enum('active', 'inactive') [not null, default: 'active']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table team_members {
+  id integer [primary key, increment]
+  team_id integer [ref: > teams.id]
+  user_id integer [ref: > users.id]
+  joined_at timestamp [not null, default: `now()`]
+  status enum('active', 'inactive') [not null, default: 'active']
+  
+  indexes {
+    (team_id, user_id) [unique]
+  }
+}
+
+Table campaigns {
+  id integer [primary key, increment]
+  title varchar(200) [not null]
+  description text [not null]
+  goal_amount decimal(12,2) [not null]
+  category_id integer [ref: > categories.id, not null]
+  status enum('active', 'paused', 'completed', 'cancelled') [not null, default: 'active']
+  start_date date [not null]
+  end_date date
+  image_url varchar(255)
+  address_id integer [ref: > addresses.id, null]
+  target_beneficiaries integer
+  urgency_level enum('low', 'medium', 'high', 'critical') [not null, default: 'medium']
+  created_by integer [ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+// Separate table to track campaign statistics (calculated values)
+Table campaign_statistics {
+  id integer [primary key, increment]
+  campaign_id integer [ref: > campaigns.id, unique]
+  current_amount decimal(12,2) [not null, default: 0]
+  donations_count integer [not null, default: 0]
+  unique_donors_count integer [not null, default: 0]
+  average_donation decimal(10,2) [not null, default: 0]
+  last_donation_date timestamp
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table donors {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id, null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  email varchar(255) [not null]
+  phone varchar(20)
+  address_id integer [ref: > addresses.id, null]
+  is_anonymous boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table payment_methods {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  processing_fee_percentage decimal(5,4) [default: 0]
+  is_active boolean [not null, default: true]
+  requires_verification boolean [not null, default: false]
+}
+
+Table donations {
+  id integer [primary key, increment]
+  donor_id integer [ref: > donors.id]
+  campaign_id integer [ref: > campaigns.id]
+  amount decimal(10,2) [not null]
+  currency varchar(3) [not null, default: 'USD']
+  payment_method_id integer [ref: > payment_methods.id, not null]
+  payment_reference varchar(100)
+  status enum('pending', 'completed', 'failed', 'refunded') [not null, default: 'pending']
+  is_recurring boolean [not null, default: false]
+  recurring_frequency enum('weekly', 'monthly', 'quarterly', 'annually') [null]
+  notes text
+  donation_date timestamp [not null, default: `now()`]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table projects {
+  id integer [primary key, increment]
+  title varchar(200) [not null]
+  description text [not null]
+  team_id integer [ref: > teams.id]
+  campaign_id integer [ref: > campaigns.id, null]
+  start_date date [not null]
+  end_date date
+  status enum('planning', 'active', 'on_hold', 'completed', 'cancelled') [not null, default: 'planning']
+  budget decimal(12,2)
+  address_id integer [ref: > addresses.id, null]
+  created_by integer [ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+// Separate table for project progress tracking
+Table project_progress {
+  id integer [primary key, increment]
+  project_id integer [ref: > projects.id, unique]
+  progress_percentage integer [not null, default: 0]
+  hours_logged decimal(8,2) [not null, default: 0]
+  volunteers_count integer [not null, default: 0]
+  last_update_date timestamp
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table events {
+  id integer [primary key, increment]
+  title varchar(200) [not null]
+  description text [not null]
+  event_date datetime [not null]
+  address_id integer [ref: > addresses.id, not null]
+  capacity integer [not null]
+  ticket_price decimal(8,2) [not null, default: 0]
+  status enum('upcoming', 'ongoing', 'completed', 'cancelled') [not null, default: 'upcoming']
+  image_url varchar(255)
+  registration_deadline datetime
+  category enum('fundraising', 'volunteer', 'educational', 'social') [not null]
+  created_by integer [ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table event_registrations {
+  id integer [primary key, increment]
+  event_id integer [ref: > events.id]
+  user_id integer [ref: > users.id]
+  registration_date timestamp [not null, default: `now()`]
+  status enum('registered', 'confirmed', 'attended', 'cancelled') [not null, default: 'registered']
+  payment_status enum('pending', 'paid', 'refunded') [not null, default: 'pending']
+  payment_reference varchar(100)
+  special_requirements text
+  
+  indexes {
+    (event_id, user_id) [unique]
+  }
+}
+
+Table emergency_contacts {
+  id integer [primary key, increment]
+  name varchar(100) [not null]
+  phone varchar(20) [not null]
+  email varchar(255)
+  relationship varchar(50) [not null]
+  address_id integer [ref: > addresses.id, null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table volunteer_skills {
+  id integer [primary key, increment]
+  name varchar(100) [unique, not null]
+  description text
+  category varchar(50)
+  is_active boolean [not null, default: true]
+}
+
+Table volunteers {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id]
+  availability text
+  emergency_contact_id integer [ref: > emergency_contacts.id, not null]
+  background_check_status enum('pending', 'approved', 'rejected') [default: 'pending']
+  background_check_date date
+  background_check_expiry date
+  joined_date date [not null]
+  status enum('active', 'inactive', 'pending') [not null, default: 'pending']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+// Junction table for volunteer skills (many-to-many)
+Table volunteer_skill_assignments {
+  id integer [primary key, increment]
+  volunteer_id integer [ref: > volunteers.id]
+  skill_id integer [ref: > volunteer_skills.id]
+  proficiency_level enum('beginner', 'intermediate', 'advanced', 'expert') [not null, default: 'beginner']
+  years_experience integer [default: 0]
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    (volunteer_id, skill_id) [unique]
+  }
+}
+
+// Separate table for volunteer statistics (calculated values)
+Table volunteer_statistics {
+  id integer [primary key, increment]
+  volunteer_id integer [ref: > volunteers.id, unique]
+  total_hours decimal(8,2) [not null, default: 0]
+  activities_count integer [not null, default: 0]
+  projects_count integer [not null, default: 0]
+  events_count integer [not null, default: 0]
+  last_activity_date timestamp
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table volunteer_activities {
+  id integer [primary key, increment]
+  volunteer_id integer [ref: > volunteers.id]
+  activity_type enum('project_work', 'event_help', 'administrative', 'fundraising', 'other') [not null]
+  description text [not null]
+  hours_logged decimal(4,2) [not null]
+  activity_date date [not null]
+  project_id integer [ref: > projects.id, null]
+  event_id integer [ref: > events.id, null]
+  verified_by integer [ref: > users.id, null]
+  verification_date timestamp
+  verification_notes text
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table blog_posts {
+  id integer [primary key, increment]
+  title varchar(200) [not null]
+  content text [not null]
+  excerpt text
+  category_id integer [ref: > categories.id, not null]
+  status enum('draft', 'published', 'archived') [not null, default: 'draft']
+  featured_image varchar(255)
+  author_id integer [ref: > users.id]
+  published_at timestamp [null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table notification_types {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  template_subject varchar(255)
+  template_body text
+  is_active boolean [not null, default: true]
+}
+
+Table notifications {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id]
+  notification_type_id integer [ref: > notification_types.id, not null]
+  title varchar(200) [not null]
+  message text [not null]
+  is_read boolean [not null, default: false]
+  related_entity_type varchar(50) [null]
+  related_entity_id integer [null]
+  delivery_method enum('email', 'sms', 'push', 'in_app') [not null, default: 'in_app']
+  delivered_at timestamp
+  read_at timestamp
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table setting_categories {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  display_order integer [default: 0]
+}
+
+Table setting_data_types {
+  id integer [primary key, increment]
+  name varchar(20) [unique, not null]
+  validation_pattern varchar(255)
+  description text
+}
+
+Table settings {
+  id integer [primary key, increment]
+  key varchar(100) [unique, not null]
+  value text [not null]
+  description text
+  category_id integer [ref: > setting_categories.id, not null]
+  data_type_id integer [ref: > setting_data_types.id, not null]
+  is_public boolean [not null, default: false]
+  is_encrypted boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table team_communications {
+  id integer [primary key, increment]
+  team_id integer [ref: > teams.id]
+  sender_id integer [ref: > users.id]
+  message_type enum('announcement', 'discussion', 'poll') [not null]
+  title varchar(200) [not null]
+  content text [not null]
+  is_pinned boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+Table team_polls {
+  id integer [primary key, increment]
+  communication_id integer [ref: > team_communications.id]
+  question text [not null]
+  is_multiple_choice boolean [not null, default: false]
+  closes_at timestamp
+  is_anonymous boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table team_poll_options {
+  id integer [primary key, increment]
+  poll_id integer [ref: > team_polls.id]
+  option_text varchar(255) [not null]
+  display_order integer [not null]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table team_poll_votes {
+  id integer [primary key, increment]
+  poll_id integer [ref: > team_polls.id]
+  user_id integer [ref: > users.id]
+  option_id integer [ref: > team_poll_options.id, not null]
+  voted_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    (poll_id, user_id, option_id) [unique]
+  }
+}
+
+Table entity_types {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  table_name varchar(50) [not null]
+  description text
+}
+
+Table audit_actions {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  severity enum('low', 'medium', 'high', 'critical') [not null, default: 'medium']
+}
+
+Table audit_logs {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id, null]
+  action_id integer [ref: > audit_actions.id, not null]
+  entity_type_id integer [ref: > entity_types.id, not null]
+  entity_id integer [not null]
+  old_values json [null]
+  new_values json [null]
+  ip_address varchar(45)
+  user_agent text
+  session_id varchar(255)
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    (entity_type_id, entity_id)
+    (user_id, created_at)
+    (action_id, created_at)
+  }
+}
