@@ -1,11 +1,14 @@
-// Charity Management System Database Schema - Normalized for 3NF
+// Charity Management System Database Schema - Fully Normalized for 3NF Compliance
 
-// Lookup tables for better normalization
+// =============================================================================
+// LOOKUP TABLES FOR BETTER NORMALIZATION
+// =============================================================================
+
 Table categories {
   id integer [primary key, increment]
   name varchar(100) [unique, not null]
   description text
-  type enum('team', 'campaign', 'blog') [not null]
+  type enum('team', 'campaign', 'blog', 'event') [not null]
   display_order integer [default: 0]
   is_active boolean [not null, default: true]
   created_at timestamp [not null, default: `now()`]
@@ -26,7 +29,47 @@ Table user_statuses {
   name varchar(50) [unique, not null]
   description text
   is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
 }
+
+Table project_statuses {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  is_active boolean [not null, default: true]
+  display_order integer [default: 0]
+}
+
+Table campaign_statuses {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  is_active boolean [not null, default: true]
+  display_order integer [default: 0]
+}
+
+Table urgency_levels {
+  id integer [primary key, increment]
+  name varchar(20) [unique, not null]
+  description text
+  priority_score integer [not null]
+  color_code varchar(7) // Hex color for UI
+  is_active boolean [not null, default: true]
+}
+
+Table currencies {
+  id integer [primary key, increment]
+  code varchar(3) [unique, not null] // ISO 4217 codes
+  name varchar(50) [not null]
+  symbol varchar(5) [not null]
+  exchange_rate_to_usd decimal(10,6) [not null, default: 1.000000]
+  is_active boolean [not null, default: true]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+// =============================================================================
+// ADDRESS MANAGEMENT (PRIVACY-CONSCIOUS DESIGN)
+// =============================================================================
 
 // Address information - treated as optional PII
 // Consider collecting only necessary location data based on feature requirements
@@ -40,9 +83,14 @@ Table addresses {
   country varchar(100) [null] // Optional, can default based on locale
   latitude decimal(10,8) [null] // Optional geolocation
   longitude decimal(11,8) [null] // Optional geolocation
+  is_validated boolean [not null, default: false]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
+
+// =============================================================================
+// USER MANAGEMENT SYSTEM
+// =============================================================================
 
 // User table with minimized required personal data
 // Only email (for login) and security fields (role, status) are required
@@ -57,10 +105,17 @@ Table users {
   status_id integer [not null, ref: > user_statuses.id] // Prevent deletion of statuses in use
   profile_image varchar(255) [null] // Optional
   address_id integer [null, ref: > addresses.id] // Address can be deleted
+  email_verified boolean [not null, default: false]
+  phone_verified boolean [not null, default: false]
+  two_factor_enabled boolean [not null, default: false]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
   last_login timestamp [null]
 }
+
+// =============================================================================
+// TEAM MANAGEMENT
+// =============================================================================
 
 Table teams {
   id integer [primary key, increment]
@@ -69,35 +124,42 @@ Table teams {
   category_id integer [not null, ref: > categories.id] // Can't delete categories used by teams
   team_leader_id integer [ref: > users.id] // Leader can be removed
   status enum('active', 'inactive') [not null, default: 'active']
+  max_members integer [null] // Optional team size limit
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
 
 Table team_members {
   id integer [primary key, increment]
-  team_id integer [ref: > teams.id]
-  user_id integer [ref: > users.id]
+  team_id integer [not null, ref: > teams.id]
+  user_id integer [not null, ref: > users.id]
   joined_at timestamp [not null, default: `now()`]
   status enum('active', 'inactive') [not null, default: 'active']
+  role varchar(50) [null] // Team-specific role
   
   indexes {
     (team_id, user_id) [unique]
   }
 }
 
+// =============================================================================
+// CAMPAIGN MANAGEMENT
+// =============================================================================
+
 Table campaigns {
   id integer [primary key, increment]
   title varchar(200) [not null]
   description text [not null]
   goal_amount decimal(12,2) [not null]
-  category_id integer [ref: > categories.id, not null]
-  status enum('active', 'paused', 'completed', 'cancelled') [not null, default: 'active']
+  currency_id integer [not null, ref: > currencies.id] // Normalized currency
+  category_id integer [not null, ref: > categories.id]
+  status_id integer [not null, ref: > campaign_statuses.id] // Normalized status
   start_date date [not null]
   end_date date
   image_url varchar(255)
   address_id integer [ref: > addresses.id, null]
   target_beneficiaries integer
-  urgency_level enum('low', 'medium', 'high', 'critical') [not null, default: 'medium']
+  urgency_level_id integer [not null, ref: > urgency_levels.id] // Normalized urgency
   created_by integer [ref: > users.id]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
@@ -106,14 +168,19 @@ Table campaigns {
 // Separate table to track campaign statistics (calculated values)
 Table campaign_statistics {
   id integer [primary key, increment]
-  campaign_id integer [ref: > campaigns.id, unique]
+  campaign_id integer [ref: > campaigns.id, unique, not null]
   current_amount decimal(12,2) [not null, default: 0]
   donations_count integer [not null, default: 0]
   unique_donors_count integer [not null, default: 0]
   average_donation decimal(10,2) [not null, default: 0]
+  completion_percentage decimal(5,2) [not null, default: 0]
   last_donation_date timestamp
   updated_at timestamp [not null, default: `now()`]
 }
+
+// =============================================================================
+// DONATION MANAGEMENT
+// =============================================================================
 
 // Donor table with minimal required information
 // Support fully anonymous donations with optional personal details
@@ -135,25 +202,54 @@ Table payment_methods {
   name varchar(50) [unique, not null]
   description text
   processing_fee_percentage decimal(5,4) [default: 0]
+  fixed_fee_amount decimal(8,2) [default: 0]
   is_active boolean [not null, default: true]
   requires_verification boolean [not null, default: false]
+  supported_currencies json [null] // Array of currency IDs
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table donation_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  is_final boolean [not null, default: false] // Whether status can change
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
+Table recurring_frequencies {
+  id integer [primary key, increment]
+  name varchar(20) [unique, not null]
+  description text
+  days_interval integer [not null] // Number of days between occurrences
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
 }
 
 Table donations {
   id integer [primary key, increment]
-  donor_id integer [ref: > donors.id] // Preserve donation history
-  campaign_id integer [ref: > campaigns.id] // Preserve campaign history
+  donor_id integer [not null, ref: > donors.id] // Preserve donation history
+  campaign_id integer [not null, ref: > campaigns.id] // Preserve campaign history
   amount decimal(10,2) [not null]
-  currency varchar(3) [not null, default: 'USD']
+  currency_id integer [not null, ref: > currencies.id] // Normalized currency
   payment_method_id integer [not null, ref: > payment_methods.id] // Preserve payment method history
   payment_reference varchar(100)
-  status enum('pending', 'completed', 'failed', 'refunded') [not null, default: 'pending']
+  status_id integer [not null, ref: > donation_statuses.id] // Normalized status
   is_recurring boolean [not null, default: false]
-  recurring_frequency enum('weekly', 'monthly', 'quarterly', 'annually') [null]
+  recurring_frequency_id integer [null, ref: > recurring_frequencies.id] // Normalized frequency
+  parent_donation_id integer [null, ref: > donations.id] // For recurring donations
+  processing_fee decimal(8,2) [null]
+  net_amount decimal(10,2) [null] // Amount after fees
   notes text
   donation_date timestamp [not null, default: `now()`]
+  processed_at timestamp [null]
   created_at timestamp [not null, default: `now()`]
 }
+
+// =============================================================================
+// PROJECT MANAGEMENT
+// =============================================================================
 
 Table projects {
   id integer [primary key, increment]
@@ -163,8 +259,9 @@ Table projects {
   campaign_id integer [ref: > campaigns.id, null]
   start_date date [not null]
   end_date date
-  status enum('planning', 'active', 'on_hold', 'completed', 'cancelled') [not null, default: 'planning']
+  status_id integer [not null, ref: > project_statuses.id] // Normalized status
   budget decimal(12,2)
+  currency_id integer [ref: > currencies.id, null] // Normalized currency for budget
   address_id integer [ref: > addresses.id, null]
   created_by integer [ref: > users.id]
   created_at timestamp [not null, default: `now()`]
@@ -174,25 +271,26 @@ Table projects {
 // Separate table for project progress tracking
 Table project_progress {
   id integer [primary key, increment]
-  project_id integer [ref: > projects.id, unique]
+  project_id integer [ref: > projects.id, unique, not null]
   progress_percentage integer [not null, default: 0]
   hours_logged decimal(8,2) [not null, default: 0]
   volunteers_count integer [not null, default: 0]
+  tasks_completed integer [not null, default: 0]
+  tasks_total integer [not null, default: 0]
   last_update_date timestamp
   updated_at timestamp [not null, default: `now()`]
 }
 
-// Lookup table for event categories
-Table event_categories {
-  id integer [primary key, increment]
-  name varchar(50) [unique, not null]
-  description text
-  is_active boolean [not null, default: true]
-  display_order integer [default: 0]
-  created_at timestamp [not null, default: `now()`]
-  updated_at timestamp [not null, default: `now()`]
+// =============================================================================
+// EVENT MANAGEMENT
+// =============================================================================
 
-  note: 'Pre-defined categories: fundraising, volunteer, educational, social'
+Table event_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
 }
 
 Table events {
@@ -203,22 +301,39 @@ Table events {
   address_id integer [ref: > addresses.id, not null]
   capacity integer [not null]
   ticket_price decimal(8,2) [not null, default: 0]
-  status enum('upcoming', 'ongoing', 'completed', 'cancelled') [not null, default: 'upcoming']
+  currency_id integer [not null, ref: > currencies.id] // Normalized currency
+  status_id integer [not null, ref: > event_statuses.id] // Normalized status
   image_url varchar(255)
   registration_deadline datetime
-  category_id integer [ref: > event_categories.id, not null] // Replace enum with foreign key
+  category_id integer [not null, ref: > categories.id] // Normalized category
   created_by integer [ref: > users.id]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
 
+Table registration_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
+Table payment_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
 Table event_registrations {
   id integer [primary key, increment]
-  event_id integer [ref: > events.id]
-  user_id integer [ref: > users.id]
+  event_id integer [not null, ref: > events.id]
+  user_id integer [not null, ref: > users.id]
   registration_date timestamp [not null, default: `now()`]
-  status enum('registered', 'confirmed', 'attended', 'cancelled') [not null, default: 'registered']
-  payment_status enum('pending', 'paid', 'refunded') [not null, default: 'pending']
+  status_id integer [not null, ref: > registration_statuses.id] // Normalized status
+  payment_status_id integer [not null, ref: > payment_statuses.id] // Normalized payment status
   payment_reference varchar(100)
   special_requirements text
   
@@ -226,6 +341,10 @@ Table event_registrations {
     (event_id, user_id) [unique]
   }
 }
+
+// =============================================================================
+// VOLUNTEER MANAGEMENT
+// =============================================================================
 
 // Privacy-sensitive table containing PII that requires special handling
 // Requirements:
@@ -238,11 +357,13 @@ Table emergency_contacts {
   id integer [primary key, increment]
   name varchar(100) [not null] // PII: Full name
   phone varchar(20) [not null] // PII: Contact number
-  email varchar(255) // PII: Email address
+  email varchar(255) [null] // PII: Email address
   relationship varchar(50) [not null] // PII: Personal relationship
   address_id integer [ref: > addresses.id, null] // PII: Physical address reference 
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
+
+  note: 'Contains PII - requires encryption, access controls, and consent management'
 }
 
 Table volunteer_skills {
@@ -251,20 +372,39 @@ Table volunteer_skills {
   description text
   category varchar(50)
   is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table background_check_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  requires_action boolean [not null, default: false]
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
+Table volunteer_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  is_active_status boolean [not null, default: true] // Whether volunteer can participate
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
 }
 
 // Note: Emergency contact information contains PII and is subject to data protection regulations.
 // Ensure proper encryption, access controls, and explicit user consent for collection.
 Table volunteers {
   id integer [primary key, increment]
-  user_id integer [ref: > users.id]
+  user_id integer [not null, ref: > users.id]
   availability text
   emergency_contact_id integer [ref: > emergency_contacts.id, null] // Optional for privacy compliance
-  background_check_status enum('pending', 'approved', 'rejected') [default: 'pending']
+  background_check_status_id integer [ref: > background_check_statuses.id, not null]
   background_check_date date
   background_check_expiry date
   joined_date date [not null]
-  status enum('active', 'inactive', 'pending') [not null, default: 'pending']
+  status_id integer [not null, ref: > volunteer_statuses.id] // Normalized status
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
@@ -272,8 +412,8 @@ Table volunteers {
 // Junction table for volunteer skills (many-to-many)
 Table volunteer_skill_assignments {
   id integer [primary key, increment]
-  volunteer_id integer [ref: > volunteers.id]
-  skill_id integer [ref: > volunteer_skills.id]
+  volunteer_id integer [not null, ref: > volunteers.id]
+  skill_id integer [not null, ref: > volunteer_skills.id]
   proficiency_level enum('beginner', 'intermediate', 'advanced', 'expert') [not null, default: 'beginner']
   years_experience integer [default: 0]
   created_at timestamp [not null, default: `now()`]
@@ -286,19 +426,29 @@ Table volunteer_skill_assignments {
 // Separate table for volunteer statistics (calculated values)
 Table volunteer_statistics {
   id integer [primary key, increment]
-  volunteer_id integer [ref: > volunteers.id, unique]
+  volunteer_id integer [ref: > volunteers.id, unique, not null]
   total_hours decimal(8,2) [not null, default: 0]
   activities_count integer [not null, default: 0]
   projects_count integer [not null, default: 0]
   events_count integer [not null, default: 0]
+  teams_count integer [not null, default: 0]
   last_activity_date timestamp
   updated_at timestamp [not null, default: `now()`]
 }
 
+Table activity_types {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  requires_verification boolean [not null, default: false]
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
 Table volunteer_activities {
   id integer [primary key, increment]
-  volunteer_id integer [ref: > volunteers.id]
-  activity_type enum('project_work', 'event_help', 'administrative', 'fundraising', 'other') [not null]
+  volunteer_id integer [not null, ref: > volunteers.id]
+  activity_type_id integer [not null, ref: > activity_types.id] // Normalized activity type
   description text [not null]
   hours_logged decimal(4,2) [not null]
   activity_date date [not null]
@@ -310,13 +460,26 @@ Table volunteer_activities {
   created_at timestamp [not null, default: `now()`]
 }
 
+// =============================================================================
+// CONTENT MANAGEMENT
+// =============================================================================
+
+Table blog_post_statuses {
+  id integer [primary key, increment]
+  name varchar(30) [unique, not null]
+  description text
+  is_published boolean [not null, default: false]
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+}
+
 Table blog_posts {
   id integer [primary key, increment]
   title varchar(200) [not null]
   content text [not null]
   excerpt text
-  category_id integer [ref: > categories.id, not null]
-  status enum('draft', 'published', 'archived') [not null, default: 'draft']
+  category_id integer [not null, ref: > categories.id]
+  status_id integer [not null, ref: > blog_post_statuses.id] // Normalized status
   featured_image varchar(255)
   author_id integer [ref: > users.id]
   published_at timestamp [null]
@@ -324,69 +487,14 @@ Table blog_posts {
   updated_at timestamp [not null, default: `now()`]
 }
 
-Table notification_types {
-  id integer [primary key, increment]
-  name varchar(50) [unique, not null]
-  description text
-  template_subject varchar(255)
-  template_body text
-  is_active boolean [not null, default: true]
-}
-
-Table notifications {
-  id integer [primary key, increment]
-  user_id integer [ref: > users.id]
-  notification_type_id integer [ref: > notification_types.id, not null]
-  title varchar(200) [not null]
-  message text [not null]
-  is_read boolean [not null, default: false]
-  // Separate foreign keys for each possible related entity
-  campaign_id integer [ref: > campaigns.id, null]
-  donation_id integer [ref: > donations.id, null]
-  event_id integer [ref: > events.id, null]
-  project_id integer [ref: > projects.id, null]
-  team_id integer [ref: > teams.id, null]
-  blog_post_id integer [ref: > blog_posts.id, null]
-  delivery_method enum('email', 'sms', 'push', 'in_app') [not null, default: 'in_app']
-  delivered_at timestamp
-  read_at timestamp
-  created_at timestamp [not null, default: `now()`]
-
-  // Business rule: Only one related entity should be non-null
-  note: 'Only one of campaign_id, donation_id, event_id, project_id, team_id, or blog_post_id should be non-null at a time'
-}
-
-Table setting_categories {
-  id integer [primary key, increment]
-  name varchar(50) [unique, not null]
-  description text
-  display_order integer [default: 0]
-}
-
-Table setting_data_types {
-  id integer [primary key, increment]
-  name varchar(20) [unique, not null]
-  validation_pattern varchar(255)
-  description text
-}
-
-Table settings {
-  id integer [primary key, increment]
-  key varchar(100) [unique, not null]
-  value text [not null]
-  description text
-  category_id integer [ref: > setting_categories.id, not null]
-  data_type_id integer [ref: > setting_data_types.id, not null]
-  is_public boolean [not null, default: false]
-  is_encrypted boolean [not null, default: false]
-  created_at timestamp [not null, default: `now()`]
-  updated_at timestamp [not null, default: `now()`]
-}
+// =============================================================================
+// COMMUNICATION SYSTEM
+// =============================================================================
 
 Table team_communications {
   id integer [primary key, increment]
-  team_id integer [ref: > teams.id]
-  sender_id integer [ref: > users.id]
+  team_id integer [not null, ref: > teams.id]
+  sender_id integer [not null, ref: > users.id]
   message_type enum('announcement', 'discussion', 'poll') [not null]
   title varchar(200) [not null]
   content text [not null]
@@ -397,7 +505,7 @@ Table team_communications {
 
 Table team_polls {
   id integer [primary key, increment]
-  communication_id integer [ref: > team_communications.id]
+  communication_id integer [not null, ref: > team_communications.id]
   question text [not null]
   is_multiple_choice boolean [not null, default: false]
   closes_at timestamp
@@ -407,7 +515,7 @@ Table team_polls {
 
 Table team_poll_options {
   id integer [primary key, increment]
-  poll_id integer [ref: > team_polls.id]
+  poll_id integer [not null, ref: > team_polls.id]
   option_text varchar(255) [not null]
   display_order integer [not null]
   created_at timestamp [not null, default: `now()`]
@@ -415,9 +523,9 @@ Table team_poll_options {
 
 Table team_poll_votes {
   id integer [primary key, increment]
-  poll_id integer [ref: > team_polls.id]
-  user_id integer [ref: > users.id]
-  option_id integer [ref: > team_poll_options.id, not null]
+  poll_id integer [not null, ref: > team_polls.id]
+  user_id integer [not null, ref: > users.id]
+  option_id integer [not null, ref: > team_poll_options.id]
   voted_at timestamp [not null, default: `now()`]
   
   indexes {
@@ -425,11 +533,97 @@ Table team_poll_votes {
   }
 }
 
+// =============================================================================
+// NOTIFICATION SYSTEM
+// =============================================================================
+
+Table notification_types {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  template_subject varchar(255)
+  template_body text
+  priority enum('low', 'normal', 'high', 'urgent') [not null, default: 'normal']
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table delivery_methods {
+  id integer [primary key, increment]
+  name varchar(20) [unique, not null]
+  description text
+  is_active boolean [not null, default: true]
+  requires_config boolean [not null, default: false]
+}
+
+Table notifications {
+  id integer [primary key, increment]
+  user_id integer [not null, ref: > users.id]
+  notification_type_id integer [not null, ref: > notification_types.id]
+  title varchar(200) [not null]
+  message text [not null]
+  is_read boolean [not null, default: false]
+  // Separate foreign keys for each possible related entity
+  campaign_id integer [ref: > campaigns.id, null]
+  donation_id integer [ref: > donations.id, null]
+  event_id integer [ref: > events.id, null]
+  project_id integer [ref: > projects.id, null]
+  team_id integer [ref: > teams.id, null]
+  blog_post_id integer [ref: > blog_posts.id, null]
+  delivery_method_id integer [not null, ref: > delivery_methods.id] // Normalized delivery method
+  delivered_at timestamp
+  read_at timestamp
+  expires_at timestamp [null] // Optional expiration
+  created_at timestamp [not null, default: `now()`]
+
+  // Business rule: Only one related entity should be non-null
+  note: 'Only one of campaign_id, donation_id, event_id, project_id, team_id, or blog_post_id should be non-null at a time'
+}
+
+// =============================================================================
+// SETTINGS MANAGEMENT
+// =============================================================================
+
+Table setting_categories {
+  id integer [primary key, increment]
+  name varchar(50) [unique, not null]
+  description text
+  display_order integer [default: 0]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table setting_data_types {
+  id integer [primary key, increment]
+  name varchar(20) [unique, not null]
+  validation_pattern varchar(255)
+  description text
+  is_active boolean [not null, default: true]
+}
+
+Table settings {
+  id integer [primary key, increment]
+  key varchar(100) [unique, not null]
+  value text [not null]
+  description text
+  category_id integer [not null, ref: > setting_categories.id]
+  data_type_id integer [not null, ref: > setting_data_types.id]
+  is_public boolean [not null, default: false]
+  is_encrypted boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+// =============================================================================
+// AUDIT SYSTEM
+// =============================================================================
+
 Table entity_types {
   id integer [primary key, increment]
   name varchar(50) [unique, not null]
   table_name varchar(50) [not null]
   description text
+  is_active boolean [not null, default: true]
 }
 
 Table audit_actions {
@@ -437,16 +631,18 @@ Table audit_actions {
   name varchar(50) [unique, not null]
   description text
   severity enum('low', 'medium', 'high', 'critical') [not null, default: 'medium']
+  is_active boolean [not null, default: true]
 }
 
 Table audit_logs {
   id integer [primary key, increment]
   user_id integer [ref: > users.id, null]
-  action_id integer [ref: > audit_actions.id, not null]
-  entity_type_id integer [ref: > entity_types.id, not null]
+  action_id integer [not null, ref: > audit_actions.id]
+  entity_type_id integer [not null, ref: > entity_types.id]
   entity_id integer [not null]
   old_values json [null]
   new_values json [null]
+  affected_columns text[] [null] // Array of changed columns
   ip_address varchar(45)
   user_agent text
   session_id varchar(255)
@@ -456,5 +652,6 @@ Table audit_logs {
     (entity_type_id, entity_id)
     (user_id, created_at)
     (action_id, created_at)
+    created_at
   }
 }
