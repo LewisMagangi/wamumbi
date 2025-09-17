@@ -312,12 +312,20 @@ Table notifications {
   title varchar(200) [not null]
   message text [not null]
   is_read boolean [not null, default: false]
-  related_entity_type varchar(50) [null]
-  related_entity_id integer [null]
+  // Separate foreign keys for each possible related entity
+  campaign_id integer [ref: > campaigns.id, null]
+  donation_id integer [ref: > donations.id, null]
+  event_id integer [ref: > events.id, null]
+  project_id integer [ref: > projects.id, null]
+  team_id integer [ref: > teams.id, null]
+  blog_post_id integer [ref: > blog_posts.id, null]
   delivery_method enum('email', 'sms', 'push', 'in_app') [not null, default: 'in_app']
   delivered_at timestamp
   read_at timestamp
   created_at timestamp [not null, default: `now()`]
+
+  // Business rule: Only one related entity should be non-null
+  note: 'Only one of campaign_id, donation_id, event_id, project_id, team_id, or blog_post_id should be non-null at a time'
 }
 
 Table setting_categories {
