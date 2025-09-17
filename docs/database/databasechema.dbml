@@ -53,10 +53,10 @@ Table users {
   first_name varchar(100) [null] // Optional personal info
   last_name varchar(100) [null] // Optional personal info
   phone varchar(20) [null] // Optional contact info
-  role_id integer [ref: > user_roles.id, not null] // Required for security
-  status_id integer [ref: > user_statuses.id, not null] // Required for security
+  role_id integer [not null, ref: > user_roles.id] // Prevent deletion of roles in use
+  status_id integer [not null, ref: > user_statuses.id] // Prevent deletion of statuses in use
   profile_image varchar(255) [null] // Optional
-  address_id integer [ref: > addresses.id, null] // Optional location info
+  address_id integer [null, ref: > addresses.id] // Address can be deleted
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
   last_login timestamp [null]
@@ -66,8 +66,8 @@ Table teams {
   id integer [primary key, increment]
   name varchar(100) [not null]
   description text
-  category_id integer [ref: > categories.id, not null]
-  team_leader_id integer [ref: > users.id]
+  category_id integer [not null, ref: > categories.id] // Can't delete categories used by teams
+  team_leader_id integer [ref: > users.id] // Leader can be removed
   status enum('active', 'inactive') [not null, default: 'active']
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
@@ -141,11 +141,11 @@ Table payment_methods {
 
 Table donations {
   id integer [primary key, increment]
-  donor_id integer [ref: > donors.id]
-  campaign_id integer [ref: > campaigns.id]
+  donor_id integer [ref: > donors.id] // Preserve donation history
+  campaign_id integer [ref: > campaigns.id] // Preserve campaign history
   amount decimal(10,2) [not null]
   currency varchar(3) [not null, default: 'USD']
-  payment_method_id integer [ref: > payment_methods.id, not null]
+  payment_method_id integer [not null, ref: > payment_methods.id] // Preserve payment method history
   payment_reference varchar(100)
   status enum('pending', 'completed', 'failed', 'refunded') [not null, default: 'pending']
   is_recurring boolean [not null, default: false]
