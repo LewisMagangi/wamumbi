@@ -633,6 +633,19 @@ Response includes pagination metadata:
 
 ---
 
+## Authentication Requirements
+
+All API endpoints are protected using Clerk authentication middleware. For detailed information about:
+
+- Authentication flows
+- Session handling
+- API protection
+- Role-based access control
+- Security headers
+- Token management
+
+Please refer to [Authentication Documentation](./authentication.md).
+
 ## Filtering and Sorting
 
 Many endpoints support filtering and sorting:
