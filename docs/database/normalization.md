@@ -767,26 +767,62 @@ The following calculated fields are intentionally maintained for performance:
 #### Update Mechanisms
 
 ```sql
--- Trigger to update campaign current_amount
-CREATE OR REPLACE FUNCTION update_campaign_amount()
+-- Function to update campaign statistics
+CREATE OR REPLACE FUNCTION update_campaign_statistics()
 RETURNS TRIGGER AS $$
+DECLARE
+    target_campaign_id INTEGER;
 BEGIN
-  UPDATE campaigns 
-  SET current_amount = (
-    SELECT COALESCE(SUM(amount), 0) 
-    FROM donations 
-    WHERE campaign_id = NEW.campaign_id 
-    AND status = 'completed'
-  )
-  WHERE id = NEW.campaign_id;
-  RETURN NEW;
+    -- Handle both INSERT/UPDATE and DELETE cases
+    IF TG_OP = 'DELETE' THEN
+        target_campaign_id := OLD.campaign_id;
+    ELSE
+        target_campaign_id := NEW.campaign_id;
+    END IF;
+
+    -- Update campaign_statistics table
+    INSERT INTO campaign_statistics (
+        campaign_id,
+        current_amount,
+        donations_count,
+        unique_donors_count,
+        average_donation,
+        last_donation_date
+    )
+    SELECT 
+        target_campaign_id,
+        COALESCE(SUM(amount), 0),
+        COUNT(*),
+        COUNT(DISTINCT donor_id),
+        COALESCE(AVG(amount), 0),
+        MAX(created_at)
+    FROM donations
+    WHERE campaign_id = target_campaign_id
+        AND status = 'completed'
+    ON CONFLICT (campaign_id) DO UPDATE
+    SET 
+        current_amount = EXCLUDED.current_amount,
+        donations_count = EXCLUDED.donations_count,
+        unique_donors_count = EXCLUDED.unique_donors_count,
+        average_donation = EXCLUDED.average_donation,
+        last_donation_date = EXCLUDED.last_donation_date;
+
+    RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER donation_campaign_update
-  AFTER INSERT OR UPDATE ON donations
-  FOR EACH ROW
-  EXECUTE FUNCTION update_campaign_amount();
+-- Create triggers for donation changes
+CREATE TRIGGER update_campaign_stats_on_change
+    AFTER INSERT OR UPDATE OR DELETE ON donations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_campaign_statistics();
+
+-- Create trigger for status changes
+CREATE TRIGGER update_campaign_stats_on_status_change
+    AFTER UPDATE OF status ON donations
+    FOR EACH ROW
+    WHEN (OLD.status IS DISTINCT FROM NEW.status)
+    EXECUTE FUNCTION update_campaign_statistics();
 ```
 
 ### Normalization Benefits Achieved
