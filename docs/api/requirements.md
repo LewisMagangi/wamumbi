@@ -32,10 +32,20 @@ This document outlines the technical and functional requirements for the Wamumbi
 {
   "email": "string (required, valid email format)",
   "password": "string (required, min 8 chars, complexity rules)",
-  "firstName": "string (required, 1-100 chars)",
-  "lastName": "string (required, 1-100 chars)",
-  "phone": "string (optional, valid phone format)",
-  "role": "enum (volunteer, donor) (optional, default: volunteer)"
+  "first_name": "string (optional, max 100 chars)",
+  "last_name": "string (optional, max 100 chars)",
+  "phone": "string (optional, max 20 chars)",
+  "profile_image": "string (optional, valid URL)",
+  "address": {
+    "street_line_1": "string (optional)",
+    "street_line_2": "string (optional)",
+    "city": "string (optional)",
+    "state": "string (optional)",
+    "postal_code": "string (optional)",
+    "country": "string (optional)"
+  },
+  "role_id": "integer (required, valid user_roles.id)",
+  "two_factor_enabled": "boolean (optional, default: false)"
 }
 ```
 
@@ -45,11 +55,24 @@ This document outlines the technical and functional requirements for the Wamumbi
 {
   "success": true,
   "data": {
-    "userId": "string",
+    "id": "integer",
     "email": "string",
-    "role": "string",
-    "status": "pending",
-    "verificationRequired": true
+    "first_name": "string",
+    "last_name": "string",
+    "role": {
+      "id": "integer",
+      "name": "string",
+      "permissions": "json"
+    },
+    "status": {
+      "id": "integer",
+      "name": "string"
+    },
+    "email_verified": false,
+    "phone_verified": false,
+    "two_factor_enabled": false,
+    "created_at": "timestamp",
+    "last_login": null
   },
   "message": "Registration successful. Please verify your email."
 }
@@ -59,8 +82,12 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 - Email must be unique across the system
 - Password must contain at least 8 characters with uppercase, lowercase, number, and special character
-- Phone number must follow international format if provided
-- Role cannot be 'admin' or 'team_leader' during self-registration
+- Phone number must follow international format (if provided) and be maximum 20 characters
+- First name and last name must be maximum 100 characters each (if provided)
+- Profile image URL must be valid and accessible (if provided)
+- Role ID must reference an existing and active role in user_roles table
+- Address fields must follow length restrictions from addresses table (if provided)
+- Two-factor authentication setup requires additional verification steps if enabled
 
 **Performance Criteria**:
 
@@ -149,24 +176,31 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ```json
 {
-  "campaignId": "integer (required)",
-  "amount": "decimal (required, min: 1.00, max: 50000.00)",
-  "paymentMethod": "enum (credit_card, debit_card, paypal, bank_transfer) (required)",
-  "currency": "string (required, default: USD)",
-  "isAnonymous": "boolean (optional, default: false)",
-  "isRecurring": "boolean (optional, default: false)",
-  "recurringFrequency": "enum (monthly, quarterly, annually) (required if isRecurring)",
-  "notes": "string (optional, max: 500 chars)",
-  "donorInfo": {
-    "firstName": "string (required if anonymous)",
-    "lastName": "string (required if anonymous)",
-    "email": "string (required)",
-    "phone": "string (optional)",
-    "address": "object (optional)"
-  },
-  "paymentDetails": {
-    "paymentMethodId": "string (required)",
-    "billingAddress": "object (required)"
+  "campaign_id": "integer (required)",
+  "amount": "decimal (required, precision: 10,2)",
+  "currency_id": "integer (required, reference to currencies.id)",
+  "payment_method_id": "integer (required, reference to payment_methods.id)",
+  "is_recurring": "boolean (optional, default: false)",
+  "recurring_frequency_id": "integer (required if is_recurring, reference to recurring_frequencies.id)",
+  "parent_donation_id": "integer (optional, for recurring donations)",
+  "notes": "string (optional)",
+  "donor": {
+    "user_id": "integer (optional)",
+    "first_name": "string (optional)",
+    "last_name": "string (optional)",
+    "email": "string (optional)",
+    "phone": "string (optional, max: 20 chars)",
+    "is_anonymous": "boolean (default: true)",
+    "address": {
+      "street_line_1": "string (optional)",
+      "street_line_2": "string (optional)",
+      "city": "string (optional)",
+      "state": "string (optional)",
+      "postal_code": "string (optional)",
+      "country": "string (optional)",
+      "latitude": "decimal (optional, precision: 10,8)",
+      "longitude": "decimal (optional, precision: 11,8)"
+    }
   }
 }
 ```
@@ -177,32 +211,61 @@ This document outlines the technical and functional requirements for the Wamumbi
 {
   "success": true,
   "data": {
-    "donationId": "integer",
+    "id": "integer",
+    "donor": {
+      "id": "integer",
+      "is_anonymous": "boolean"
+    },
+    "campaign_id": "integer",
     "amount": "decimal",
-    "currency": "string",
-    "status": "enum (pending, processing, completed, failed)",
-    "paymentReference": "string",
-    "receiptUrl": "string",
-    "estimatedDelivery": "ISO8601 datetime",
-    "taxDeductible": "boolean"
+    "currency": {
+      "id": "integer",
+      "code": "string",
+      "symbol": "string"
+    },
+    "payment_method": {
+      "id": "integer",
+      "name": "string"
+    },
+    "payment_reference": "string",
+    "status": {
+      "id": "integer",
+      "name": "string"
+    },
+    "is_recurring": "boolean",
+    "recurring_frequency": {
+      "id": "integer",
+      "name": "string",
+      "days_interval": "integer"
+    },
+    "processing_fee": "decimal",
+    "net_amount": "decimal",
+    "donation_date": "timestamp",
+    "processed_at": "timestamp"
   }
 }
 ```
 
 **Validation Rules**:
 
-- Amount must be within campaign limits
-- Campaign must be active and not expired
-- Payment method must be valid and verified
-- Donor email required for receipt delivery
-- Anonymous donations exclude personal info from public display
+- Amount must be a valid decimal with precision (10,2)
+- Campaign must exist and be in an active status
+- Currency must exist in currencies table and be supported by the payment method
+- Payment method must be active and available for use
+- Recurring frequency must exist and be active (if donation is recurring)
+- Parent donation must exist and be valid (if specified for recurring)
+- Processing fee and net amount are calculated based on payment method fees
+- Phone numbers must follow the specified format and length (if provided)
+- Address fields must follow length restrictions from addresses table (if provided)
+- Geographic coordinates must be valid and within precision limits (if provided)
 
 **Performance Criteria**:
 
 - Payment processing: < 3 seconds
-- Receipt generation: < 1 second
+- Campaign statistics update: Real-time
 - Transaction logging: < 500ms
 - Concurrent donations: 50 per second
+- Audit log entry creation: < 100ms
 
 #### FR-DON-002: Recurring Donation Management
 
@@ -281,16 +344,27 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ```json
 {
-  "title": "string (required, 5-200 chars)",
-  "description": "string (required, 50-5000 chars)",
-  "goalAmount": "decimal (required, min: 100.00, max: 1000000.00)",
-  "category": "enum (water_projects, education, hunger_relief, healthcare, other) (required)",
-  "startDate": "ISO8601 date (required)",
-  "endDate": "ISO8601 date (optional)",
-  "imageUrl": "string (optional, valid URL)",
-  "location": "string (optional, max: 255 chars)",
-  "targetBeneficiaries": "integer (optional)",
-  "urgencyLevel": "enum (low, medium, high, critical) (optional, default: medium)"
+  "title": "string (required, max 200 chars)",
+  "description": "string (required)",
+  "goal_amount": "decimal (required, precision: 12,2)",
+  "currency_id": "integer (required, reference to currencies.id)",
+  "category_id": "integer (required, reference to categories.id where type='campaign')",
+  "status_id": "integer (required, reference to campaign_statuses.id)",
+  "start_date": "date (required)",
+  "end_date": "date (optional)",
+  "image_url": "string (optional)",
+  "target_beneficiaries": "integer (optional)",
+  "urgency_level_id": "integer (required, reference to urgency_levels.id)",
+  "address": {
+    "street_line_1": "string (optional)",
+    "street_line_2": "string (optional)",
+    "city": "string (optional)",
+    "state": "string (optional)",
+    "postal_code": "string (optional)",
+    "country": "string (optional)",
+    "latitude": "decimal (optional, precision: 10,8)",
+    "longitude": "decimal (optional, precision: 11,8)"
+  }
 }
 ```
 
@@ -300,25 +374,60 @@ This document outlines the technical and functional requirements for the Wamumbi
 {
   "success": true,
   "data": {
-    "campaignId": "integer",
+    "id": "integer",
     "title": "string",
-    "status": "active",
-    "goalAmount": "decimal",
-    "currentAmount": 0,
-    "progressPercentage": 0,
-    "createdAt": "ISO8601 datetime",
-    "campaignUrl": "string"
+    "description": "string",
+    "goal_amount": "decimal",
+    "currency": {
+      "id": "integer",
+      "code": "string",
+      "symbol": "string"
+    },
+    "category": {
+      "id": "integer",
+      "name": "string"
+    },
+    "status": {
+      "id": "integer",
+      "name": "string"
+    },
+    "urgency_level": {
+      "id": "integer",
+      "name": "string",
+      "priority_score": "integer",
+      "color_code": "string"
+    },
+    "statistics": {
+      "current_amount": "decimal",
+      "donations_count": "integer",
+      "unique_donors_count": "integer",
+      "average_donation": "decimal",
+      "completion_percentage": "decimal",
+      "last_donation_date": "timestamp"
+    },
+    "created_by": {
+      "id": "integer",
+      "name": "string"
+    },
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
   }
 }
 ```
 
 **Validation Rules**:
 
-- Title must be unique within active campaigns
+- Title must be unique within active campaigns and max 200 characters
+- Description must be provided and meaningful
+- Goal amount must be a valid decimal with precision (12,2)
+- Currency must exist in currencies table and be active
+- Category must exist and be of type 'campaign'
+- Campaign status must be valid and active
 - End date must be after start date if provided
-- Goal amount must be realistic (validated against category averages)
-- Creator must have 'team_leader' or 'admin' role
-- Image must be in approved formats (JPEG, PNG, WebP)
+- Urgency level must be valid and active
+- Address fields must follow length restrictions from addresses table (if provided)
+- Geographic coordinates must be valid and within precision limits (if provided)
+- Creator must have appropriate permissions based on role
 
 **Performance Criteria**:
 
@@ -398,31 +507,105 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ```json
 {
-  "userId": "integer (required)",
-  "skills": "array of strings (optional)",
-  "availability": "object (required)",
-  "emergencyContact": {
-    "name": "string (required)",
-    "phone": "string (required)",
-    "relationship": "string (required)"
+  "user_id": "integer (required)",
+  "availability": "text (required)",
+  "emergency_contact": {
+    "name": "string (required, max 100 chars)",
+    "phone": "string (required, max 20 chars)",
+    "email": "string (optional)",
+    "relationship": "string (required, max 50 chars)",
+    "address": {
+      "street_line_1": "string (optional)",
+      "street_line_2": "string (optional)",
+      "city": "string (optional)",
+      "state": "string (optional)",
+      "postal_code": "string (optional)",
+      "country": "string (optional)"
+    }
   },
-  "backgroundCheckConsent": "boolean (required)",
-  "interests": "array of strings (optional)",
-  "previousExperience": "string (optional, max: 1000 chars)"
+  "background_check_status_id": "integer (required, reference to background_check_statuses.id)",
+  "status_id": "integer (required, reference to volunteer_statuses.id)",
+  "skills": [
+    {
+      "skill_id": "integer (reference to volunteer_skills.id)",
+      "proficiency_level": "enum (beginner, intermediate, advanced, expert)",
+      "years_experience": "integer"
+    }
+  ]
+}
+```
+
+**Output Specifications**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "integer",
+    "user": {
+      "id": "integer",
+      "email": "string",
+      "first_name": "string",
+      "last_name": "string"
+    },
+    "availability": "text",
+    "emergency_contact": {
+      "id": "integer",
+      "name": "string",
+      "phone": "string",
+      "relationship": "string"
+    },
+    "background_check_status": {
+      "id": "integer",
+      "name": "string",
+      "requires_action": "boolean"
+    },
+    "status": {
+      "id": "integer",
+      "name": "string",
+      "is_active_status": "boolean"
+    },
+    "skills": [
+      {
+        "id": "integer",
+        "name": "string",
+        "proficiency_level": "string",
+        "years_experience": "integer"
+      }
+    ],
+    "statistics": {
+      "total_hours": "decimal",
+      "activities_count": "integer",
+      "projects_count": "integer",
+      "events_count": "integer",
+      "teams_count": "integer",
+      "last_activity_date": "timestamp"
+    },
+    "joined_date": "date",
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
+  }
 }
 ```
 
 **Validation Rules**:
 
-- User must have 'volunteer' role
-- Background check consent required for certain activities
-- Emergency contact must be different from volunteer
-- Skills must be from predefined list
+- User must exist and not already be registered as a volunteer
+- Emergency contact information must be complete and valid
+- Phone numbers must follow specified format and length
+- Background check status must be valid and active
+- Volunteer status must be valid and active
+- Skills must be from the predefined list in volunteer_skills table
+- Proficiency levels must be one of the specified enum values
+- Address fields must follow length restrictions (if provided)
+- Years of experience must be non-negative integers
 
 **Performance Criteria**:
 
 - Registration processing: < 1 second
-- Background check initiation: < 5 minutes
+- Statistics calculation: < 500ms
+- Background check status update: Real-time
+- Audit log entry creation: < 100ms
 
 #### FR-VOL-002: Activity Logging
 
@@ -474,29 +657,98 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ```json
 {
-  "title": "string (required, 5-200 chars)",
-  "description": "string (required, 50-2000 chars)",
-  "eventDate": "ISO8601 datetime (required)",
-  "location": "object (required)",
-  "capacity": "integer (required, min: 1, max: 10000)",
-  "ticketPrice": "decimal (optional, default: 0.00)",
-  "category": "enum (fundraising, volunteer, educational, social) (required)",
-  "registrationDeadline": "ISO8601 datetime (optional)",
-  "requirements": "array of strings (optional)"
+  "title": "string (required, max 200 chars)",
+  "description": "string (required)",
+  "event_date": "datetime (required)",
+  "address": {
+    "street_line_1": "string (required)",
+    "street_line_2": "string (optional)",
+    "city": "string (required)",
+    "state": "string (required)",
+    "postal_code": "string (optional)",
+    "country": "string (required)",
+    "latitude": "decimal (optional, precision: 10,8)",
+    "longitude": "decimal (optional, precision: 11,8)"
+  },
+  "capacity": "integer (required)",
+  "ticket_price": "decimal (required, precision: 8,2)",
+  "currency_id": "integer (required, reference to currencies.id)",
+  "status_id": "integer (required, reference to event_statuses.id)",
+  "category_id": "integer (required, reference to categories.id where type='event')",
+  "image_url": "string (optional)",
+  "registration_deadline": "datetime (optional)"
+}
+```
+
+**Output Specifications**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "integer",
+    "title": "string",
+    "description": "string",
+    "event_date": "datetime",
+    "address": {
+      "id": "integer",
+      "street_line_1": "string",
+      "city": "string",
+      "state": "string",
+      "country": "string"
+    },
+    "capacity": "integer",
+    "ticket_price": "decimal",
+    "currency": {
+      "id": "integer",
+      "code": "string",
+      "symbol": "string"
+    },
+    "status": {
+      "id": "integer",
+      "name": "string"
+    },
+    "category": {
+      "id": "integer",
+      "name": "string"
+    },
+    "created_by": {
+      "id": "integer",
+      "name": "string"
+    },
+    "registration_status": {
+      "total_registrations": "integer",
+      "available_slots": "integer",
+      "is_full": "boolean"
+    },
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
+  }
 }
 ```
 
 **Validation Rules**:
 
+- Title must be max 200 characters
+- Description must be provided and meaningful
 - Event date must be in the future
-- Registration deadline must be before event date
-- Capacity must be realistic for venue
-- Ticket price validation for paid events
+- Registration deadline must be before event date (if provided)
+- Address is required with mandatory fields (street_line_1, city, state, country)
+- Capacity must be a positive integer
+- Ticket price must be a valid decimal with precision (8,2)
+- Currency must exist in currencies table and be active
+- Status must be valid from event_statuses table
+- Category must exist and be of type 'event'
+- Geographic coordinates must be valid and within precision limits (if provided)
+- Creator must have appropriate permissions based on role
 
 **Performance Criteria**:
 
 - Event creation: < 1 second
-- Calendar integration: < 5 seconds
+- Address validation: < 500ms
+- Registration status calculation: Real-time
+- Notification dispatch: < 2 seconds
+- Audit log entry creation: < 100ms
 
 #### FR-EVE-002: Event Registration
 
