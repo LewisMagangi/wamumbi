@@ -28,34 +28,38 @@ Table user_statuses {
   is_active boolean [not null, default: true]
 }
 
+// Address information - treated as optional PII
+// Consider collecting only necessary location data based on feature requirements
 Table addresses {
   id integer [primary key, increment]
-  street_line_1 varchar(255) [not null]
-  street_line_2 varchar(255)
-  city varchar(100) [not null]
-  state varchar(100) [not null]
-  postal_code varchar(20) [not null]
-  country varchar(100) [not null, default: 'United States']
-  latitude decimal(10,8)
-  longitude decimal(11,8)
+  street_line_1 varchar(255) [null] // Optional for privacy
+  street_line_2 varchar(255) [null]
+  city varchar(100) [null] // Only city might be needed for most features
+  state varchar(100) [null] // Region/state optional
+  postal_code varchar(20) [null] // Optional for privacy
+  country varchar(100) [null] // Optional, can default based on locale
+  latitude decimal(10,8) [null] // Optional geolocation
+  longitude decimal(11,8) [null] // Optional geolocation
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
 
+// User table with minimized required personal data
+// Only email (for login) and security fields (role, status) are required
 Table users {
   id integer [primary key, increment]
-  email varchar(255) [unique, not null]
-  password_hash varchar(255) [not null]
-  first_name varchar(100) [not null]
-  last_name varchar(100) [not null]
-  phone varchar(20)
-  role_id integer [ref: > user_roles.id, not null]
-  status_id integer [ref: > user_statuses.id, not null]
-  profile_image varchar(255)
-  address_id integer [ref: > addresses.id, null]
+  email varchar(255) [unique, not null] // Required for authentication
+  password_hash varchar(255) [not null] // Required for security
+  first_name varchar(100) [null] // Optional personal info
+  last_name varchar(100) [null] // Optional personal info
+  phone varchar(20) [null] // Optional contact info
+  role_id integer [ref: > user_roles.id, not null] // Required for security
+  status_id integer [ref: > user_statuses.id, not null] // Required for security
+  profile_image varchar(255) [null] // Optional
+  address_id integer [ref: > addresses.id, null] // Optional location info
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
-  last_login timestamp
+  last_login timestamp [null]
 }
 
 Table teams {
@@ -111,15 +115,17 @@ Table campaign_statistics {
   updated_at timestamp [not null, default: `now()`]
 }
 
+// Donor table with minimal required information
+// Support fully anonymous donations with optional personal details
 Table donors {
   id integer [primary key, increment]
-  user_id integer [ref: > users.id, null]
-  first_name varchar(100) [not null]
-  last_name varchar(100) [not null]
-  email varchar(255) [not null]
-  phone varchar(20)
-  address_id integer [ref: > addresses.id, null]
-  is_anonymous boolean [not null, default: false]
+  user_id integer [ref: > users.id, null] // Optional link to user account
+  first_name varchar(100) [null] // Optional if anonymous
+  last_name varchar(100) [null] // Optional if anonymous
+  email varchar(255) [null] // Optional contact - donor's choice
+  phone varchar(20) [null] // Optional contact
+  address_id integer [ref: > addresses.id, null] // Optional location
+  is_anonymous boolean [not null, default: true] // Default to anonymous for privacy
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
@@ -208,13 +214,20 @@ Table event_registrations {
   }
 }
 
+// Privacy-sensitive table containing PII that requires special handling
+// Requirements:
+// 1. Data should be encrypted at rest
+// 2. Access should be strictly controlled and logged
+// 3. Implement data retention policies
+// 4. Obtain explicit consent before collection
+// 5. Support data subject access requests (DSAR)
 Table emergency_contacts {
   id integer [primary key, increment]
-  name varchar(100) [not null]
-  phone varchar(20) [not null]
-  email varchar(255)
-  relationship varchar(50) [not null]
-  address_id integer [ref: > addresses.id, null]
+  name varchar(100) [not null] // PII: Full name
+  phone varchar(20) [not null] // PII: Contact number
+  email varchar(255) // PII: Email address
+  relationship varchar(50) [not null] // PII: Personal relationship
+  address_id integer [ref: > addresses.id, null] // PII: Physical address reference 
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
 }
@@ -227,11 +240,13 @@ Table volunteer_skills {
   is_active boolean [not null, default: true]
 }
 
+// Note: Emergency contact information contains PII and is subject to data protection regulations.
+// Ensure proper encryption, access controls, and explicit user consent for collection.
 Table volunteers {
   id integer [primary key, increment]
   user_id integer [ref: > users.id]
   availability text
-  emergency_contact_id integer [ref: > emergency_contacts.id, not null]
+  emergency_contact_id integer [ref: > emergency_contacts.id, null] // Optional for privacy compliance
   background_check_status enum('pending', 'approved', 'rejected') [default: 'pending']
   background_check_date date
   background_check_expiry date
