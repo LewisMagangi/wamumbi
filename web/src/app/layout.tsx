@@ -1,9 +1,6 @@
 import { type Metadata } from "next"
-import { ClerkProvider } from "@clerk/nextjs"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import Navbar from "@/components/Navbar"
-import TrpcProvider from "@/components/trpc-provider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,21 +22,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  if (!publishableKey) {
-    throw new Error("Missing Clerk Publishable Key");
-  }
-  
   return (
-    <ClerkProvider publishableKey={publishableKey}>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <TrpcProvider>
-            <Navbar />
-            {children}
-          </TrpcProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {children}
+      </body>
+    </html>
   )
 }
