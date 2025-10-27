@@ -148,17 +148,17 @@ export const StatisticsCards = () => {
         </div>
       </div>
       
-      {/* Active Projects Card - Admin, Team Leader */}
+      {/* Active Campaigns Card - Admin, Team Leader */}
       {(role === 'admin' || role === 'team_leader') && (
         <div className="card border-l-4 border-amber-500">
           <div className="flex justify-between">
             <div>
-              <p className="text-sm text-gray-500 font-medium">Active Projects</p>
+              <p className="text-sm text-gray-500 font-medium">Active Campaigns</p>
               <h3 className="text-2xl font-bold mt-1">{statsData.activeProjects.count}</h3>
               
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-gray-500">Completion rate</span>
+                  <span className="text-gray-500">Avg. progress</span>
                   <span className="font-medium">{statsData.activeProjects.completionRate}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -170,7 +170,7 @@ export const StatisticsCards = () => {
             </div>
             
             <div className="bg-amber-100 h-12 w-12 rounded-full flex items-center justify-center">
-              <i className="ri-task-line text-amber-500 text-xl"></i>
+              <i className="ri-megaphone-line text-amber-500 text-xl"></i>
             </div>
           </div>
         </div>

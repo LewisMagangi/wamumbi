@@ -9,10 +9,16 @@ export const authRouter = router({
 
     if (!user) throw new TRPCError({ code: "UNAUTHORIZED" })
 
+    // Split full name into first and last name
+    const fullName = user.fullName || '';
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0] || 'User';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
     // check if the user is in the database
     const dbUser = await db.user.findUnique({
       where: {
-        id: user.id,
+        clerkId: user.id,
       },
     })
 
@@ -24,7 +30,8 @@ export const authRouter = router({
           email:
             user.primaryEmailAddress?.emailAddress ??
             user.emailAddresses[0].emailAddress,
-          name: user.fullName,
+          firstName: firstName,
+          lastName: lastName,
           imageUrl: user.imageUrl,
         },
       })
@@ -33,13 +40,14 @@ export const authRouter = router({
     } else {
       await db.user.update({
         where: {
-          id: user.id,
+          clerkId: user.id,
         },
         data: {
           email:
             user.primaryEmailAddress?.emailAddress ??
             user.emailAddresses[0].emailAddress,
-          name: user.fullName,
+          firstName: firstName,
+          lastName: lastName,
           imageUrl: user.imageUrl,
         },
       })

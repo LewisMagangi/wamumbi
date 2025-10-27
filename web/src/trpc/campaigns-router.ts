@@ -6,7 +6,17 @@ export const campaignsRouter = router({
     try {
       const campaigns = await prisma.campaign.findMany({
         where: {
-          active: true
+          active: true,
+          endDate: {
+            gte: new Date() // Only active and not yet ended
+          }
+        },
+        include: {
+          _count: {
+            select: {
+              donations: true
+            }
+          }
         },
         orderBy: {
           createdAt: 'desc'
@@ -19,9 +29,12 @@ export const campaignsRouter = router({
         title: campaign.title,
         goal: Number(campaign.target),
         raised: Number(campaign.raised),
-        endDate: campaign.updatedAt, // Using updatedAt as placeholder for endDate
-        creatorName: 'Anonymous', // No creator field in schema
-        donationsCount: 0 // Would need to count separately
+        endDate: campaign.endDate,
+        startDate: campaign.startDate,
+        donationsCount: campaign._count.donations,
+        progressPercentage: campaign.target > 0 
+          ? Math.round((Number(campaign.raised) / Number(campaign.target)) * 100)
+          : 0
       }));
     } catch (error) {
       console.error('Error fetching active campaigns:', error);
@@ -68,46 +81,49 @@ export const campaignsRouter = router({
   }),
 
   getById: procedure.query(async () => {
-      try {
-        const campaign = await prisma.campaign.findFirst({
-          include: {
-            donations: {
-              where: {
-                status: 'completed'
-              },
-              select: {
-                amount: true,
-                createdAt: true,
-                user: {
-                  select: {
-                    name: true
-                  }
+    try {
+      const campaign = await prisma.campaign.findFirst({
+        include: {
+          donations: {
+            where: {
+              status: 'COMPLETED'
+            },
+            include: {
+              donor: {
+                select: {
+                  firstName: true,
+                  lastName: true
                 }
-              },
-              orderBy: {
-                createdAt: 'desc'
-              },
-              take: 10
-            }
+              }
+            },
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 10
           }
-        });
-
-        if (!campaign) {
-          throw new Error('Campaign not found');
         }
+      });
 
-        return {
-          ...campaign,
-          goalAmount: campaign.target,
-          currentAmount: campaign.raised,
-          creatorName: 'Anonymous',
-          progressPercentage: campaign.target > 0 
-            ? Math.round((Number(campaign.raised) / Number(campaign.target)) * 100)
-            : 0
-        };
-      } catch (error) {
-        console.error('Error fetching campaign:', error);
-        throw new Error('Failed to fetch campaign');
+      if (!campaign) {
+        throw new Error('Campaign not found');
       }
-    }),
+
+      return {
+        ...campaign,
+        goalAmount: campaign.target,
+        currentAmount: campaign.raised,
+        progressPercentage: campaign.target > 0 
+          ? Math.round((Number(campaign.raised) / Number(campaign.target)) * 100)
+          : 0,
+        recentDonations: campaign.donations.map(d => ({
+          amount: d.amount,
+          donorName: `${d.donor.firstName} ${d.donor.lastName}`,
+          createdAt: d.createdAt
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+      throw new Error('Failed to fetch campaign');
+    }
+  }),
 });

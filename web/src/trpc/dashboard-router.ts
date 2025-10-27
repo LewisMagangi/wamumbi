@@ -15,7 +15,7 @@ export const dashboardRouter = router({
             createdAt: {
               gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
             },
-            status: 'completed'
+            status: 'COMPLETED'
           },
           _sum: {
             amount: true

@@ -12,6 +12,7 @@ interface DonationData {
   campaignTitle: string;
   paymentMethod: string;
   status: string;
+  currency: string;
 }
 
 export const RecentDonations = () => {
@@ -161,7 +162,12 @@ export const RecentDonations = () => {
                   <span className="text-sm text-gray-900">{donation.campaignTitle}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-medium text-green-600">${Number(donation.amount).toLocaleString()}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-green-600">
+                      {donation.currency} {Number(donation.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-xs text-gray-400">{donation.paymentMethod}</span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div className="flex items-center">

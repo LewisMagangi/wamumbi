@@ -6,12 +6,14 @@ export const donationsRouter = router({
     try {
       const donations = await prisma.donation.findMany({
         where: {
-          status: 'completed'
+          status: 'COMPLETED'
         },
         include: {
-          user: {
+          donor: {
             select: {
-              name: true
+              firstName: true,
+              lastName: true,
+              email: true
             }
           },
           campaign: {
@@ -26,28 +28,30 @@ export const donationsRouter = router({
         take: 10 // Default limit
       });
 
-        return donations.map(donation => ({
-          id: donation.id,
-          amount: donation.amount,
-          donationDate: donation.createdAt,
-          donorName: donation.user.name || 'Anonymous',
-          campaignTitle: donation.campaign?.title || 'General Donation',
-          paymentMethod: 'Card', // Default since not in schema
-          status: donation.status
-        }));
-      } catch (error) {
-        console.error('Error fetching recent donations:', error);
-        return [];
-      }
-    }),
+      return donations.map(donation => ({
+        id: donation.id,
+        amount: donation.amount,
+        donationDate: donation.createdAt,
+        donorName: `${donation.donor.firstName} ${donation.donor.lastName}`,
+        campaignTitle: donation.campaign?.title || 'General Donation',
+        paymentMethod: 'Card', // Default since not in schema
+        status: donation.status,
+        currency: donation.currency
+      }));
+    } catch (error) {
+      console.error('Error fetching recent donations:', error);
+      return [];
+    }
+  }),
 
   getAll: procedure.query(async () => {
     try {
       const donations = await prisma.donation.findMany({
         include: {
-          user: {
+          donor: {
             select: {
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true
             }
           },
@@ -66,12 +70,13 @@ export const donationsRouter = router({
         id: donation.id,
         amount: donation.amount,
         donationDate: donation.createdAt,
-        donorName: donation.user.name || 'Anonymous',
-        donorEmail: donation.user.email,
+        donorName: `${donation.donor.firstName} ${donation.donor.lastName}`,
+        donorEmail: donation.donor.email,
         campaignTitle: donation.campaign?.title || 'General Donation',
         paymentMethod: 'Card', // Default since not in schema
         status: donation.status,
-        isAnonymous: !donation.user.name
+        currency: donation.currency,
+        isAnonymous: false
       }));
     } catch (error) {
       console.error('Error fetching donations:', error);

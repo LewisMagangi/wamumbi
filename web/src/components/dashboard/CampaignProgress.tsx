@@ -7,7 +7,10 @@ interface Campaign {
   title: string;
   goal: number;
   raised: number;
-  endDate: string | Date;
+  endDate: string | Date | null;
+  startDate: string | Date;
+  donationsCount: number;
+  progressPercentage: number;
   daysLeft?: number;
   raisedFormatted?: string;
   goalFormatted?: string;
@@ -22,27 +25,36 @@ export const CampaignProgress = () => {
   }
 
   // Fallback sample data for development
-  const sampleCampaigns = [
+  const sampleCampaigns: Campaign[] = [
     {
       id: "1",
       title: "Clean Water Initiative",
       goal: 50000,
       raised: 32500,
-      endDate: "2025-12-31"
+      startDate: "2025-01-01",
+      endDate: "2025-12-31",
+      donationsCount: 45,
+      progressPercentage: 65
     },
     {
       id: "2",
       title: "Education for All",
       goal: 25000,
       raised: 12800,
-      endDate: "2023-11-15"
+      startDate: "2025-02-01",
+      endDate: "2025-11-15",
+      donationsCount: 28,
+      progressPercentage: 51
     },
     {
       id: "3",
       title: "Hunger Relief Program",
       goal: 15000,
       raised: 9300,
-      endDate: "2023-10-30"
+      startDate: "2025-03-01",
+      endDate: "2025-10-30",
+      donationsCount: 18,
+      progressPercentage: 62
     }
   ];
 
@@ -57,9 +69,9 @@ export const CampaignProgress = () => {
     const now = new Date();
     setClientCampaigns(
       campaignData.map((campaign) => {
-        const endDate = new Date(campaign.endDate);
-        const diffTime = endDate.getTime() - now.getTime();
-        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const endDate = campaign.endDate ? new Date(campaign.endDate) : null;
+        const diffTime = endDate ? endDate.getTime() - now.getTime() : 0;
+        const daysLeft = endDate ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : 0;
         return {
           ...campaign,
           daysLeft,
@@ -134,21 +146,31 @@ export const CampaignProgress = () => {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <div className="text-gray-600">
-                  <span className="font-medium">${campaign.raisedFormatted}</span>
-                  <span className="mx-1">of</span>
-                  <span>${campaign.goalFormatted}</span>
+                  <span className="font-medium text-green-600">${campaign.raisedFormatted}</span>
+                  <span className="mx-1 text-gray-400">of</span>
+                  <span className="font-medium">${campaign.goalFormatted}</span>
                 </div>
-                <div className="flex items-center text-xs">
-                  <i className="ri-time-line mr-1 text-gray-500"></i>
-                  <span
-                    className={`font-medium ${
-                      (campaign.daysLeft ?? 0) < 7 ? 'text-red-600' : 'text-gray-600'
-                    }`}
-                  >
-                    {(campaign.daysLeft ?? 0) > 0
-                      ? `${campaign.daysLeft} days left`
-                      : 'Campaign ended'}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {campaign.donationsCount > 0 && (
+                    <div className="flex items-center text-xs text-gray-500">
+                      <i className="ri-heart-fill mr-1 text-red-400"></i>
+                      <span>{campaign.donationsCount} {campaign.donationsCount === 1 ? 'donor' : 'donors'}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center text-xs">
+                    <i className="ri-time-line mr-1 text-gray-500"></i>
+                    <span
+                      className={`font-medium ${
+                        (campaign.daysLeft ?? 0) < 7 ? 'text-red-600' : 'text-gray-600'
+                      }`}
+                    >
+                      {(campaign.daysLeft ?? 0) > 0
+                        ? `${campaign.daysLeft} days left`
+                        : campaign.daysLeft === 0
+                        ? 'Ending today'
+                        : 'Campaign ended'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <EditPermissionGate resource="campaigns">
