@@ -1,6 +1,14 @@
-import Footer from "@/components/footer"
-import ImageSlider from "@/components/image-slider"
+'use client'
+
+import dynamic from 'next/dynamic'
 import MaxWidthWrapper from "@/components/max-width-wrapper"
+
+const Footer = dynamic(() => import("@/components/footer"), {
+  ssr: true
+})
+const ImageSlider = dynamic(() => import("@/components/image-slider"), {
+  ssr: true
+})
 import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {

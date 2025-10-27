@@ -53,3 +53,5 @@ prisma/*.new
 prisma/migrations/
 
 .env*.local
+.env.production
+.env*
