@@ -46,7 +46,9 @@ next-env.d.ts
 # Prisma generated files
 /src/generated/
 /src/generated/prisma/
+*.prisma.new
 *.dll.node
 /prisma/migrations/*/
 prisma/*.new
 prisma/migrations/
+
