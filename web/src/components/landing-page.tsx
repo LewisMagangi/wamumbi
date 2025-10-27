@@ -47,7 +47,7 @@ const perks = [
   },
 ]
 
-export default function Home() {
+export default function LandingPage() {
   return (
     <MaxWidthWrapper className="flex flex-col">
       <div className="flex-grow flex-1">
