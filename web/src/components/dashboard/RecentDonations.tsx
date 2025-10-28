@@ -1,46 +1,45 @@
 import React from 'react';
-import Image from 'next/image';
 import { trpc } from '@/app/_trpc/client';
-import { EditPermissionGate, AdminGate } from '../auth/PermissionGate';
-import { useAuth } from '../../contexts/AuthContext';
 
-interface DonationData {
-  id: string;
-  amount: number;
-  donationDate: string;
-  donorName: string;
-  campaignTitle: string;
-  paymentMethod: string;
-  status: string;
-  currency: string;
+type DonationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+
+const STATUS_MAP: Record<DonationStatus, { text: string; color: string }> = {
+  PENDING: { text: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
+  PROCESSING: { text: 'Processing', color: 'bg-blue-100 text-blue-800' },
+  COMPLETED: { text: 'Completed', color: 'bg-green-100 text-green-800' },
+  FAILED: { text: 'Failed', color: 'bg-red-100 text-red-800' },
+  REFUNDED: { text: 'Refunded', color: 'bg-gray-100 text-gray-800' },
+};
+
+function getStatusBadge(status: DonationStatus) {
+  const statusInfo = STATUS_MAP[status] || { text: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
+      {statusInfo.text}
+    </span>
+  );
+}
+
+function formatDate(date: string | Date): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+  return dateObj.toLocaleDateString();
+}
+
+function formatAmount(amount: number, currency: string): string {
+  const symbol = currency === 'USD' ? '$' : currency === 'KES' ? 'KSh' : '€';
+  return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export const RecentDonations = () => {
-  const { role } = useAuth();
-  
   // Use tRPC query instead of react-query
   const { data: donations, isLoading, error } = trpc.donations.getRecent.useQuery();
-
-  // Function to format relative time
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'just now';
-    
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    
-    // Return the date in readable format for older donations
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   if (isLoading) {
     return (
@@ -103,117 +102,47 @@ export const RecentDonations = () => {
     );
   }
 
-  // Sample donations data for development
-  const defaultAvatarUrl = "https://randomuser.me/api/portraits/men/32.jpg";
-
   return (
-    <div className="card">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Recent Donations</h2>
-        <div className="flex space-x-2">
-          <EditPermissionGate resource="donations">
-            <button className="text-blue-600 hover:text-blue-800 text-sm mr-3">
-              <i className="ri-add-line mr-1"></i>Record Donation
-            </button>
-          </EditPermissionGate>
-          
-          <button className="text-sm text-gray-600 hover:text-gray-800 flex items-center">
-            View All <i className="ri-arrow-right-s-line ml-1"></i>
-          </button>
-        </div>
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-900">Recent Donations</h2>
+        <button className="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+          View All
+        </button>
       </div>
-      
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <th className="px-6 py-3 border-b">Donor</th>
-              <th className="px-6 py-3 border-b">Campaign</th>
-              <th className="px-6 py-3 border-b">Amount</th>
-              <th className="px-6 py-3 border-b">Date</th>
-              <th className="px-6 py-3 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {donations?.map((donation: DonationData) => (
-              <tr key={donation.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 flex-shrink-0">
-                      <Image
-                        className="h-10 w-10 rounded-full object-cover" 
-                        src={defaultAvatarUrl}
-                        alt={donation.donorName}
-                        width={40}
-                        height={40}
-                      />
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{donation.donorName}</div>
-                      
-                      {/* Only admins and team leaders can see donor details */}
-                      {(role === 'admin' || role === 'team_leader') && (
-                        <div className="text-xs text-gray-500">ID: {donation.id}</div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm text-gray-900">{donation.campaignTitle}</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-green-600">
-                      {donation.currency} {Number(donation.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                    <span className="text-xs text-gray-400">{donation.paymentMethod}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <i className="ri-time-line mr-1"></i>
-                    <span>{getTimeAgo(donation.donationDate.toString())}</span>
-                  </div>
-                </td>
-                {/* Only show actions column to admin users */}
-                <AdminGate>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button 
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      title="Send email"
-                      aria-label="Send email to donor"
-                    >
-                      <i className="ri-mail-line"></i>
-                    </button>
-                    <button 
-                      className="text-gray-500 hover:text-gray-900"
-                      title="More options"
-                      aria-label="More options"
-                    >
-                      <i className="ri-more-2-line"></i>
-                    </button>
-                  </td>
-                </AdminGate>
-              </tr>
-            ))}
-          </tbody>
-        </table>
 
-        {(!donations || donations.length === 0) && (
-          <div className="text-center py-8">
-            <i className="ri-funds-line text-5xl text-gray-300 mb-2"></i>
-            <p className="text-gray-500">No donations recorded yet</p>
-            <EditPermissionGate 
-              resource="donations"
-              fallback={
-                <p className="text-sm text-gray-400 mt-2">Donations will appear here once received</p>
-              }
-            >
-              <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
-                Record First Donation
-              </button>
-            </EditPermissionGate>
-          </div>
+      <div className="space-y-4">
+        {!donations || donations.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">No donations yet</p>
+        ) : (
+          donations.map((donation) => {
+            return (
+              <div 
+                key={donation.id} 
+                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="font-semibold text-gray-900">
+                      {donation.donorName}
+                    </span>
+                    {getStatusBadge(donation.status)}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    donated to <span className="font-medium">{donation.campaignTitle}</span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(donation.donationDate)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-green-600">
+                    {formatAmount(donation.amount, donation.currency)}
+                  </p>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
