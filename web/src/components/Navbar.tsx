@@ -1,20 +1,25 @@
 "use client"
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
-import { 
-  SignInButton, 
-  SignUpButton, 
-  SignedIn, 
-  SignedOut, 
-  UserButton 
-} from '@clerk/nextjs'
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs"
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
@@ -23,81 +28,78 @@ export default function Navbar() {
     <nav className="fixed w-full z-10 top-0 bg-background/80 backdrop-blur-md border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and site name */}
+          {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold">Wamumbi</span>
+            <Link href="/" className="text-xl font-bold">
+              Wamumbi
             </Link>
           </div>
 
-          {/* Donate button in the middle */}
-          <div className="hidden md:flex items-center justify-center flex-grow" suppressHydrationWarning>
-            <SignedIn>
-              <Button variant="ghost" asChild className="bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
-                <Link href="/donate">
-                  Donate <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </SignedIn>
-            <SignedOut>
-              <Button variant="ghost" asChild>
-                <Link href="/donate">Donate</Link>
-              </Button>
-            </SignedOut>
-          </div>
-          
-          {/* Authentication buttons on the right */}
-          <div className="hidden md:flex items-center space-x-4" suppressHydrationWarning>
-            <SignedOut>
-              <div className="inline-block">
+          {/* Desktop Donate Button */}
+          {mounted && (
+            <div className="hidden md:flex items-center justify-center flex-grow">
+              <SignedIn>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1"
+                >
+                  <Link href="/donate">
+                    Donate <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </SignedIn>
+              <SignedOut>
+                <Button variant="ghost" asChild>
+                  <Link href="/donate">Donate</Link>
+                </Button>
+              </SignedOut>
+            </div>
+          )}
+
+          {/* Desktop Auth Buttons */}
+          {mounted && (
+            <div className="hidden md:flex items-center space-x-4">
+              <SignedOut>
                 <SignInButton mode="modal">
-                  <Button variant="ghost">
-                    Sign In
-                  </Button>
+                  <Button variant="ghost">Sign In</Button>
                 </SignInButton>
-              </div>
-              <div className="inline-block">
                 <SignUpButton mode="modal">
-                  <Button variant="ghost" className="flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
+                  <Button className="flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Button>
                 </SignUpButton>
-              </div>
-            </SignedOut>
-            
-            <SignedIn>
-              <Button variant="ghost" asChild>
-                <Link href="/dashboard">
-                  Dashboard
-                </Link>
-              </Button>
-              <UserButton 
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8"
-                  }
-                }} 
-              />
-            </SignedIn>
-          </div>
+              </SignedOut>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-4" suppressHydrationWarning>
-            <SignedIn>
-              <UserButton 
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8"
-                  }
-                }} 
-              />
-            </SignedIn>
-            
-            <Button 
-              variant="ghost" 
-              onClick={toggleMobileMenu} 
+              <SignedIn>
+                <Button variant="ghost" asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: { avatarBox: "h-8 w-8" },
+                  }}
+                />
+              </SignedIn>
+            </div>
+          )}
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center gap-4">
+            {mounted && (
+              <SignedIn>
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: { avatarBox: "h-8 w-8" },
+                  }}
+                />
+              </SignedIn>
+            )}
+            <Button
+              variant="ghost"
+              onClick={toggleMobileMenu}
               className="inline-flex items-center justify-center p-2"
               aria-expanded={isMobileMenuOpen}
             >
@@ -114,7 +116,11 @@ export default function Navbar() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+                  d={
+                    isMobileMenuOpen
+                      ? "M6 18L18 6M6 6l12 12"
+                      : "M4 6h16M4 12h16M4 18h16"
+                  }
                 />
               </svg>
             </Button>
@@ -122,11 +128,15 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu - updated with Donate first for emphasis */}
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`} suppressHydrationWarning>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
+      {/* Mobile Menu */}
+      {mounted && isMobileMenuOpen && (
+        <div className="md:hidden px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
           <SignedIn>
-            <Button variant="ghost" asChild className="justify-start bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
+            <Button
+              variant="ghost"
+              asChild
+              className="justify-start bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1"
+            >
               <Link href="/donate">
                 Donate <ArrowRight className="h-4 w-4" />
               </Link>
@@ -137,34 +147,25 @@ export default function Navbar() {
               <Link href="/donate">Donate</Link>
             </Button>
           </SignedOut>
-          
-          {/* Mobile Authentication Links */}
+
           <SignedOut>
-            <div className="py-2">
-              <SignInButton mode="modal">
-                <Button variant="ghost" className="w-full justify-start">
-                  Sign In
-                </Button>
-              </SignInButton>
-            </div>
-            <div className="py-2">
-              <SignUpButton mode="modal">
-                <Button variant="ghost" className="w-full justify-start flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Button>
-              </SignUpButton>
-            </div>
+            <SignInButton mode="modal">
+              <Button className="w-full justify-start">Sign In</Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button className="w-full justify-start flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
+                Get Started <ArrowRight className="h-4 w-4" />
+              </Button>
+            </SignUpButton>
           </SignedOut>
-          
+
           <SignedIn>
             <Button variant="ghost" asChild className="justify-start">
-              <Link href="/dashboard">
-                Dashboard
-              </Link>
+              <Link href="/dashboard">Dashboard</Link>
             </Button>
           </SignedIn>
         </div>
-      </div>
+      )}
     </nav>
   )
 }
