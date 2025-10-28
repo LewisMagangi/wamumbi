@@ -34,6 +34,7 @@
     "wouter": "^3.7.0"
   },
   "devDependencies": {
+    "@dbml/cli": "^2.5.2",
     "@eslint/eslintrc": "^3",
     "@types/date-fns": "^2.5.3",
     "@types/node": "^20",
