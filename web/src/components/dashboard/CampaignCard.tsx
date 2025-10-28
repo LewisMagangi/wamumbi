@@ -1,111 +1,160 @@
-import { mockCampaignStatistics, getCategoryName, getUrgencyLevel, formatAmount } from '@/lib/mockData';
-import Image from 'next/image';
+import React from 'react';
+import { Heart, TrendingUp, Users, Edit, Eye, Trash2 } from 'lucide-react';
+import { formatAmount, getCategoryName, getCampaignStats } from '../../lib/mockData';
+import { formatDate } from '../../lib/dateUtils';
 
-interface CampaignCardProps {
+interface Campaign {
   id: number;
   title: string;
   description: string;
   goal_amount: number;
   currency_id: number;
   category_id: number;
+  status_id: number;
+  start_date: Date;
+  end_date: Date | null;
+  image_url: string | null;
+  address_id: number | null;
+  target_beneficiaries: number | null;
   urgency_level_id: number;
-  image_url: string;
-  end_date: Date;
+  created_by: number | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export default function CampaignCard({
-  id,
-  title,
-  description,
-  goal_amount,
-  currency_id,
-  category_id,
-  urgency_level_id,
-  image_url,
-  end_date,
+interface CampaignCardProps {
+  campaign: Campaign;
+  variant?: 'compact' | 'detailed';
+  onEdit?: () => void;
+  onView?: () => void;
+  onDelete?: () => void;
+}
+
+export default function CampaignCard({ 
+  campaign, 
+  variant = 'detailed',
+  onEdit,
+  onView,
+  onDelete 
 }: CampaignCardProps) {
-  const stats = mockCampaignStatistics.find(s => s.campaign_id === id);
-  const urgency = getUrgencyLevel(urgency_level_id);
-  const category = getCategoryName(category_id);
+  const stats = getCampaignStats(campaign.id);
+  const completionPercentage = stats?.completion_percentage || 0;
   
-  const daysLeft = Math.ceil((end_date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  if (variant === 'compact') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 mb-1">{campaign.title}</h3>
+            <p className="text-sm text-gray-600">{getCategoryName(campaign.category_id)}</p>
+          </div>
+          <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+            Active
+          </span>
+        </div>
+        
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-gray-600">{formatAmount(stats?.current_amount || 0)} raised</span>
+            <span className="font-bold text-blue-600">{completionPercentage.toFixed(1)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+              style={{ width: `${Math.min(completionPercentage, 100)}%` }}
+            ></div>
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center text-xs text-gray-500">
+          <span>Goal: {formatAmount(campaign.goal_amount)}</span>
+          <button className="text-blue-600 hover:underline font-medium">Details →</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Campaign Image */}
-      <div className="relative h-48 bg-gray-200">
-        {image_url ? (
-          <Image src={image_url} alt={title} fill className="object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            No Image
+    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all bg-white">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+          <div className="flex items-center space-x-3 mb-2">
+            <h3 className="text-xl font-bold text-gray-900">{campaign.title}</h3>
+            <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+              Active
+            </span>
           </div>
-        )}
-        {urgency && (
-          <div 
-            className="absolute top-2 right-2 px-3 py-1 rounded-full text-white text-xs font-semibold"
-            style={{ backgroundColor: urgency.color_code } as React.CSSProperties}
-          >
-            {urgency.name}
+          <p className="text-sm text-gray-600 mb-3">{campaign.description?.substring(0, 150)}...</p>
+          <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <span className="flex items-center">
+              <Heart className="w-4 h-4 mr-1" />
+              {getCategoryName(campaign.category_id)}
+            </span>
+            <span className="flex items-center">
+              <Users className="w-4 h-4 mr-1" />
+              {stats?.unique_donors_count || 0} donors
+            </span>
           </div>
-        )}
-      </div>
-
-      {/* Campaign Content */}
-      <div className="p-6">
-        {/* Category Badge */}
-        <div className="mb-2">
-          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-            {category}
-          </span>
         </div>
-
-        {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-          {title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {description}
-        </p>
-
-        {/* Progress Bar */}
-        {stats && (
-          <div className="mb-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-600">
-                {formatAmount(stats.current_amount, currency_id)} raised
-              </span>
-              <span className="text-gray-900 font-semibold">
-                {stats.completion_percentage.toFixed(0)}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-green-500 h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(stats.completion_percentage, 100)}%` } as React.CSSProperties}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>Goal: {formatAmount(goal_amount, currency_id)}</span>
-              <span>{stats.donations_count} donations</span>
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <span className="text-sm text-gray-600">
-            {daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}
-          </span>
+        
+        <div className="flex space-x-2 ml-4">
           <button 
-            type="button"
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition-colors"
+            onClick={onView}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="View Details"
           >
-            Donate Now
+            <Eye className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={onEdit}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Edit"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={onDelete}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-5 h-5" />
           </button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="bg-blue-50 rounded-lg p-3">
+          <p className="text-xs text-blue-600 mb-1">Raised</p>
+          <p className="text-lg font-bold text-blue-900">{formatAmount(stats?.current_amount || 0)}</p>
+        </div>
+        <div className="bg-purple-50 rounded-lg p-3">
+          <p className="text-xs text-purple-600 mb-1">Goal</p>
+          <p className="text-lg font-bold text-purple-900">{formatAmount(campaign.goal_amount)}</p>
+        </div>
+        <div className="bg-green-50 rounded-lg p-3">
+          <p className="text-xs text-green-600 mb-1">Progress</p>
+          <p className="text-lg font-bold text-green-900">{completionPercentage.toFixed(0)}%</p>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          <div 
+            className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(completionPercentage, 100)}%` }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-4 text-gray-600">
+          <span>🎯 {campaign.target_beneficiaries || 0} beneficiaries</span>
+          <span>📅 Ends: {formatDate(campaign.end_date)}</span>
+        </div>
+        <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
+          View Campaign
+          <TrendingUp className="w-4 h-4 ml-1" />
+        </button>
       </div>
     </div>
   );

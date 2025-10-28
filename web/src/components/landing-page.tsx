@@ -49,8 +49,9 @@ const perks = [
 
 export default function LandingPage() {
   return (
-    <MaxWidthWrapper className="flex flex-col">
-      <div className="flex-grow flex-1">
+    <>
+      <MaxWidthWrapper className="flex flex-col pt-16">
+        <div className="flex-grow flex-1">
         <MaxWidthWrapper>
           <div className="grid grid-cols-1 gap-y-1 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-2 lg:gap-x-12">
             <div className="my-16 py-6 flex flex-col items-start justify-center">
@@ -458,9 +459,10 @@ export default function LandingPage() {
           </div>
         </section>
       </div>
+      </MaxWidthWrapper>
 
       {/* Footer */}
       <Footer />
-    </MaxWidthWrapper>
+    </>
   )
 }
