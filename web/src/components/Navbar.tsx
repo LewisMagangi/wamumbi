@@ -31,7 +31,7 @@ export default function Navbar() {
           </div>
 
           {/* Donate button in the middle */}
-          <div className="hidden md:flex items-center justify-center flex-grow">
+          <div className="hidden md:flex items-center justify-center flex-grow" suppressHydrationWarning>
             <SignedIn>
               <Button variant="ghost" asChild className="bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
                 <Link href="/donate">
@@ -47,7 +47,7 @@ export default function Navbar() {
           </div>
           
           {/* Authentication buttons on the right */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4" suppressHydrationWarning>
             <SignedOut>
               <div className="inline-block">
                 <SignInButton mode="modal">
@@ -83,7 +83,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-4">
+          <div className="md:hidden flex items-center gap-4" suppressHydrationWarning>
             <SignedIn>
               <UserButton 
                 afterSignOutUrl="/"
@@ -123,7 +123,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu - updated with Donate first for emphasis */}
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`} suppressHydrationWarning>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
           <SignedIn>
             <Button variant="ghost" asChild className="justify-start bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1">
