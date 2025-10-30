@@ -1,7 +1,11 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useState } from 'react'
 import MaxWidthWrapper from "@/components/max-width-wrapper"
+import Navbar from "@/components/Navbar"
+import Sidebar from "@/components/dashboard/Sidebar"
+import MenuButton from "@/components/dashboard/MenuButton"
 
 const Footer = dynamic(() => import("@/components/footer"), {
   ssr: true
@@ -48,8 +52,13 @@ const perks = [
 ]
 
 export default function LandingPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <>
+      <Navbar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <MenuButton onClick={() => setSidebarOpen(true)} />
       <MaxWidthWrapper className="flex flex-col pt-16">
         <div className="flex-grow flex-1">
         <MaxWidthWrapper>
@@ -71,7 +80,7 @@ export default function LandingPage() {
                     }),
                     "text-base font-medium bg-rose-500 hover:bg-rose-600 text-white"
                   )}
-                  href="#"
+                  href="/donate"
                 >
                   Donate now
                 </Link>
@@ -83,7 +92,7 @@ export default function LandingPage() {
                     }),
                     "text-base font-medium"
                   )}
-                  href="#"
+                  href="/about"
                 >
                   Learn more <ArrowRight className="w-4 h-4 ml-1.5" />
                 </Link>
@@ -300,7 +309,7 @@ export default function LandingPage() {
                     <Phone className="h-5 w-5 text-rose-600 mr-3 mt-0.5" />
                     <div>
                       <p className="font-medium">Phone</p>
-                      <p className="text-gray-600">+254 123 456 789</p>
+                      <p className="text-gray-600">+254 114 010 696</p>
                     </div>
                   </div>
                   <div className="flex items-start">
@@ -308,7 +317,7 @@ export default function LandingPage() {
                     <div>
                       <p className="font-medium">Email</p>
                       <p className="text-gray-600">
-                        info@wamumbifoundation.org
+                        wamumbifoundation@gmail.com
                       </p>
                     </div>
                   </div>
@@ -403,7 +412,7 @@ export default function LandingPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500"
                     ></textarea>
                   </div>
-                  <Button className="bg-rose-600 hover:bg-rose-700 w-full">
+                  <Button className="bg-rose-600 hover:bg-rose-700 text-white w-full">
                     Send Message
                   </Button>
                 </form>
@@ -431,9 +440,11 @@ export default function LandingPage() {
                   Your financial contribution helps us provide essential
                   services to children and their guardians.
                 </p>
-                <Button className="bg-rose-600 hover:bg-rose-700 w-full">
-                  Donate Now
-                </Button>
+                <Link href="/donate">
+                  <Button className="bg-rose-600 hover:bg-rose-700 text-white w-full">
+                    Donate Now
+                  </Button>
+                </Link>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md text-center">
                 <h3 className="text-xl font-bold mb-3">Volunteer</h3>
@@ -441,9 +452,11 @@ export default function LandingPage() {
                   Share your time and skills to directly impact the lives of the
                   children we serve.
                 </p>
-                <Button variant="outline" className="w-full">
-                  Join Our Team
-                </Button>
+                <Link href="/volunteer-signup">
+                  <Button variant="outline" className="w-full hover:bg-rose-50 hover:text-rose-600 hover:border-rose-600">
+                    Join Our Team
+                  </Button>
+                </Link>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md text-center">
                 <h3 className="text-xl font-bold mb-3">Partner With Us</h3>
@@ -451,9 +464,11 @@ export default function LandingPage() {
                   Organizations and businesses can partner with us to create
                   sustainable impact.
                 </p>
-                <Button variant="outline" className="w-full">
-                  Become a Partner
-                </Button>
+                <Link href="/partner-with-us">
+                  <Button variant="outline" className="w-full hover:bg-rose-50 hover:text-rose-600 hover:border-rose-600">
+                    Become a Partner
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

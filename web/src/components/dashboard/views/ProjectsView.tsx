@@ -66,6 +66,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ openModal }) => {
                     <div
                       className="bg-rose-600 h-2 rounded-full"
                       style={{ width: `${progress?.progress_percentage || 0}%` }}
+                      role="progressbar"
+                      aria-valuenow={progress?.progress_percentage || 0}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`Project progress: ${progress?.progress_percentage || 0}%`}
                     />
                   </div>
                 </div>

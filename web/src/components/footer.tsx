@@ -122,7 +122,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/partner-with-us"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Partner With Us
@@ -141,17 +141,31 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-4">Contact Us</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>Email: info@wamumbi.org</li>
-              <li>Phone: +254 XXX XXX XXX</li>
+              <li>Email: wamumbifoundation@gmail.com</li>
+              <li>Phone: +254 114 010 696</li>
               <li>Address: Nairobi, Kenya</li>
             </ul>
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>
+          <p className="mb-2">
             &copy; {new Date().getFullYear()} Wamumbi Charity Foundation. All
             rights reserved.
           </p>
+          <div className="flex justify-center space-x-6 mt-4">
+            <Link
+              href="/terms"
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              Terms & Conditions
+            </Link>
+            <Link
+              href="/privacy"
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

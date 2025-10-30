@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { 
   X, ChevronRight, LayoutDashboard, Megaphone, HandHeart, 
-  UserCheck, FolderKanban, CalendarDays, BarChart3, Info
+  UserCheck, FolderKanban, CalendarDays, BarChart3, Info, Home, Handshake
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -12,6 +12,7 @@ interface SidebarProps {
 }
 
 const navigationItems = [
+  { name: 'Home', href: '/', icon: Home, color: 'rose', description: 'Back to landing page' },
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, color: 'rose', description: 'Dashboard overview' },
   { name: 'About Us', href: '/about', icon: Info, color: 'cyan', description: 'Our mission & values' },
   { name: 'Campaigns', href: '/campaigns', icon: Megaphone, color: 'purple', description: 'Manage campaigns' },
@@ -19,6 +20,7 @@ const navigationItems = [
   { name: 'Volunteers', href: '/volunteers', icon: UserCheck, color: 'blue', description: 'Volunteer management' },
   { name: 'Projects', href: '/projects', icon: FolderKanban, color: 'orange', description: 'Project tracking' },
   { name: 'Events', href: '/events', icon: CalendarDays, color: 'teal', description: 'Event management' },
+  { name: 'Partner With Us', href: '/partner-with-us', icon: Handshake, color: 'amber', description: 'Partnership opportunities' },
   { name: 'Reports', href: '/reports', icon: BarChart3, color: 'indigo', description: 'Analytics & reports' },
 ];
 

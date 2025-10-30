@@ -62,6 +62,11 @@ export default function CampaignCard({
             <div 
               className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
               style={{ width: `${Math.min(completionPercentage, 100)}%` }}
+              role="progressbar"
+              aria-valuenow={Math.min(completionPercentage, 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Campaign progress: ${completionPercentage.toFixed(1)}%`}
             ></div>
           </div>
         </div>
@@ -142,6 +147,11 @@ export default function CampaignCard({
           <div 
             className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
             style={{ width: `${Math.min(completionPercentage, 100)}%` }}
+            role="progressbar"
+            aria-valuenow={Math.min(completionPercentage, 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Campaign progress: ${completionPercentage.toFixed(1)}%`}
           ></div>
         </div>
       </div>

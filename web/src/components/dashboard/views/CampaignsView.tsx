@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
-import { mockDashboardSummary, formatAmount, getCategoryName } from '../../../lib/mockData';
+import { mockDashboardSummary, formatAmount } from '../../../lib/mockData';
 
 interface CampaignsViewProps {
   openModal?: (type: string) => void;
@@ -80,6 +80,11 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ openModal }) => {
                 <div
                   className="bg-rose-600 h-2 rounded-full transition-all"
                   style={{ width: `${campaign.stats.completion_percentage}%` }}
+                  role="progressbar"
+                  aria-valuenow={campaign.stats.completion_percentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Campaign progress: ${campaign.stats.completion_percentage.toFixed(0)}%`}
                 />
               </div>
               <div className="flex justify-between text-sm pt-2">

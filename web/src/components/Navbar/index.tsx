@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { Home } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,7 +29,8 @@ const Navbar = () => {
           </div>
           
           <div className="hidden sm:flex sm:space-x-8 items-center">
-            <Link href="/" className="border-transparent text-gray-900 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+            <Link href="/" className="border-transparent text-gray-900 hover:border-gray-300 hover:text-rose-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Home className="w-4 h-4 mr-1" />
               Home
             </Link>
             <Link href="/about" className="border-transparent text-gray-900 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">

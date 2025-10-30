@@ -96,6 +96,11 @@ export const EventsView: React.FC<EventsViewProps> = ({ openModal }) => {
                     <div
                       className="bg-rose-600 h-2 rounded-full"
                       style={{ width: `${(attendeeCount / event.capacity) * 100}%` }}
+                      role="progressbar"
+                      aria-valuenow={Math.round((attendeeCount / event.capacity) * 100)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`Event registration: ${Math.round((attendeeCount / event.capacity) * 100)}%`}
                     />
                   </div>
                 </div>

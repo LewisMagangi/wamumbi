@@ -175,6 +175,7 @@ export default function Dashboard() {
               value={formData.currency_id || '1'}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Select currency"
             >
               <option value="1">USD ($)</option>
               <option value="2">KES (KSh)</option>
@@ -191,6 +192,7 @@ export default function Dashboard() {
               value={formData.category_id || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Select category"
             >
               <option value="">Select category</option>
               <option value="1">Education</option>
@@ -206,6 +208,7 @@ export default function Dashboard() {
               value={formData.urgency_level_id || '3'}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Select urgency level"
             >
               <option value="1">Critical</option>
               <option value="2">High</option>
@@ -224,6 +227,7 @@ export default function Dashboard() {
               value={formData.start_date || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Campaign start date"
             />
           </div>
           <div>
@@ -234,6 +238,7 @@ export default function Dashboard() {
               value={formData.end_date || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Campaign end date"
             />
           </div>
         </div>
@@ -247,6 +252,7 @@ export default function Dashboard() {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Number of people to help"
+            aria-label="Target beneficiaries"
           />
         </div>
         <div>
@@ -258,6 +264,7 @@ export default function Dashboard() {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="https://example.com/image.jpg"
+            aria-label="Campaign image URL"
           />
         </div>
       </>
@@ -295,6 +302,7 @@ export default function Dashboard() {
             value={formData.campaign_id || ''}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            aria-label="Select campaign"
           >
             <option value="">Select campaign</option>
             {mockDashboardSummary.topCampaigns.map(c => (
@@ -325,6 +333,7 @@ export default function Dashboard() {
               value={formData.payment_method_id || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              aria-label="Select payment method"
             >
               <option value="">Select method</option>
               <option value="1">Credit Card</option>
@@ -343,6 +352,7 @@ export default function Dashboard() {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             placeholder="Transaction ID or reference number"
+            aria-label="Payment reference"
           />
         </div>
         <div>
@@ -363,8 +373,10 @@ export default function Dashboard() {
             checked={formData.is_anonymous || false}
             onChange={(e) => setFormData({ ...formData, is_anonymous: e.target.checked })}
             className="w-4 h-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            id="is_anonymous"
+            aria-label="Make donation anonymous"
           />
-          <label className="ml-2 text-sm text-gray-700">
+          <label htmlFor="is_anonymous" className="ml-2 text-sm text-gray-700">
             Make this donation anonymous
           </label>
         </div>
@@ -383,6 +395,8 @@ export default function Dashboard() {
               value={formData.first_name || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="First name"
+              aria-label="Volunteer first name"
             />
           </div>
           <div>
@@ -394,6 +408,8 @@ export default function Dashboard() {
               value={formData.last_name || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Last name"
+              aria-label="Volunteer last name"
             />
           </div>
         </div>
@@ -418,6 +434,7 @@ export default function Dashboard() {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="+1234567890"
+            aria-label="Volunteer phone number"
           />
         </div>
         <div>
@@ -443,6 +460,7 @@ export default function Dashboard() {
             }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             size={4}
+            aria-label="Select skills"
           >
             <option value="1">First Aid</option>
             <option value="2">Teaching</option>
@@ -460,6 +478,7 @@ export default function Dashboard() {
             value={formData.emergency_contact_name || ''}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            aria-label="Emergency contact name"
           />
         </div>
         <div>
@@ -470,6 +489,7 @@ export default function Dashboard() {
             value={formData.emergency_contact_phone || ''}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            aria-label="Emergency contact phone"
           />
         </div>
       </>
@@ -511,6 +531,7 @@ export default function Dashboard() {
               value={formData.event_date || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              aria-label="Event date"
             />
           </div>
           <div>
@@ -522,6 +543,7 @@ export default function Dashboard() {
               value={formData.event_time || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              aria-label="Event time"
             />
           </div>
         </div>
@@ -572,6 +594,7 @@ export default function Dashboard() {
             value={formData.registration_deadline || ''}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            aria-label="Event registration deadline"
           />
         </div>
         <div>
@@ -581,6 +604,7 @@ export default function Dashboard() {
             value={formData.category_id || '8'}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            aria-label="Select event category"
           >
             <option value="8">Community Event</option>
           </select>
@@ -758,6 +782,10 @@ export default function Dashboard() {
                           <div 
                             className="bg-gradient-to-r from-rose-500 to-rose-600 h-2.5 rounded-full transition-all"
                             style={{ width: `${Math.min(campaign.stats.completion_percentage, 100)}%` }}
+                            role="progressbar"
+                            aria-valuenow={Math.min(campaign.stats.completion_percentage, 100)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
                           ></div>
                         </div>
                       </div>
@@ -839,6 +867,10 @@ export default function Dashboard() {
                             <div 
                               className="bg-gradient-to-r from-rose-500 to-rose-600 h-2 rounded-full"
                               style={{ width: `${progress?.progress_percentage || 0}%` }}
+                              role="progressbar"
+                              aria-valuenow={progress?.progress_percentage || 0}
+                              aria-valuemin={0}
+                              aria-valuemax={100}
                             ></div>
                           </div>
                         </div>
