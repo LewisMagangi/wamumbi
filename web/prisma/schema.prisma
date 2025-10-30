@@ -1,3 +1,6 @@
+// Charity Management System Database Schema
+// Prisma Schema - Fully Normalized for 3NF Compliance
+
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -8,150 +11,1025 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum CategoryType {
+  team
+  campaign
+  blog
+  event
+}
+
+enum TeamStatus {
+  active
+  inactive
+}
+
+enum TeamMemberStatus {
+  active
+  inactive
+}
+
+enum MessageType {
+  announcement
+  discussion
+  poll
+}
+
+enum ProficiencyLevel {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+enum NotificationPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum AuditSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+// =============================================================================
+// LOOKUP TABLES FOR BETTER NORMALIZATION
+// =============================================================================
+
+model Category {
+  id            Int          @id @default(autoincrement())
+  name          String       @unique @db.VarChar(100)
+  description   String?      @db.Text
+  type          CategoryType
+  display_order Int          @default(0)
+  is_active     Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  // Relations
+  teams      Team[]
+  campaigns  Campaign[]
+  events     Event[]
+  blog_posts BlogPost[]
+
+  @@map("categories")
+}
+
+model UserRole {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  permissions Json
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+
+  // Relations
+  users User[]
+
+  @@map("user_roles")
+}
+
+model UserStatus {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+
+  // Relations
+  users User[]
+
+  @@map("user_statuses")
+}
+
+model ProjectStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(50)
+  description   String?  @db.Text
+  is_active     Boolean  @default(true)
+  display_order Int      @default(0)
+
+  // Relations
+  projects Project[]
+
+  @@map("project_statuses")
+}
+
+model CampaignStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(50)
+  description   String?  @db.Text
+  is_active     Boolean  @default(true)
+  display_order Int      @default(0)
+
+  // Relations
+  campaigns Campaign[]
+
+  @@map("campaign_statuses")
+}
+
+model UrgencyLevel {
+  id             Int     @id @default(autoincrement())
+  name           String  @unique @db.VarChar(20)
+  description    String? @db.Text
+  priority_score Int
+  color_code     String? @db.VarChar(7)
+  is_active      Boolean @default(true)
+
+  // Relations
+  campaigns Campaign[]
+
+  @@map("urgency_levels")
+}
+
+model Currency {
+  id                   Int     @id @default(autoincrement())
+  code                 String  @unique @db.VarChar(3)
+  name                 String  @db.VarChar(50)
+  symbol               String  @db.VarChar(5)
+  exchange_rate_to_usd Decimal @default(1.000000) @db.Decimal(10, 6)
+  is_active            Boolean @default(true)
+  updated_at           DateTime @updatedAt
+
+  // Relations
+  campaigns Campaign[]
+  donations Donation[]
+  events    Event[]
+  projects  Project[]
+
+  @@map("currencies")
+}
+
+// =============================================================================
+// ADDRESS MANAGEMENT (PRIVACY-CONSCIOUS DESIGN)
+// =============================================================================
+
+model Address {
+  id            Int      @id @default(autoincrement())
+  street_line_1 String?  @db.VarChar(255)
+  street_line_2 String?  @db.VarChar(255)
+  city          String?  @db.VarChar(100)
+  state         String?  @db.VarChar(100)
+  postal_code   String?  @db.VarChar(20)
+  country       String?  @db.VarChar(100)
+  latitude      Decimal? @db.Decimal(10, 8)
+  longitude     Decimal? @db.Decimal(11, 8)
+  is_validated  Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  users              User[]
+  campaigns          Campaign[]
+  events             Event[]
+  projects           Project[]
+  donors             Donor[]
+  emergency_contacts EmergencyContact[]
+
+  @@map("addresses")
+}
+
+// =============================================================================
+// USER MANAGEMENT SYSTEM
+// =============================================================================
+
 model User {
-  id             String          @id @default(uuid())
-  clerkId        String?         @unique
-  email          String          @unique
-  imageUrl       String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  firstName      String
-  lastName       String
-  roles          UserRole[]      @default([MEMBER])
-  blogs          Blog[]
-  donations      Donation[]
-  events         Event[]         @relation("EventOrganizer")
-  attendees      EventAttendee[]
-  createdReports Report[]
-  teamMembers    TeamMember[]
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique @db.VarChar(255)
+  password_hash      String    @db.VarChar(255)
+  first_name         String?   @db.VarChar(100)
+  last_name          String?   @db.VarChar(100)
+  phone              String?   @db.VarChar(20)
+  role_id            Int
+  status_id          Int
+  profile_image      String?   @db.VarChar(255)
+  address_id         Int?
+  email_verified     Boolean   @default(false)
+  phone_verified     Boolean   @default(false)
+  two_factor_enabled Boolean   @default(false)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  last_login         DateTime?
+
+  // Relations
+  role    UserRole   @relation(fields: [role_id], references: [id], onDelete: Restrict)
+  status  UserStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  address Address?   @relation(fields: [address_id], references: [id], onDelete: SetNull)
+
+  team_memberships    TeamMember[]
+  led_teams           Team[]
+  created_campaigns   Campaign[]
+  created_projects    Project[]
+  created_events      Event[]
+  event_registrations EventRegistration[]
+  volunteers          Volunteer[]
+  blog_posts          BlogPost[]
+  team_communications TeamCommunication[]
+  team_poll_votes     TeamPollVote[]
+  notifications       Notification[]
+  verified_activities VolunteerActivity[]
+  audit_logs          AuditLog[]
+
+  @@map("users")
 }
 
-model Blog {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  filename  String
-  imageUrl  String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
-}
-
-model Donation {
-  id         String         @id @default(uuid())
-  amount     Float
-  currency   String         @default("USD")
-  campaignId String?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  donorId    String
-  paymentId  String         @unique
-  status     DonationStatus @default(PENDING)
-  campaign   Campaign?      @relation(fields: [campaignId], references: [id])
-  donor      User           @relation(fields: [donorId], references: [id])
-}
-
-model Campaign {
-  id          String     @id @default(uuid())
-  title       String
-  description String
-  target      Float
-  raised      Float      @default(0)
-  imageUrl    String?
-  active      Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  endDate     DateTime?
-  startDate   DateTime
-  donations   Donation[]
-}
-
-model Event {
-  id          String          @id @default(uuid())
-  title       String
-  description String
-  location    String
-  startDate   DateTime
-  endDate     DateTime
-  imageUrl    String?
-  organizerId String
-  capacity    Int?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  organizer   User            @relation("EventOrganizer", fields: [organizerId], references: [id])
-  attendees   EventAttendee[]
-}
-
-model EventAttendee {
-  id        String   @id @default(uuid())
-  userId    String
-  eventId   String
-  status    String   @default("registered")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, eventId])
-}
-
-model Report {
-  id               String   @id @default(uuid())
-  title            String
-  totalDonation    Float    @default(0)
-  totalEvents      Int      @default(0)
-  activeVolunteers Int      @default(0)
-  createdById      String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  reportData       Json?
-  createdBy        User     @relation(fields: [createdById], references: [id])
-}
-
-model Partner {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  imageUrl    String?
-  websiteUrl  String?
-  dateJoined  DateTime @default(now())
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// =============================================================================
+// TEAM MANAGEMENT
+// =============================================================================
 
 model Team {
-  id          String       @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  members     TeamMember[]
+  id             Int        @id @default(autoincrement())
+  name           String     @db.VarChar(100)
+  description    String?    @db.Text
+  category_id    Int
+  team_leader_id Int?
+  status         TeamStatus @default(active)
+  max_members    Int?
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+
+  // Relations
+  category Category @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  leader   User?    @relation(fields: [team_leader_id], references: [id], onDelete: SetNull)
+
+  members        TeamMember[]
+  projects       Project[]
+  communications TeamCommunication[]
+  notifications  Notification[]
+
+  @@map("teams")
 }
 
 model TeamMember {
-  id       String   @id @default(uuid())
-  userId   String
-  teamId   String
-  role     String   @default("member")
-  joinedAt DateTime @default(now())
-  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int              @id @default(autoincrement())
+  team_id   Int
+  user_id   Int
+  joined_at DateTime         @default(now())
+  status    TeamMemberStatus @default(active)
+  role      String?          @db.VarChar(50)
 
-  @@unique([userId, teamId])
+  // Relations
+  team Team @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([team_id, user_id])
+  @@map("team_members")
 }
 
-enum UserRole {
-  MEMBER
-  ADMIN
-  SUPER_ADMIN
+// =============================================================================
+// CAMPAIGN MANAGEMENT
+// =============================================================================
+
+model Campaign {
+  id                   Int       @id @default(autoincrement())
+  title                String    @db.VarChar(200)
+  description          String    @db.Text
+  goal_amount          Decimal   @db.Decimal(12, 2)
+  currency_id          Int
+  category_id          Int
+  status_id            Int
+  start_date           DateTime  @db.Date
+  end_date             DateTime? @db.Date
+  image_url            String?   @db.VarChar(255)
+  address_id           Int?
+  target_beneficiaries Int?
+  urgency_level_id     Int
+  created_by           Int?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+
+  // Relations
+  currency      Currency       @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  category      Category       @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  status        CampaignStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  address       Address?       @relation(fields: [address_id], references: [id], onDelete: SetNull)
+  urgency_level UrgencyLevel   @relation(fields: [urgency_level_id], references: [id], onDelete: Restrict)
+  creator       User?          @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  statistics    CampaignStatistics?
+  donations     Donation[]
+  projects      Project[]
+  notifications Notification[]
+
+  @@map("campaigns")
 }
 
-enum DonationStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
+model CampaignStatistics {
+  id                    Int       @id @default(autoincrement())
+  campaign_id           Int       @unique
+  current_amount        Decimal   @default(0) @db.Decimal(12, 2)
+  donations_count       Int       @default(0)
+  unique_donors_count   Int       @default(0)
+  average_donation      Decimal   @default(0) @db.Decimal(10, 2)
+  completion_percentage Decimal   @default(0) @db.Decimal(5, 2)
+  last_donation_date    DateTime?
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@map("campaign_statistics")
+}
+
+// =============================================================================
+// DONATION MANAGEMENT
+// =============================================================================
+
+model Donor {
+  id           Int      @id @default(autoincrement())
+  user_id      Int?
+  first_name   String?  @db.VarChar(100)
+  last_name    String?  @db.VarChar(100)
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  address_id   Int?
+  is_anonymous Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  address Address? @relation(fields: [address_id], references: [id], onDelete: SetNull)
+
+  donations Donation[]
+
+  @@map("donors")
+}
+
+model PaymentMethod {
+  id                        Int      @id @default(autoincrement())
+  name                      String   @unique @db.VarChar(50)
+  description               String?  @db.Text
+  processing_fee_percentage Decimal? @default(0) @db.Decimal(5, 4)
+  fixed_fee_amount          Decimal? @default(0) @db.Decimal(8, 2)
+  is_active                 Boolean  @default(true)
+  requires_verification     Boolean  @default(false)
+  supported_currencies      Json?
+  created_at                DateTime @default(now())
+
+  // Relations
+  donations Donation[]
+
+  @@map("payment_methods")
+}
+
+model DonationStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(30)
+  description   String?  @db.Text
+  is_final      Boolean  @default(false)
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  donations Donation[]
+
+  @@map("donation_statuses")
+}
+
+model RecurringFrequency {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(20)
+  description   String?  @db.Text
+  days_interval Int
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  donations Donation[]
+
+  @@map("recurring_frequencies")
+}
+
+model Donation {
+  id                     Int       @id @default(autoincrement())
+  donor_id               Int
+  campaign_id            Int
+  amount                 Decimal   @db.Decimal(10, 2)
+  currency_id            Int
+  payment_method_id      Int
+  payment_reference      String?   @db.VarChar(100)
+  status_id              Int
+  is_recurring           Boolean   @default(false)
+  recurring_frequency_id Int?
+  parent_donation_id     Int?
+  processing_fee         Decimal?  @db.Decimal(8, 2)
+  net_amount             Decimal?  @db.Decimal(10, 2)
+  notes                  String?   @db.Text
+  donation_date          DateTime  @default(now())
+  processed_at           DateTime?
+  created_at             DateTime  @default(now())
+
+  // Relations
+  donor               Donor               @relation(fields: [donor_id], references: [id], onDelete: Restrict)
+  campaign            Campaign            @relation(fields: [campaign_id], references: [id], onDelete: Restrict)
+  currency            Currency            @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  payment_method      PaymentMethod       @relation(fields: [payment_method_id], references: [id], onDelete: Restrict)
+  status              DonationStatus      @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  recurring_frequency RecurringFrequency? @relation(fields: [recurring_frequency_id], references: [id], onDelete: SetNull)
+  parent_donation     Donation?           @relation("RecurringDonations", fields: [parent_donation_id], references: [id], onDelete: SetNull)
+
+  child_donations Donation[]     @relation("RecurringDonations")
+  notifications   Notification[]
+
+  @@map("donations")
+}
+
+// =============================================================================
+// PROJECT MANAGEMENT
+// =============================================================================
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(200)
+  description String    @db.Text
+  team_id     Int?
+  campaign_id Int?
+  start_date  DateTime  @db.Date
+  end_date    DateTime? @db.Date
+  status_id   Int
+  budget      Decimal?  @db.Decimal(12, 2)
+  currency_id Int?
+  address_id  Int?
+  created_by  Int?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Relations
+  team     Team?         @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  campaign Campaign?     @relation(fields: [campaign_id], references: [id], onDelete: SetNull)
+  status   ProjectStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  currency Currency?     @relation(fields: [currency_id], references: [id], onDelete: SetNull)
+  address  Address?      @relation(fields: [address_id], references: [id], onDelete: SetNull)
+  creator  User?         @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  progress             ProjectProgress?
+  volunteer_activities VolunteerActivity[]
+  notifications        Notification[]
+
+  @@map("projects")
+}
+
+model ProjectProgress {
+  id                  Int       @id @default(autoincrement())
+  project_id          Int       @unique
+  progress_percentage Int       @default(0)
+  hours_logged        Decimal   @default(0) @db.Decimal(8, 2)
+  volunteers_count    Int       @default(0)
+  tasks_completed     Int       @default(0)
+  tasks_total         Int       @default(0)
+  last_update_date    DateTime?
+  updated_at          DateTime  @updatedAt
+
+  // Relations
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@map("project_progress")
+}
+
+// =============================================================================
+// EVENT MANAGEMENT
+// =============================================================================
+
+model EventStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(30)
+  description   String?  @db.Text
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  events Event[]
+
+  @@map("event_statuses")
+}
+
+model Event {
+  id                    Int       @id @default(autoincrement())
+  title                 String    @db.VarChar(200)
+  description           String    @db.Text
+  event_date            DateTime
+  address_id            Int
+  capacity              Int
+  ticket_price          Decimal   @default(0) @db.Decimal(8, 2)
+  currency_id           Int
+  status_id             Int
+  image_url             String?   @db.VarChar(255)
+  registration_deadline DateTime?
+  category_id           Int
+  created_by            Int?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  address  Address     @relation(fields: [address_id], references: [id], onDelete: Restrict)
+  currency Currency    @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  status   EventStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  category Category    @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  creator  User?       @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  registrations        EventRegistration[]
+  volunteer_activities VolunteerActivity[]
+  notifications        Notification[]
+
+  @@map("events")
+}
+
+model RegistrationStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(30)
+  description   String?  @db.Text
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  event_registrations EventRegistration[]
+
+  @@map("registration_statuses")
+}
+
+model PaymentStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(30)
+  description   String?  @db.Text
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  event_registrations EventRegistration[]
+
+  @@map("payment_statuses")
+}
+
+model EventRegistration {
+  id                   Int       @id @default(autoincrement())
+  event_id             Int
+  user_id              Int
+  registration_date    DateTime  @default(now())
+  status_id            Int
+  payment_status_id    Int
+  payment_reference    String?   @db.VarChar(100)
+  special_requirements String?   @db.Text
+
+  // Relations
+  event          Event              @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  status         RegistrationStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  payment_status PaymentStatus      @relation(fields: [payment_status_id], references: [id], onDelete: Restrict)
+
+  @@unique([event_id, user_id])
+  @@map("event_registrations")
+}
+
+// =============================================================================
+// VOLUNTEER MANAGEMENT
+// =============================================================================
+
+model EmergencyContact {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  phone        String   @db.VarChar(20)
+  email        String?  @db.VarChar(255)
+  relationship String   @db.VarChar(50)
+  address_id   Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  address Address? @relation(fields: [address_id], references: [id], onDelete: SetNull)
+
+  volunteers Volunteer[]
+
+  @@map("emergency_contacts")
+}
+
+model VolunteerSkill {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  category    String?  @db.VarChar(50)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+
+  // Relations
+  volunteer_skill_assignments VolunteerSkillAssignment[]
+
+  @@map("volunteer_skills")
+}
+
+model BackgroundCheckStatus {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique @db.VarChar(30)
+  description     String?  @db.Text
+  requires_action Boolean  @default(false)
+  display_order   Int      @default(0)
+  is_active       Boolean  @default(true)
+
+  // Relations
+  volunteers Volunteer[]
+
+  @@map("background_check_statuses")
+}
+
+model VolunteerStatus {
+  id               Int      @id @default(autoincrement())
+  name             String   @unique @db.VarChar(30)
+  description      String?  @db.Text
+  is_active_status Boolean  @default(true)
+  display_order    Int      @default(0)
+  is_active        Boolean  @default(true)
+
+  // Relations
+  volunteers Volunteer[]
+
+  @@map("volunteer_statuses")
+}
+
+model Volunteer {
+  id                         Int       @id @default(autoincrement())
+  user_id                    Int
+  availability               String?   @db.Text
+  emergency_contact_id       Int?
+  background_check_status_id Int
+  background_check_date      DateTime? @db.Date
+  background_check_expiry    DateTime? @db.Date
+  joined_date                DateTime  @db.Date
+  status_id                  Int
+  created_at                 DateTime  @default(now())
+  updated_at                 DateTime  @updatedAt
+
+  // Relations
+  user                    User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  emergency_contact       EmergencyContact?     @relation(fields: [emergency_contact_id], references: [id], onDelete: SetNull)
+  background_check_status BackgroundCheckStatus @relation(fields: [background_check_status_id], references: [id], onDelete: Restrict)
+  status                  VolunteerStatus       @relation(fields: [status_id], references: [id], onDelete: Restrict)
+
+  skill_assignments VolunteerSkillAssignment[]
+  statistics        VolunteerStatistics?
+  activities        VolunteerActivity[]
+
+  @@map("volunteers")
+}
+
+model VolunteerSkillAssignment {
+  id                Int              @id @default(autoincrement())
+  volunteer_id      Int
+  skill_id          Int
+  proficiency_level ProficiencyLevel @default(beginner)
+  years_experience  Int              @default(0)
+  created_at        DateTime         @default(now())
+
+  // Relations
+  volunteer Volunteer      @relation(fields: [volunteer_id], references: [id], onDelete: Cascade)
+  skill     VolunteerSkill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([volunteer_id, skill_id])
+  @@map("volunteer_skill_assignments")
+}
+
+model VolunteerStatistics {
+  id                 Int       @id @default(autoincrement())
+  volunteer_id       Int       @unique
+  total_hours        Decimal   @default(0) @db.Decimal(8, 2)
+  activities_count   Int       @default(0)
+  projects_count     Int       @default(0)
+  events_count       Int       @default(0)
+  teams_count        Int       @default(0)
+  last_activity_date DateTime?
+  updated_at         DateTime  @updatedAt
+
+  // Relations
+  volunteer Volunteer @relation(fields: [volunteer_id], references: [id], onDelete: Cascade)
+
+  @@map("volunteer_statistics")
+}
+
+model ActivityType {
+  id                    Int      @id @default(autoincrement())
+  name                  String   @unique @db.VarChar(50)
+  description           String?  @db.Text
+  requires_verification Boolean  @default(false)
+  display_order         Int      @default(0)
+  is_active             Boolean  @default(true)
+
+  // Relations
+  volunteer_activities VolunteerActivity[]
+
+  @@map("activity_types")
+}
+
+model VolunteerActivity {
+  id                 Int       @id @default(autoincrement())
+  volunteer_id       Int
+  activity_type_id   Int
+  description        String    @db.Text
+  hours_logged       Decimal   @db.Decimal(4, 2)
+  activity_date      DateTime  @db.Date
+  project_id         Int?
+  event_id           Int?
+  verified_by        Int?
+  verification_date  DateTime?
+  verification_notes String?   @db.Text
+  created_at         DateTime  @default(now())
+
+  // Relations
+  volunteer     Volunteer    @relation(fields: [volunteer_id], references: [id], onDelete: Cascade)
+  activity_type ActivityType @relation(fields: [activity_type_id], references: [id], onDelete: Restrict)
+  project       Project?     @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  event         Event?       @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  verifier      User?        @relation(fields: [verified_by], references: [id], onDelete: SetNull)
+
+  @@map("volunteer_activities")
+}
+
+// =============================================================================
+// CONTENT MANAGEMENT
+// =============================================================================
+
+model BlogPostStatus {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(30)
+  description   String?  @db.Text
+  is_published  Boolean  @default(false)
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+
+  // Relations
+  blog_posts BlogPost[]
+
+  @@map("blog_post_statuses")
+}
+
+model BlogPost {
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(200)
+  content        String    @db.Text
+  excerpt        String?   @db.Text
+  category_id    Int
+  status_id      Int
+  featured_image String?   @db.VarChar(255)
+  author_id      Int?
+  published_at   DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  // Relations
+  category Category       @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  status   BlogPostStatus @relation(fields: [status_id], references: [id], onDelete: Restrict)
+  author   User?          @relation(fields: [author_id], references: [id], onDelete: SetNull)
+
+  notifications Notification[]
+
+  @@map("blog_posts")
+}
+
+// =============================================================================
+// COMMUNICATION SYSTEM
+// =============================================================================
+
+model TeamCommunication {
+  id           Int         @id @default(autoincrement())
+  team_id      Int
+  sender_id    Int
+  message_type MessageType
+  title        String      @db.VarChar(200)
+  content      String      @db.Text
+  is_pinned    Boolean     @default(false)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  // Relations
+  team   Team @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  poll TeamPoll?
+
+  @@map("team_communications")
+}
+
+model TeamPoll {
+  id                 Int       @id @default(autoincrement())
+  communication_id   Int       @unique
+  question           String    @db.Text
+  is_multiple_choice Boolean   @default(false)
+  closes_at          DateTime?
+  is_anonymous       Boolean   @default(false)
+  created_at         DateTime  @default(now())
+
+  // Relations
+  communication TeamCommunication @relation(fields: [communication_id], references: [id], onDelete: Cascade)
+
+  options TeamPollOption[]
+  votes   TeamPollVote[]
+
+  @@map("team_polls")
+}
+
+model TeamPollOption {
+  id            Int      @id @default(autoincrement())
+  poll_id       Int
+  option_text   String   @db.VarChar(255)
+  display_order Int
+  created_at    DateTime @default(now())
+
+  // Relations
+  poll TeamPoll @relation(fields: [poll_id], references: [id], onDelete: Cascade)
+
+  votes TeamPollVote[]
+
+  @@map("team_poll_options")
+}
+
+model TeamPollVote {
+  id        Int      @id @default(autoincrement())
+  poll_id   Int
+  user_id   Int
+  option_id Int
+  voted_at  DateTime @default(now())
+
+  // Relations
+  poll   TeamPoll       @relation(fields: [poll_id], references: [id], onDelete: Cascade)
+  user   User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  option TeamPollOption @relation(fields: [option_id], references: [id], onDelete: Cascade)
+
+  @@unique([poll_id, user_id, option_id])
+  @@map("team_poll_votes")
+}
+
+// =============================================================================
+// NOTIFICATION SYSTEM
+// =============================================================================
+
+model NotificationType {
+  id               Int                  @id @default(autoincrement())
+  name             String               @unique @db.VarChar(50)
+  description      String?              @db.Text
+  template_subject String?              @db.VarChar(255)
+  template_body    String?              @db.Text
+  priority         NotificationPriority @default(normal)
+  is_active        Boolean              @default(true)
+  created_at       DateTime             @default(now())
+
+  // Relations
+  notifications Notification[]
+
+  @@map("notification_types")
+}
+
+model DeliveryMethod {
+  id             Int      @id @default(autoincrement())
+  name           String   @unique @db.VarChar(20)
+  description    String?  @db.Text
+  is_active      Boolean  @default(true)
+  requires_config Boolean @default(false)
+
+  // Relations
+  notifications Notification[]
+
+  @@map("delivery_methods")
+}
+
+model Notification {
+  id                   Int       @id @default(autoincrement())
+  user_id              Int
+  notification_type_id Int
+  title                String    @db.VarChar(200)
+  message              String    @db.Text
+  is_read              Boolean   @default(false)
+  campaign_id          Int?
+  donation_id          Int?
+  event_id             Int?
+  project_id           Int?
+  team_id              Int?
+  blog_post_id         Int?
+  delivery_method_id   Int
+  delivered_at         DateTime?
+  read_at              DateTime?
+  expires_at           DateTime?
+  created_at           DateTime  @default(now())
+
+  // Relations
+  user            User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  notification_type NotificationType @relation(fields: [notification_type_id], references: [id], onDelete: Restrict)
+  campaign        Campaign?        @relation(fields: [campaign_id], references: [id], onDelete: SetNull)
+  donation        Donation?        @relation(fields: [donation_id], references: [id], onDelete: SetNull)
+  event           Event?           @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  project         Project?         @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  team            Team?            @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  blog_post       BlogPost?        @relation(fields: [blog_post_id], references: [id], onDelete: SetNull)
+  delivery_method DeliveryMethod   @relation(fields: [delivery_method_id], references: [id], onDelete: Restrict)
+
+  @@map("notifications")
+}
+
+// =============================================================================
+// SETTINGS MANAGEMENT
+// =============================================================================
+
+model SettingCategory {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique @db.VarChar(50)
+  description   String?  @db.Text
+  display_order Int      @default(0)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  // Relations
+  settings Setting[]
+
+  @@map("setting_categories")
+}
+
+model SettingDataType {
+  id                 Int      @id @default(autoincrement())
+  name               String   @unique @db.VarChar(20)
+  validation_pattern String?  @db.VarChar(255)
+  description        String?  @db.Text
+  is_active          Boolean  @default(true)
+
+  // Relations
+  settings Setting[]
+
+  @@map("setting_data_types")
+}
+
+model Setting {
+  id           Int      @id @default(autoincrement())
+  key          String   @unique @db.VarChar(100)
+  value        String   @db.Text
+  description  String?  @db.Text
+  category_id  Int
+  data_type_id Int
+  is_public    Boolean  @default(false)
+  is_encrypted Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  category  SettingCategory  @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  data_type SettingDataType  @relation(fields: [data_type_id], references: [id], onDelete: Restrict)
+
+  @@map("settings")
+}
+
+// =============================================================================
+// AUDIT SYSTEM
+// =============================================================================
+
+model EntityType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  table_name  String   @db.VarChar(50)
+  description String?  @db.Text
+  is_active   Boolean  @default(true)
+
+  // Relations
+  audit_logs AuditLog[]
+
+  @@map("entity_types")
+}
+
+model AuditAction {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique @db.VarChar(50)
+  description String?       @db.Text
+  severity    AuditSeverity @default(medium)
+  is_active   Boolean       @default(true)
+
+  // Relations
+  audit_logs AuditLog[]
+
+  @@map("audit_actions")
+}
+
+model AuditLog {
+  id               Int      @id @default(autoincrement())
+  user_id          Int?
+  action_id        Int
+  entity_type_id   Int
+  entity_id        Int
+  old_values       Json?
+  new_values       Json?
+  affected_columns String[]
+  ip_address       String?  @db.VarChar(45)
+  user_agent       String?  @db.Text
+  session_id       String?  @db.VarChar(255)
+  created_at       DateTime @default(now())
+
+  // Relations
+  user        User?       @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  action      AuditAction @relation(fields: [action_id], references: [id], onDelete: Restrict)
+  entity_type EntityType  @relation(fields: [entity_type_id], references: [id], onDelete: Restrict)
+
+  @@index([entity_type_id, entity_id])
+  @@index([user_id, created_at])
+  @@index([action_id, created_at])
+  @@index([created_at])
+  @@map("audit_logs")
 }
