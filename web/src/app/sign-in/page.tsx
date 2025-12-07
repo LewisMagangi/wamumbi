@@ -1,4 +1,5 @@
 import { SignIn } from '@clerk/nextjs';
+import Link from 'next/link';
  
 export default function SignInPage() {
   return (
@@ -25,6 +26,19 @@ export default function SignInPage() {
           routing="path"
           signUpUrl="/sign-up"
         />
+
+        {/* Forgot Password Link */}
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Forgot your password?{' '}
+            <Link 
+              href="/forgot-password" 
+              className="font-medium text-rose-600 hover:text-rose-500"
+            >
+              Reset it here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
