@@ -1,5 +1,8 @@
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/footer';
 import Sidebar from '@/components/dashboard/Sidebar';
@@ -15,6 +18,16 @@ export default function TermsPage() {
       <MenuButton onClick={() => setSidebarOpen(true)} />
       <div className="min-h-screen bg-gray-50 pt-16">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
+          {/* Back Button */}
+          <div className="mb-6">
+            <Button variant="ghost" asChild className="flex items-center gap-2">
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Link>
+            </Button>
+          </div>
+          
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 md:p-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Terms and Conditions</h1>
             <p className="text-gray-600 mb-8">Last updated: {new Date().toLocaleDateString()}</p>
