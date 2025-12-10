@@ -37,14 +37,21 @@ export const TeamOverview = () => {
 
   // Sample teams data for development
   const sampleTeams = [
-    { id: 1, name: "Water Project Team", memberCount: 12, color: "bg-blue-500" },
-    { id: 2, name: "Education Team", memberCount: 8, color: "bg-green-500" },
-    { id: 3, name: "Hunger Relief Team", memberCount: 15, color: "bg-red-500" },
-    { id: 4, name: "Healthcare Team", memberCount: 10, color: "bg-purple-500" }
+    { id: 1, name: "Water Project Team", membersCount: 12, leader: { name: "John Doe", imageUrl: null } },
+    { id: 2, name: "Education Team", membersCount: 8, leader: { name: "Jane Smith", imageUrl: null } },
+    { id: 3, name: "Hunger Relief Team", membersCount: 15, leader: { name: "Bob Wilson", imageUrl: null } },
+    { id: 4, name: "Healthcare Team", membersCount: 10, leader: { name: "Alice Brown", imageUrl: null } }
   ];
 
   // Use real data if available, otherwise use sample data
-  const teamsData = Array.isArray(teams) ? teams : sampleTeams;
+  const teamsData = Array.isArray(teams) && teams.length > 0 ? teams : sampleTeams;
+
+  // Function to get a consistent color for a team based on its name
+  const getTeamColor = (name: string) => {
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-red-500', 'bg-purple-500', 'bg-yellow-500', 'bg-pink-500'];
+    const index = name.length % colors.length;
+    return colors[index];
+  };
 
   return (
     <div className="card h-full">
@@ -70,7 +77,7 @@ export const TeamOverview = () => {
             className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <div 
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${team.color}`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${getTeamColor(team.name)}`}
             >
               {team.name.charAt(0)}
             </div>
@@ -80,11 +87,11 @@ export const TeamOverview = () => {
               <div className="flex items-center mt-1">
                 <div className="flex -space-x-2 mr-2">
                   {/* This would show actual team member avatars in a real app */}
-                  {[...Array(Math.min(3, team.memberCount))].map((_, i) => (
+                  {[...Array(Math.min(3, team.membersCount))].map((_, i) => (
                     <div key={i} className="w-5 h-5 rounded-full bg-gray-300 border border-white"></div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500">{team.memberCount} members</p>
+                <p className="text-xs text-gray-500">{team.membersCount} members</p>
               </div>
             </div>
             

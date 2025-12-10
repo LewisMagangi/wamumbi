@@ -1,13 +1,13 @@
-import React from 'react';
-import { Plus, FolderKanban } from 'lucide-react';
+'use client';
+
+import React, { useState } from 'react';
+import { Plus, FolderKanban, X, Clock } from 'lucide-react';
 import { mockProjects, mockProjectStatuses, getProjectProgress } from '../../../lib/mockData';
 import { formatDate } from '../../../lib/dateUtils';
 
-interface ProjectsViewProps {
-  openModal?: (type: string) => void;
-}
+export const ProjectsView: React.FC = () => {
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
 
-export const ProjectsView: React.FC<ProjectsViewProps> = ({ openModal }) => {
   const getStatusName = (statusId: number) => {
     const status = mockProjectStatuses.find(s => s.id === statusId);
     return status?.name || 'Unknown';
@@ -21,7 +21,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ openModal }) => {
           <p className="text-gray-600 mt-1">Track and manage ongoing projects</p>
         </div>
         <button
-          onClick={() => openModal?.('project')}
+          onClick={() => setShowComingSoonModal(true)}
           className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -98,6 +98,42 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ openModal }) => {
           );
         })}
       </div>
+
+      {/* Coming Soon Modal */}
+      {showComingSoonModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center relative">
+            <button 
+              onClick={() => setShowComingSoonModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              title="Close modal"
+              aria-label="Close coming soon modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="w-8 h-8 text-gray-600" />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
+            <p className="text-gray-600 mb-6">
+              The ability to add new projects is coming in <span className="font-semibold text-rose-600">Version 2</span>.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              We&apos;re working hard to bring you project management features including 
+              task tracking, team assignments, and budget management.
+            </p>
+            
+            <button
+              onClick={() => setShowComingSoonModal(false)}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

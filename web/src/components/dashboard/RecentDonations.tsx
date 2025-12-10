@@ -1,18 +1,19 @@
 import React from 'react';
 import { trpc } from '@/app/_trpc/client';
 
-type DonationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+type DonationStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
 
-const STATUS_MAP: Record<DonationStatus, { text: string; color: string }> = {
-  PENDING: { text: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
-  PROCESSING: { text: 'Processing', color: 'bg-blue-100 text-blue-800' },
-  COMPLETED: { text: 'Completed', color: 'bg-green-100 text-green-800' },
-  FAILED: { text: 'Failed', color: 'bg-red-100 text-red-800' },
-  REFUNDED: { text: 'Refunded', color: 'bg-gray-100 text-gray-800' },
+const STATUS_MAP: Record<string, { text: string; color: string }> = {
+  pending: { text: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
+  processing: { text: 'Processing', color: 'bg-blue-100 text-blue-800' },
+  completed: { text: 'Completed', color: 'bg-green-100 text-green-800' },
+  failed: { text: 'Failed', color: 'bg-red-100 text-red-800' },
+  refunded: { text: 'Refunded', color: 'bg-gray-100 text-gray-800' },
 };
 
-function getStatusBadge(status: DonationStatus) {
-  const statusInfo = STATUS_MAP[status] || { text: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+function getStatusBadge(status: string) {
+  const normalizedStatus = status.toLowerCase();
+  const statusInfo = STATUS_MAP[normalizedStatus] || { text: status, color: 'bg-gray-100 text-gray-800' };
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
       {statusInfo.text}

@@ -5,6 +5,7 @@ import {
   X, ChevronRight, LayoutDashboard, Megaphone, HandHeart, 
   UserCheck, FolderKanban, CalendarDays, BarChart3, Info, Home, Handshake
 } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/nextjs';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,6 +26,16 @@ const navigationItems = [
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' });
+  };
+
+  const userInitials = user?.firstName?.[0] || user?.lastName?.[0] || 'U';
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User' : 'Loading...';
+  const userEmail = user?.primaryEmailAddress?.emailAddress || 'Loading...';
   return (
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-300 ${
@@ -92,14 +103,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white font-bold">
-              A
+              {userInitials}
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">Admin User</p>
-              <p className="text-xs text-gray-600">admin@wamumbi.org</p>
+              <p className="text-sm font-semibold text-gray-900">{userName}</p>
+              <p className="text-xs text-gray-600">{userEmail}</p>
             </div>
           </div>
-          <button className="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-lg transition-colors">
+          <button 
+            onClick={handleSignOut}
+            className="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
             Sign Out
           </button>
         </div>
