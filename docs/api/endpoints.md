@@ -1,55 +1,558 @@
-# API Endpoints
+# tRPC Procedures
 
-This document provides detailed information about all available API endpoints in the Wamumbi Charity Management System.
+This document provides detailed information about all available tRPC procedures in the Wamumbi Charity Management System.
 
 ## Table of Contents
 
-- [Users](#users)
-- [Donations](#donations)
+- [Authentication](#authentication)
+- [Dashboard](#dashboard)
 - [Campaigns](#campaigns)
-- [Volunteers](#volunteers)
-- [Events](#events)
-- [Projects](#projects)
+- [Donations](#donations)
 - [Teams](#teams)
+- [Events](#events)
+- [Volunteers](#volunteers)
 - [Blog Posts](#blog-posts)
-- [Notifications](#notifications)
 
 ---
 
-## Users
+## Authentication
 
-### Get Current User Profile
+### authCallback
 
-```http
-GET /api/users/profile
-```
+**Type:** Mutation
 
-**Response:**
+**Description:** Handles user authentication callback from Clerk, creating or updating user in database.
 
-```json
+**Input:** None
+
+**Output:**
+
+```typescript
 {
-  "success": true,
-  "data": {
-    "id": 1,
-    "email": "john@example.com",
-    "firstName": "John",
-    "lastName": "Doe",
-    "phone": "+1234567890",
-    "role": "volunteer",
-    "status": "active",
-    "profileImage": "/images/profile.jpg",
-    "createdAt": "2025-01-15T10:00:00Z",
-    "lastLogin": "2025-01-20T14:30:00Z"
+  user: {
+    id: number;
+    clerkId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    imageUrl?: string;
+    // ... other user fields
   }
 }
 ```
 
-### Update User Profile
+---
 
-```http
-PATCH /api/users/profile
+## Dashboard
+
+### getStats
+
+**Type:** Query
+
+**Description:** Retrieves dashboard statistics including total donations, active campaigns, volunteers, etc.
+
+**Input:** None
+
+**Output:**
+
+```typescript
+{
+  totalDonations: number;
+  totalCampaigns: number;
+  activeVolunteers: number;
+  totalEvents: number;
+  // ... other stats
+}
 ```
 
+---
+
+## Campaigns
+
+### getActive
+
+**Type:** Query
+
+**Description:** Retrieves active campaigns with statistics.
+
+**Input:** None
+
+**Output:** Array of active campaigns with progress information.
+
+### getAll
+
+**Type:** Query
+
+**Description:** Retrieves all campaigns with full details.
+
+**Input:** None
+
+**Output:** Array of all campaigns.
+
+### getById
+
+**Type:** Query
+
+**Description:** Retrieves a specific campaign by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Campaign details with statistics.
+
+### create
+
+**Type:** Mutation
+
+**Description:** Creates a new campaign.
+
+**Input:** Campaign creation data
+
+**Output:** Created campaign
+
+### update
+
+**Type:** Mutation
+
+**Description:** Updates an existing campaign.
+
+**Input:** Campaign update data with ID
+
+**Output:** Updated campaign
+
+### delete
+
+**Type:** Mutation
+
+**Description:** Deletes a campaign.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Success confirmation
+
+---
+
+## Donations
+
+### GetAll
+
+**Type:** Query
+
+**Description:** Retrieves all donations with filtering options.
+
+**Input:** Optional filters (campaignId, donorId, etc.)
+
+**Output:** Array of donations
+
+### GetById
+
+**Type:** Query
+
+**Description:** Retrieves a specific donation by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Donation details
+
+### Create
+
+**Type:** Mutation
+
+**Description:** Creates a new donation.
+
+**Input:** Donation creation data
+
+**Output:** Created donation
+
+### Update
+
+**Type:** Mutation
+
+**Description:** Updates donation status.
+
+**Input:** Donation update data
+
+**Output:** Updated donation
+
+---
+
+## Teams
+
+### getall
+
+**Type:** Query
+
+**Description:** Retrieves all teams.
+
+**Input:** None
+
+**Output:** Array of teams
+
+### GetByid
+
+**Type:** Query
+
+**Description:** Retrieves a specific team by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Team details with members
+
+### CREATE
+
+**Type:** Mutation
+
+**Description:** Creates a new team.
+
+**Input:** Team creation data
+
+**Output:** Created team
+
+### UPdate
+
+**Type:** Mutation
+
+**Description:** Updates a team.
+
+**Input:** Team update data
+
+**Output:** Updated team
+
+### Delete
+
+**Type:** Mutation
+
+**Description:** Deletes a team.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Success confirmation
+
+### addMember
+
+**Type:** Mutation
+
+**Description:** Adds a member to a team.
+
+**Input:** Team and user IDs
+
+**Output:** Updated team membership
+
+### removeMember
+
+**Type:** Mutation
+
+**Description:** Removes a member from a team.
+
+**Input:** Team and user IDs
+
+**Output:** Success confirmation
+
+### getCategories
+
+**Type:** Query
+
+**Description:** Retrieves available team categories.
+
+**Input:** None
+
+**Output:** Array of categories
+
+---
+
+## Events
+
+### getUpcoming
+
+**Type:** Query
+
+**Description:** Retrieves upcoming events.
+
+**Input:** None
+
+**Output:** Array of upcoming events
+
+### Getall
+
+**Type:** Query
+
+**Description:** Retrieves all events.
+
+**Input:** None
+
+**Output:** Array of events
+
+### getbyId
+
+**Type:** Query
+
+**Description:** Retrieves a specific event by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Event details with registrations
+
+### CrEate
+
+**Type:** Mutation
+
+**Description:** Creates a new event.
+
+**Input:** Event creation data
+
+**Output:** Created event
+
+### UPDate
+
+**Type:** Mutation
+
+**Description:** Updates an event.
+
+**Input:** Event update data
+
+**Output:** Updated event
+
+### register
+
+**Type:** Mutation
+
+**Description:** Registers a user for an event.
+
+**Input:** Event ID and registration data
+
+**Output:** Registration confirmation
+
+---
+
+## Volunteers
+
+### getALL
+
+**Type:** Query
+
+**Description:** Retrieves all volunteers.
+
+**Input:** None
+
+**Output:** Array of volunteers
+
+### getByID
+
+**Type:** Query
+
+**Description:** Retrieves a specific volunteer by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Volunteer details with skills and activities
+
+### CREAte
+
+**Type:** Mutation
+
+**Description:** Registers a new volunteer.
+
+**Input:** Volunteer registration data
+
+**Output:** Created volunteer
+
+### UPDAte
+
+**Type:** Mutation
+
+**Description:** Updates volunteer information.
+
+**Input:** Volunteer update data
+
+**Output:** Updated volunteer
+
+### DELEte
+
+**Type:** Mutation
+
+**Description:** Removes a volunteer.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Success confirmation
+
+### logActivity
+
+**Type:** Mutation
+
+**Description:** Logs volunteer activity hours.
+
+**Input:** Activity logging data
+
+**Output:** Logged activity
+
+### getSkills
+
+**Type:** Query
+
+**Description:** Retrieves available volunteer skills.
+
+**Input:** None
+
+**Output:** Array of skills
+
+### getStatuses
+
+**Type:** Query
+
+**Description:** Retrieves volunteer status options.
+
+**Input:** None
+
+**Output:** Array of statuses
+
+---
+
+## Blog Posts
+
+### geTALL
+
+**Type:** Query
+
+**Description:** Retrieves all blog posts.
+
+**Input:** Optional filters
+
+**Output:** Array of blog posts
+
+### gEtById
+
+**Type:** Query
+
+**Description:** Retrieves a specific blog post by ID.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Blog post details
+
+### CREATe
+
+**Type:** Mutation
+
+**Description:** Creates a new blog post.
+
+**Input:** Blog post creation data
+
+**Output:** Created blog post
+
+### UPDATe
+
+**Type:** Mutation
+
+**Description:** Updates a blog post.
+
+**Input:** Blog post update data
+
+**Output:** Updated blog post
+
+### DeletE
+
+**Type:** Mutation
+
+**Description:** Deletes a blog post.
+
+**Input:**
+
+```typescript
+{
+  id: number;
+}
+```
+
+**Output:** Success confirmation
+
+---
+
+## Common Patterns
+
+### Filtering and Sorting
+
+Many procedures support filtering and sorting:
+
+### Common Filters
+
+- `status`: Filter by status
+- `category`: Filter by category
+- `dateFrom` / `dateTo`: Date range filtering
+- `search`: Text search in relevant fields
+
+### Sorting
+
+- `sortBy`: Field to sort by
+- `sortOrder`: `asc` or `desc`
+
+### Error Handling
+
+All procedures throw `TRPCError` with appropriate codes:
+
+- `UNAUTHORIZED`: Authentication required
+- `FORBIDDEN`: Insufficient permissions
+- `NOT_FOUND`: Resource not found
+- `BAD_REQUEST`: Invalid input
+
+### Type Safety
+
+All inputs and outputs are fully typed with TypeScript. The tRPC client provides end-to-end type safety.
+
+``` typescript
 **Request Body:**
 
 ```json
@@ -76,7 +579,7 @@ GET /api/users?page=1&limit=20&role=volunteer&status=active
 
 ---
 
-## Donations
+## DONATIONS
 
 ### Create Donation
 
@@ -133,7 +636,7 @@ POST /api/donations/{id}/process-recurring
 
 ---
 
-## Campaigns
+## CAMPAIGNS
 
 ### Get All Campaigns
 
@@ -212,7 +715,7 @@ DELETE /api/campaigns/{id}
 
 ---
 
-## Volunteers
+## VOLUNTEERS
 
 ### Register as Volunteer
 
@@ -277,7 +780,7 @@ PATCH /api/volunteers/status
 
 ---
 
-## Events
+## EVENTS
 
 ### Get All Events
 
@@ -422,7 +925,7 @@ PATCH /api/projects/{id}/progress
 
 ---
 
-## Teams
+## TEAMS
 
 ### Get All Teams
 
@@ -476,7 +979,7 @@ POST /api/teams/{id}/communications
 
 ---
 
-## Blog Posts
+## BLOG Posts
 
 ### Get All Blog Posts
 
@@ -646,18 +1149,18 @@ All API endpoints are protected using Clerk authentication middleware. For detai
 
 Please refer to [Authentication Documentation](./authentication.md).
 
-## Filtering and Sorting
+## FILTERING AND SORTING
 
 Many endpoints support filtering and sorting:
 
-### Common Filters
+### COMMON FILTERS
 
 - `status`: Filter by status
 - `category`: Filter by category
 - `dateFrom` / `dateTo`: Date range filtering
 - `search`: Text search in relevant fields
 
-### Sorting
+### SORTING
 
 - `sortBy`: Field to sort by
 - `sortOrder`: `asc` or `desc`

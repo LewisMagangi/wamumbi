@@ -1,6 +1,6 @@
 # API Documentation
 
-Welcome to the Wamumbi Charity Management System API documentation. This API provides comprehensive endpoints for managing charitable activities, donations, volunteers, and organizational operations.
+Welcome to the Wamumbi Charity Management System API documentation. This API provides comprehensive tRPC procedures for managing charitable activities, donations, volunteers, and organizational operations.
 
 ## Table of Contents
 
@@ -10,12 +10,12 @@ Welcome to the Wamumbi Charity Management System API documentation. This API pro
 - [Response Format](#response-format)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
-- [API Endpoints](#api-endpoints)
+- [tRPC Procedures](#trpc-procedures)
 - [Quick Start](#quick-start)
 
 ## Overview
 
-The Wamumbi API is built using Next.js API Routes and follows REST principles. It provides secure access to all system functionality including:
+The Wamumbi API is built using tRPC with Next.js, providing type-safe, end-to-end API communication. It provides secure access to all system functionality including:
 
 - User management and authentication
 - Donation processing and tracking
@@ -23,95 +23,81 @@ The Wamumbi API is built using Next.js API Routes and follows REST principles. I
 - Volunteer coordination
 - Event management
 - Project tracking
-- Team communications
+- Team management
 
 ## Authentication
 
-All API endpoints require authentication using Clerk's session-based authentication system.
+All tRPC procedures require authentication using Clerk's session-based authentication system.
 
 ### Authentication Flow
 
 1. Users authenticate through Clerk's authentication system
 2. Session tokens are automatically managed by the frontend
-3. API routes validate sessions using Clerk middleware
-4. User roles and permissions are enforced at the API level
+3. tRPC procedures validate sessions using Clerk middleware
+4. User roles and permissions are enforced at the procedure level
 
 ### Headers Required
 
-```http
-Authorization: Bearer <session-token>
-Content-Type: application/json
-```
+tRPC handles authentication automatically through the client configuration.
 
 ## Base URL
 
 ```text
-Development: http://localhost:3000/api
-Production: https://wamumbi.vercel.app/api
+Development: http://localhost:3000/api/trpc
+Production: https://wamumbi.vercel.app/api/trpc
 ```
 
 ## Response Format
 
-All API responses follow a consistent format:
+tRPC procedures return typed responses. Success responses contain the requested data, while errors are thrown as tRPC errors.
 
 ### Success Response
 
-```json
+Procedures return the expected data type directly:
+
+```typescript
+// Example response from user.getProfile
 {
-  "success": true,
-  "data": {
-    // Response data
-  },
-  "message": "Operation completed successfully"
+  id: 1,
+  email: "john@example.com",
+  firstName: "John",
+  lastName: "Doe",
+  // ... other fields
 }
 ```
 
 ### Error Response
 
-```json
-{
-  "success": false,
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human readable error message",
-    "details": {}
-  }
-}
+Errors are thrown with specific error codes:
+
+```typescript
+// Example error
+throw new TRPCError({
+  code: 'UNAUTHORIZED',
+  message: 'Authentication required'
+});
 ```
 
 ## Error Handling
 
-### HTTP Status Codes
+### tRPC Error Codes
 
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `403` - Forbidden
-- `404` - Not Found
-- `422` - Validation Error
-- `500` - Internal Server Error
-
-### Common Error Codes
-
-- `INVALID_INPUT` - Request validation failed
 - `UNAUTHORIZED` - Authentication required
 - `FORBIDDEN` - Insufficient permissions
 - `NOT_FOUND` - Resource not found
-- `DUPLICATE_ENTRY` - Resource already exists
-- `PAYMENT_FAILED` - Payment processing error
+- `BAD_REQUEST` - Invalid input
+- `INTERNAL_SERVER_ERROR` - Server error
 
 ## Rate Limiting
 
-API requests are limited to:
+tRPC requests are limited to:
 
 - **Authenticated users**: 1000 requests per hour
-- **Donation endpoints**: 100 requests per hour
-- **File uploads**: 50 requests per hour
+- **Donation procedures**: 100 requests per hour
 
-## API Endpoints
+## tRPC Procedures
 
-### Core Endpoints
+### Core Procedures
 
 - **[Authentication](./authentication.md)** - User authentication and session management
 - **[Users](./endpoints.md#users)** - User management and profiles
@@ -120,71 +106,65 @@ API requests are limited to:
 - **[Volunteers](./endpoints.md#volunteers)** - Volunteer registration and management
 - **[Events](./endpoints.md#events)** - Event creation and registration
 - **[Projects](./endpoints.md#projects)** - Project tracking and management
-- **[Teams](./endpoints.md#teams)** - Team management and communications
+- **[Teams](./endpoints.md#teams)** - Team management
 
 ## Quick Start
 
-### Making Your First API Call
+### Setting Up the tRPC Client
 
-1. **Authenticate** through the frontend application
-2. **Get session token** (handled automatically by Clerk)
-3. **Make API request**:
+1. **Install dependencies** (handled by the project)
+2. **Configure the client** in your frontend:
 
-```javascript
-// Example: Get current user profile
-const response = await fetch('/api/users/profile', {
-  method: 'GET',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+```typescript
+import { createTRPCNext } from '@trpc/next';
+import { appRouter } from '~/server/routers/_app';
+
+export const trpc = createTRPCNext<AppRouter>({
+  config() {
+    return {
+      url: '/api/trpc',
+    };
+  },
+  ssr: false,
 });
-
-const data = await response.json();
 ```
 
-### Example: Create a Donation
+### Making Your First tRPC Call
 
-```javascript
-const donation = await fetch('/api/donations', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    campaignId: 123,
-    amount: 100.00,
-    paymentMethod: 'credit_card',
-    isAnonymous: false
-  })
+```typescript
+// Example: Get current user profile
+const { data: user } = trpc.user.getProfile.useQuery();
+
+// Example: Create a donation
+const createDonation = trpc.donation.create.useMutation();
+createDonation.mutate({
+  campaignId: 123,
+  amount: 100.00,
+  paymentMethodId: 1,
+  isAnonymous: false
 });
 ```
 
 ## SDK and Libraries
 
-### JavaScript/TypeScript Client
+### TypeScript Integration
 
-```bash
-npm install @wamumbi/api-client
-```
+tRPC provides full type safety between client and server:
 
-```javascript
-import { WamumbiClient } from '@wamumbi/api-client';
-
-const client = new WamumbiClient({
-  baseUrl: 'https://wamumbi.vercel.app/api'
+```typescript
+// Client-side type safety
+const campaigns = trpc.campaign.list.useQuery({
+  status: 'active' // TypeScript ensures valid status
 });
-
-// Usage
-const campaigns = await client.campaigns.list();
 ```
 
 ## Need Help?
 
-- 📖 Check the [detailed endpoints documentation](./endpoints.md)
+- 📖 Check the [detailed procedures documentation](./endpoints.md)
 - 🔐 Review [authentication guide](./authentication.md)
 - 🐛 Report issues on [GitHub](https://github.com/LewisMagangi/wamumbi/issues)
 - 💬 Join our [Discord community](https://discord.gg/wamumbi)
 
 ---
 
-**Note**: This API is under active development. Breaking changes will be communicated through our changelog and migration guides.
+**Note**: This API uses tRPC for type-safe communication. All procedures are documented with their input/output types.

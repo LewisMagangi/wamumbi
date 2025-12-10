@@ -2,52 +2,106 @@
 
 ## Overview
 
-This document outlines the technical and functional requirements for the Wamumbi Charity Management System backend. The system is designed to support a comprehensive charity platform with user management, donation processing, campaign management, volunteer coordination, and event organization.
+This document outlines the technical and functional requirements for the Wamumbi Charity Management System backend. The system uses tRPC for type-safe API communication and Clerk for authentication, providing comprehensive functionality for charity management including user management, donation processing, campaign management, volunteer coordination, and event organization.
 
 ## Table of Contents
 
-- [User Authentication System](#user-authentication-system)
+- [Authentication System](#authentication-system)
 - [Donation Management System](#donation-management-system)
 - [Campaign Management System](#campaign-management-system)
 - [Volunteer Management System](#volunteer-management-system)
 - [Event Management System](#event-management-system)
-- [Notification System](#notification-system)
 - [Cross-Cutting Requirements](#cross-cutting-requirements)
 
 ---
 
-## User Authentication System
+## Authentication System
 
 ### Functional Requirements
 
-#### FR-AUTH-001: User Registration
+#### FR-AUTH-001: User Authentication
 
-**Description**: System shall allow new users to register with email and password or social login.
+**Description**: System shall use Clerk for secure authentication with support for email/password, social logins, and magic links.
 
-**API Endpoint**: `POST /api/auth/register`
+**tRPC Procedure**: `auth.authCallback`
 
-**Input Specifications**:
+**Input Specifications**: None (handled by Clerk)
 
-```json
+**Output Specifications**:
+
+```typescript
 {
-  "email": "string (required, valid email format)",
-  "password": "string (required, min 8 chars, complexity rules)",
-  "first_name": "string (optional, max 100 chars)",
-  "last_name": "string (optional, max 100 chars)",
-  "phone": "string (optional, max 20 chars)",
-  "profile_image": "string (optional, valid URL)",
-  "address": {
-    "street_line_1": "string (optional)",
-    "street_line_2": "string (optional)",
-    "city": "string (optional)",
-    "state": "string (optional)",
-    "postal_code": "string (optional)",
-    "country": "string (optional)"
-  },
-  "role_id": "integer (required, valid user_roles.id)",
-  "two_factor_enabled": "boolean (optional, default: false)"
+  user: {
+    id: number;
+    clerkId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    imageUrl?: string;
+    role: UserRole;
+    status: UserStatus;
+    // ... other user fields
+  }
 }
 ```
+
+**Business Rules**:
+
+- Users are created/updated in database on successful Clerk authentication
+- Default role assigned based on registration method
+- Email verification required for account activation
+- Two-factor authentication supported
+
+#### FR-AUTH-002: User Profile Management
+
+**Description**: Users shall be able to view and update their profile information.
+
+**tRPC Procedures**: `users.getProfile`, `users.updateProfile`
+
+**Input Specifications** (update):
+
+```typescript
+{
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  profileImage?: string;
+  address?: {
+    streetLine1?: string;
+    streetLine2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+}
+```
+
+**Business Rules**:
+
+- Users can only update their own profile
+- Address information is optional and privacy-conscious
+- Profile image uploads supported
+- Changes logged in audit system
+
+#### FR-AUTH-003: Role-Based Access Control
+
+**Description**: System shall enforce permissions based on user roles.
+
+**Implementation**: Role-based middleware in tRPC procedures
+
+**Supported Roles**:
+
+- Admin: Full system access
+- Team Leader: Team and project management
+- Volunteer: Activity participation
+- Donor: Donation capabilities
+
+**Business Rules**:
+
+- Permissions stored as JSON in user_roles table
+- Role changes require admin approval
+- Role hierarchy enforced in middleware
 
 **Output Specifications**:
 
@@ -142,7 +196,7 @@ This document outlines the technical and functional requirements for the Wamumbi
 - Concurrent logins: 200 per second
 - Session creation: < 100ms
 
-#### FR-AUTH-003: Role-Based Access Control
+#### FR-AUTH-003: Role-Based access Control
 
 **Description**: System shall enforce role-based permissions for all protected resources.
 
@@ -164,87 +218,75 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ## Donation Management System
 
-### Donation Functional Requirements
+### FUNCTIONAL REQUIREMENTS
 
 #### FR-DON-001: Process Donation
 
 **Description**: System shall process secure donations with multiple payment methods.
 
-**API Endpoint**: `POST /api/donations`
+**tRPC Procedure**: `donations.create`
 
 **Input Specifications**:
 
-```json
+```typescript
 {
-  "campaign_id": "integer (required)",
-  "amount": "decimal (required, precision: 10,2)",
-  "currency_id": "integer (required, reference to currencies.id)",
-  "payment_method_id": "integer (required, reference to payment_methods.id)",
-  "is_recurring": "boolean (optional, default: false)",
-  "recurring_frequency_id": "integer (required if is_recurring, reference to recurring_frequencies.id)",
-  "parent_donation_id": "integer (optional, for recurring donations)",
-  "notes": "string (optional)",
-  "donor": {
-    "user_id": "integer (optional)",
-    "first_name": "string (optional)",
-    "last_name": "string (optional)",
-    "email": "string (optional)",
-    "phone": "string (optional, max: 20 chars)",
-    "is_anonymous": "boolean (default: true)",
-    "address": {
-      "street_line_1": "string (optional)",
-      "street_line_2": "string (optional)",
-      "city": "string (optional)",
-      "state": "string (optional)",
-      "postal_code": "string (optional)",
-      "country": "string (optional)",
-      "latitude": "decimal (optional, precision: 10,8)",
-      "longitude": "decimal (optional, precision: 11,8)"
-    }
-  }
+  campaignId: number;
+  amount: number;
+  currencyId: number;
+  paymentMethodId: number;
+  isRecurring?: boolean;
+  isAnonymous?: boolean;
+  recurringFrequencyId?: number;
+  notes?: string;
+  donor?: {
+    userId?: number;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    address?: {
+      streetLine1?: string;
+      streetLine2?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+      country?: string;
+      latitude?: number;
+      longitude?: number;
+    };
+  };
 }
 ```
 
 **Output Specifications**:
 
-```json
+```typescript
 {
-  "success": true,
-  "data": {
-    "id": "integer",
-    "donor": {
-      "id": "integer",
-      "is_anonymous": "boolean"
-    },
-    "campaign_id": "integer",
-    "amount": "decimal",
-    "currency": {
-      "id": "integer",
-      "code": "string",
-      "symbol": "string"
-    },
-    "payment_method": {
-      "id": "integer",
-      "name": "string"
-    },
-    "payment_reference": "string",
-    "status": {
-      "id": "integer",
-      "name": "string"
-    },
-    "is_recurring": "boolean",
-    "recurring_frequency": {
-      "id": "integer",
-      "name": "string",
-      "days_interval": "integer"
-    },
-    "processing_fee": "decimal",
-    "net_amount": "decimal",
-    "donation_date": "timestamp",
-    "processed_at": "timestamp"
-  }
+  id: number;
+  donorId: number;
+  campaignId: number;
+  amount: number;
+  currencyId: number;
+  paymentMethodId: number;
+  statusId: number;
+  isRecurring: boolean;
+  isAnonymous: boolean;
+  paymentReference?: string;
+  processingFee?: number;
+  netAmount?: number;
+  donationDate: Date;
+  createdAt: Date;
 }
 ```
+
+**Business Rules**:
+
+- Donations can be anonymous or linked to user accounts
+- Multiple currencies supported with exchange rates
+- Recurring donations supported with frequency options
+- Payment processing fees calculated and tracked
+- Donations linked to specific campaigns
+- Audit trail maintained for all transactions
 
 **Validation Rules**:
 
@@ -255,9 +297,6 @@ This document outlines the technical and functional requirements for the Wamumbi
 - Recurring frequency must exist and be active (if donation is recurring)
 - Parent donation must exist and be valid (if specified for recurring)
 - Processing fee and net amount are calculated based on payment method fees
-- Phone numbers must follow the specified format and length (if provided)
-- Address fields must follow length restrictions from addresses table (if provided)
-- Geographic coordinates must be valid and within precision limits (if provided)
 
 **Performance Criteria**:
 
@@ -267,66 +306,71 @@ This document outlines the technical and functional requirements for the Wamumbi
 - Concurrent donations: 50 per second
 - Audit log entry creation: < 100ms
 
-#### FR-DON-002: Recurring Donation Management
+#### FR-DON-002: Retrieve Donations
 
-**Description**: System shall manage automated recurring donations with flexible scheduling.
+**Description**: System shall allow users to view their donation history and admins to view all donations.
 
-**API Endpoint**: `POST /api/donations/recurring`
+**tRPC Procedures**: `donations.getAll`, `donations.getById`
+
+**Input Specifications** (getAll):
+
+```typescript
+{
+  campaignId?: number;
+  donorId?: number;
+  statusId?: number;
+  dateFrom?: Date;
+  dateTo?: Date;
+  limit?: number;
+  offset?: number;
+}
+```
+
+**Output Specifications**: Array of donation objects with related data
+
+**Business Rules**:
+
+- Users can only view their own donations unless admin
+- Donations include campaign and payment method details
+- Filtering and pagination supported
+- Anonymous donations protected from unauthorized access
+
+#### FR-DON-003: Update Donation Status
+
+**Description**: System shall allow updating donation status for processing workflow.
+
+**tRPC Procedure**: `donations.update`
 
 **Input Specifications**:
 
-```json
+```typescript
 {
-  "originalDonationId": "integer (required)",
-  "frequency": "enum (weekly, monthly, quarterly, annually) (required)",
-  "endDate": "ISO8601 date (optional)",
-  "maxOccurrences": "integer (optional)",
-  "amount": "decimal (optional, inherits from original)"
+  id: number;
+  statusId?: number;
+  paymentReference?: string;
+  notes?: string;
 }
 ```
 
-**Performance Criteria**:
+**Business Rules**:
 
-- Recurring setup: < 1 second
-- Scheduled processing: 99.9% reliability
-- Failure retry: 3 attempts over 48 hours
+- Status changes logged in audit system
+- Only admins can update donation status
+- Status transitions validated (e.g., cannot change from completed to pending)
+- Payment references updated when processing completes
 
-#### FR-DON-003: Donation Analytics
+#### FR-DON-005: Donation Analytics
 
 **Description**: System shall provide real-time donation analytics and reporting.
 
-**API Endpoint**: `GET /api/donations/analytics`
+**tRPC Procedure**: `dashboard.getStats` (includes donation metrics)
 
-**Query Parameters**:
+**Business Rules**:
 
-- `period`: enum (day, week, month, quarter, year)
-- `campaignId`: integer (optional)
-- `startDate`: ISO8601 date (optional)
-- `endDate`: ISO8601 date (optional)
-
-**Output Specifications**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "totalAmount": "decimal",
-    "totalDonations": "integer",
-    "averageDonation": "decimal",
-    "uniqueDonors": "integer",
-    "recurringDonors": "integer",
-    "topCampaigns": "array",
-    "donationTrends": "array",
-    "geographicBreakdown": "object"
-  }
-}
-```
-
-**Performance Criteria**:
-
-- Analytics query: < 2 seconds
-- Real-time updates: < 30 seconds lag
-- Data aggregation: Hourly for reports
+- Analytics include total amounts, donor counts, trends
+- Campaign-specific and global analytics available
+- Real-time updates for active campaigns
+- Historical data preserved for reporting
 
 ---
 
@@ -775,32 +819,6 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ---
 
-## Notification System
-
-### Notification Functional Requirements
-
-#### FR-NOT-001: Real-time Notifications
-
-**Description**: System shall send real-time notifications for important events.
-
-**API Endpoint**: `POST /api/notifications`
-
-**Notification Types**:
-
-- Donation received
-- Campaign milestone reached
-- Event registration confirmed
-- Volunteer activity approved
-- System announcements
-
-**Performance Criteria**:
-
-- Notification delivery: < 5 seconds
-- Email delivery: < 2 minutes
-- Push notification: < 30 seconds
-
----
-
 ## Cross-Cutting Requirements
 
 ### Security Requirements
@@ -830,7 +848,6 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 - API responses: < 500ms (95th percentile)
 - Database queries: < 200ms (average)
-- File uploads: < 30 seconds (10MB limit)
 
 #### PERF-002: Scalability
 
@@ -877,21 +894,3 @@ This document outlines the technical and functional requirements for the Wamumbi
 - Failed authentication tracking
 - Suspicious activity detection
 - Compliance audit logging
-
-### Integration Requirements
-
-#### INT-001: Payment Processing
-
-- Paystack integration for credit cards
-
-#### INT-002: Email Services
-
-- Transactional emails via SendGrid
-- Marketing emails via Mailchimp
-- SMS notifications via Twilio
-
-#### INT-003: External APIs
-
-- Google Maps for location services
-- social media APIs for sharing
-- Analytics APIs for reporting
