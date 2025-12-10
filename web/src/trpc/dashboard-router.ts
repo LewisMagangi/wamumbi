@@ -1,8 +1,30 @@
 import { procedure, router } from "./trpc";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 export const dashboardRouter = router({
-  getStats: procedure.query(async () => {
+  getStats: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/stats',
+        tags: ['dashboard'],
+        summary: 'Get dashboard statistics',
+        description: 'Retrieves overall statistics for the dashboard'
+      }
+    })
+    .input(z.void())
+    .output(z.object({
+      totalDonations: z.number(),
+      totalCampaigns: z.number(),
+      activeCampaigns: z.number(),
+      totalVolunteers: z.number(),
+      totalEvents: z.number(),
+      upcomingEvents: z.number(),
+      totalProjects: z.number(),
+      recentDonationsCount: z.number()
+    }))
+    .query(async () => {
     try {
       const [
         totalDonations,
@@ -71,7 +93,30 @@ export const dashboardRouter = router({
     }
   }),
 
-  getRecentDonations: procedure.query(async () => {
+  getRecentDonations: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/recent-donations',
+        tags: ['dashboard'],
+        summary: 'Get recent donations',
+        description: 'Retrieves the most recent donations'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      amount: z.number(),
+      currency: z.string(),
+      currencySymbol: z.string(),
+      donorName: z.string(),
+      campaignId: z.number().nullable(),
+      campaignTitle: z.string(),
+      status: z.string(),
+      donationDate: z.date(),
+      isAnonymous: z.boolean()
+    })))
+    .query(async () => {
     try {
       const donations = await prisma.donation.findMany({
         include: {
@@ -118,7 +163,30 @@ export const dashboardRouter = router({
     }
   }),
 
-  getUpcomingEvents: procedure.query(async () => {
+  getUpcomingEvents: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/upcoming-events',
+        tags: ['dashboard'],
+        summary: 'Get upcoming events',
+        description: 'Retrieves upcoming events for the dashboard'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      registrationsCount: z.number(),
+      availableSpots: z.number(),
+      imageUrl: z.string().nullable(),
+      status: z.string(),
+      category: z.string()
+    })))
+    .query(async () => {
     try {
       const events = await prisma.event.findMany({
         where: {
@@ -159,7 +227,34 @@ export const dashboardRouter = router({
     }
   }),
 
-  getActiveCampaigns: procedure.query(async () => {
+  getActiveCampaigns: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/active-campaigns',
+        tags: ['dashboard'],
+        summary: 'Get active campaigns',
+        description: 'Retrieves active campaigns for the dashboard'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      goalAmount: z.number(),
+      currentAmount: z.number(),
+      currency: z.string(),
+      currencySymbol: z.string(),
+      progress: z.number(),
+      donationsCount: z.number(),
+      status: z.string(),
+      category: z.string(),
+      imageUrl: z.string().nullable(),
+      startDate: z.date(),
+      endDate: z.date().nullable()
+    })))
+    .query(async () => {
     try {
       const campaigns = await prisma.campaign.findMany({
         where: {
@@ -208,7 +303,28 @@ export const dashboardRouter = router({
     }
   }),
 
-  getActiveProjects: procedure.query(async () => {
+  getActiveProjects: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/active-projects',
+        tags: ['dashboard'],
+        summary: 'Get active projects',
+        description: 'Retrieves active projects for the dashboard'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      status: z.string(),
+      teamName: z.string().nullable(),
+      creator: z.string().nullable(),
+      startDate: z.date(),
+      endDate: z.date().nullable()
+    })))
+    .query(async () => {
     try {
       const projects = await prisma.project.findMany({
         where: {
@@ -255,7 +371,30 @@ export const dashboardRouter = router({
     }
   }),
 
-  getRecentBlogPosts: procedure.query(async () => {
+  getRecentBlogPosts: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/recent-blog-posts',
+        tags: ['dashboard'],
+        summary: 'Get recent blog posts',
+        description: 'Retrieves recent published blog posts'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      excerpt: z.string().nullable(),
+      featuredImage: z.string().nullable(),
+      author: z.object({
+        name: z.string(),
+        imageUrl: z.string().nullable()
+      }).nullable(),
+      category: z.string(),
+      publishedAt: z.date().nullable()
+    })))
+    .query(async () => {
     try {
       const posts = await prisma.blogPost.findMany({
         where: {
@@ -297,7 +436,26 @@ export const dashboardRouter = router({
     }
   }),
 
-  getNotifications: procedure.query(async () => {
+  getNotifications: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/notifications',
+        tags: ['dashboard'],
+        summary: 'Get notifications',
+        description: 'Retrieves unread notifications'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      message: z.string(),
+      type: z.string(),
+      isRead: z.boolean(),
+      createdAt: z.date()
+    })))
+    .query(async () => {
     try {
       const notifications = await prisma.notification.findMany({
         where: {
@@ -326,7 +484,22 @@ export const dashboardRouter = router({
     }
   }),
 
-  getMonthlyDonationTrend: procedure.query(async () => {
+  getMonthlyDonationTrend: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/monthly-donation-trend',
+        tags: ['dashboard'],
+        summary: 'Get monthly donation trend',
+        description: 'Retrieves donation trends for the last 12 months'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      month: z.string(),
+      amount: z.number()
+    })))
+    .query(async () => {
     try {
       // Get donations for the last 12 months
       const twelveMonthsAgo = new Date();
@@ -376,7 +549,27 @@ export const dashboardRouter = router({
     }
   }),
 
-  getCampaignPerformance: procedure.query(async () => {
+  getCampaignPerformance: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/dashboard/campaign-performance',
+        tags: ['dashboard'],
+        summary: 'Get campaign performance',
+        description: 'Retrieves performance metrics for recent campaigns'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      goalAmount: z.number(),
+      raisedAmount: z.number(),
+      progress: z.number(),
+      currency: z.string(),
+      donorCount: z.number()
+    })))
+    .query(async () => {
     try {
       const campaigns = await prisma.campaign.findMany({
         where: {

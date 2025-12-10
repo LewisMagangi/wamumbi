@@ -3,7 +3,28 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const donationsRouter = router({
-  getRecent: procedure.query(async () => {
+  getRecent: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/recent',
+        tags: ['donations'],
+        summary: 'Get recent donations',
+        description: 'Retrieves the most recent donations'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      amount: z.number(),
+      donationDate: z.date(),
+      donorName: z.string(),
+      campaignTitle: z.string(),
+      paymentMethod: z.string(),
+      status: z.string(),
+      currency: z.string()
+    })))
+    .query(async () => {
     try {
       const donations = await prisma.donation.findMany({
         include: {
@@ -48,7 +69,36 @@ export const donationsRouter = router({
     }
   }),
 
-  getAll: procedure.query(async () => {
+  getAll: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations',
+        tags: ['donations'],
+        summary: 'Get all donations',
+        description: 'Retrieves all donations with details'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      amount: z.number(),
+      donationDate: z.date(),
+      donorName: z.string(),
+      donorEmail: z.string().nullable(),
+      campaignId: z.number(),
+      campaignTitle: z.string(),
+      paymentMethod: z.string(),
+      status: z.string(),
+      statusId: z.number(),
+      currency: z.string(),
+      currencyId: z.number(),
+      isAnonymous: z.boolean(),
+      isRecurring: z.boolean(),
+      notes: z.string().nullable(),
+      createdAt: z.date()
+    })))
+    .query(async () => {
     try {
       const donations = await prisma.donation.findMany({
         include: {
@@ -101,7 +151,50 @@ export const donationsRouter = router({
     }
   }),
 
-  getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getById: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/{id}',
+        tags: ['donations'],
+        summary: 'Get donation by ID',
+        description: 'Retrieves a specific donation by its ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({
+      id: z.number(),
+      amount: z.number(),
+      netAmount: z.number().nullable(),
+      processingFee: z.number().nullable(),
+      donationDate: z.date(),
+      processedAt: z.date().nullable(),
+      donor: z.object({
+        id: z.number(),
+        firstName: z.string().nullable(),
+        lastName: z.string().nullable(),
+        email: z.string().nullable(),
+        phone: z.string().nullable(),
+        isAnonymous: z.boolean()
+      }),
+      campaign: z.object({
+        id: z.number(),
+        title: z.string()
+      }).nullable(),
+      paymentMethod: z.string(),
+      paymentMethodId: z.number(),
+      paymentReference: z.string().nullable(),
+      status: z.string(),
+      statusId: z.number(),
+      currency: z.string(),
+      currencyId: z.number(),
+      isAnonymous: z.boolean(),
+      isRecurring: z.boolean(),
+      recurringFrequency: z.string().nullable().optional(),
+      notes: z.string().nullable(),
+      createdAt: z.date()
+    }))
+    .query(async ({ input }) => {
     try {
       const donation = await prisma.donation.findUnique({
         where: { id: input.id },
@@ -157,7 +250,17 @@ export const donationsRouter = router({
     }
   }),
 
-  create: procedure.input(z.object({
+  create: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/donations',
+        tags: ['donations'],
+        summary: 'Create donation',
+        description: 'Creates a new donation'
+      }
+    })
+    .input(z.object({
     amount: z.number().positive(),
     currencyId: z.number(),
     donorId: z.number(),
@@ -168,7 +271,17 @@ export const donationsRouter = router({
     isAnonymous: z.boolean().default(false),
     isRecurring: z.boolean().default(false),
     recurringFrequencyId: z.number().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      amount: z.number(),
+      donorName: z.string(),
+      campaignTitle: z.string().nullable(),
+      status: z.string(),
+      currency: z.string(),
+      createdAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Get completed status
       const completedStatus = await prisma.donationStatus.findFirst({
@@ -249,11 +362,28 @@ export const donationsRouter = router({
     }
   }),
 
-  update: procedure.input(z.object({
+  update: procedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/donations/{id}',
+        tags: ['donations'],
+        summary: 'Update donation',
+        description: 'Updates an existing donation'
+      }
+    })
+    .input(z.object({
     id: z.number(),
     statusId: z.number().optional(),
     notes: z.string().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      amount: z.number(),
+      status: z.string(),
+      notes: z.string().nullable()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const { id, statusId, notes } = input;
       
@@ -284,7 +414,19 @@ export const donationsRouter = router({
     }
   }),
 
-  delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  delete: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/donations/{id}',
+        tags: ['donations'],
+        summary: 'Delete donation',
+        description: 'Deletes a donation by ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       // Get the donation first to update campaign stats
       const donation = await prisma.donation.findUnique({
@@ -314,13 +456,32 @@ export const donationsRouter = router({
   }),
 
   // Create or find donor
-  createDonor: procedure.input(z.object({
+  createDonor: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/donations/donors',
+        tags: ['donations'],
+        summary: 'Create donor',
+        description: 'Creates a new donor or returns existing one'
+      }
+    })
+    .input(z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
     isAnonymous: z.boolean().default(true)
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      first_name: z.string().nullable(),
+      last_name: z.string().nullable(),
+      email: z.string().nullable(),
+      phone: z.string().nullable(),
+      is_anonymous: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Check if donor with email already exists
       if (input.email) {
@@ -349,7 +510,26 @@ export const donationsRouter = router({
     }
   }),
 
-  getPaymentMethods: procedure.query(async () => {
+  getPaymentMethods: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/payment-methods',
+        tags: ['donations'],
+        summary: 'Get payment methods',
+        description: 'Retrieves all active payment methods'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      is_active: z.boolean(),
+      processing_fee_percentage: z.any(),
+      fixed_fee_amount: z.any()
+    })))
+    .query(async () => {
     try {
       const methods = await prisma.paymentMethod.findMany({
         where: { is_active: true }
@@ -361,7 +541,25 @@ export const donationsRouter = router({
     }
   }),
 
-  getStatuses: procedure.query(async () => {
+  getStatuses: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/statuses',
+        tags: ['donations'],
+        summary: 'Get donation statuses',
+        description: 'Retrieves all active donation statuses'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const statuses = await prisma.donationStatus.findMany({
         where: { is_active: true },
@@ -374,7 +572,25 @@ export const donationsRouter = router({
     }
   }),
 
-  getRecurringFrequencies: procedure.query(async () => {
+  getRecurringFrequencies: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/recurring-frequencies',
+        tags: ['donations'],
+        summary: 'Get recurring frequencies',
+        description: 'Retrieves all active recurring donation frequencies'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const frequencies = await prisma.recurringFrequency.findMany({
         where: { is_active: true },
@@ -383,6 +599,37 @@ export const donationsRouter = router({
       return frequencies;
     } catch (error) {
       console.error('Error fetching recurring frequencies:', error);
+      return [];
+    }
+  }),
+
+  getCurrencies: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/donations/currencies',
+        tags: ['donations'],
+        summary: 'Get currencies',
+        description: 'Retrieves all available currencies for donations'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      code: z.string(),
+      name: z.string(),
+      symbol: z.string(),
+      is_active: z.boolean()
+    })))
+    .query(async () => {
+    try {
+      const currencies = await prisma.currency.findMany({
+        where: { is_active: true },
+        orderBy: { code: 'asc' }
+      });
+      return currencies;
+    } catch (error) {
+      console.error('Error fetching currencies:', error);
       return [];
     }
   })
