@@ -5,6 +5,9 @@ import { dashboardRouter } from "./dashboard-router"
 import { campaignsRouter } from "./campaigns-router"
 import { donationsRouter } from "./donations-router"
 import { teamsRouter } from "./teams-router"
+import { eventsRouter } from "./events-router"
+import { volunteersRouter } from "./volunteers-router"
+import { blogPostsRouter } from "./blog-posts-router"
 
 export const appRouter = router({
   auth: authRouter,
@@ -12,6 +15,9 @@ export const appRouter = router({
   campaigns: campaignsRouter,
   donations: donationsRouter,
   teams: teamsRouter,
+  events: eventsRouter,
+  volunteers: volunteersRouter,
+  blogPosts: blogPostsRouter,
 })
 
 export type AppRouter = typeof appRouter
