@@ -1,17 +1,3 @@
-import { PrismaClient } from "@/generated/prisma"
-
-declare global {
-  var cachedPrisma: PrismaClient
-}
-
-let prisma: PrismaClient
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient()
-} else {
-  if (!global.cachedPrisma) {
-    global.cachedPrisma = new PrismaClient()
-  }
-  prisma = global.cachedPrisma
-}
-
-export const db = prisma
+// Re-export prisma from the main lib/prisma.ts which handles proper initialization
+// with the Neon adapter for Prisma v7
+export { prisma as db } from '@/lib/prisma'

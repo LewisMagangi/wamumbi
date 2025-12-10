@@ -49,11 +49,6 @@ export default function Navbar() {
                   </Link>
                 </Button>
               </SignedIn>
-              <SignedOut>
-                <Button variant="ghost" asChild>
-                  <Link href="/donate">Donate</Link>
-                </Button>
-              </SignedOut>
             </div>
           )}
 
@@ -142,11 +137,6 @@ export default function Navbar() {
               </Link>
             </Button>
           </SignedIn>
-          <SignedOut>
-            <Button variant="ghost" asChild className="justify-start">
-              <Link href="/donate">Donate</Link>
-            </Button>
-          </SignedOut>
 
           <SignedOut>
             <SignInButton mode="modal">
