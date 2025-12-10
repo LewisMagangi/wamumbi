@@ -2,6 +2,9 @@
 import { useEffect, useRef } from 'react'
 import Script from 'next/script'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const window: Window & { SwaggerUIBundle: any }
+
 export default function ApiDocs() {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialized = useRef(false)
@@ -10,14 +13,13 @@ export default function ApiDocs() {
     // Initialize Swagger UI when the script loads
     const initSwagger = () => {
       if (initialized.current) return
-      if (typeof window !== 'undefined' && (window as unknown as { SwaggerUIBundle?: unknown }).SwaggerUIBundle && containerRef.current) {
+      if (typeof window !== 'undefined' && window.SwaggerUIBundle && containerRef.current) {
         initialized.current = true
-        const SwaggerUIBundle = (window as unknown as { SwaggerUIBundle: (config: object) => void }).SwaggerUIBundle
-        SwaggerUIBundle({
-          url: '/api/openapi',
+        window.SwaggerUIBundle({
+          url: '/openapi.json',
           dom_id: '#swagger-ui',
           presets: [
-            (window as unknown as { SwaggerUIBundle: { presets: { apis: unknown } } }).SwaggerUIBundle.presets.apis,
+            window.SwaggerUIBundle.presets.apis,
           ],
           layout: 'BaseLayout',
           deepLinking: true,
