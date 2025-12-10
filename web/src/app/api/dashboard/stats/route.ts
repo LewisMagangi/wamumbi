@@ -12,10 +12,12 @@ export async function GET() {
       // Get monthly donations sum
       prisma.donation.aggregate({
         where: {
-          createdAt: {
+          created_at: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
           },
-          status: 'COMPLETED'
+          status: {
+            name: 'completed'
+          }
         },
         _sum: {
           amount: true
@@ -25,7 +27,7 @@ export async function GET() {
       // Count upcoming events
       prisma.event.count({
         where: {
-          startDate: {
+          event_date: {
             gte: new Date()
           }
         }
@@ -34,7 +36,9 @@ export async function GET() {
       // Count active campaigns as projects
       prisma.campaign.count({
         where: {
-          active: true
+          status: {
+            name: 'active'
+          }
         }
       })
     ]);
@@ -42,15 +46,15 @@ export async function GET() {
     // Get next event date
     const nextEvent = await prisma.event.findFirst({
       where: {
-        startDate: {
+        event_date: {
           gte: new Date()
         }
       },
       orderBy: {
-        startDate: 'asc'
+        event_date: 'asc'
       },
       select: {
-        startDate: true
+        event_date: true
       }
     });
 
@@ -59,12 +63,13 @@ export async function GET() {
       message: "Dashboard stats retrieved successfully",
       data: {
         activeVolunteers: userCount,
-        monthlyDonations: monthlyDonationsSum._sum.amount || 0,
+        monthlyDonations: monthlyDonationsSum._sum?.amount || 0,
         upcomingEvents: upcomingEvents,
         activeProjects: activeCampaigns,
-        nextEventDate: nextEvent?.startDate?.toISOString() || ''
+        nextEventDate: nextEvent?.event_date?.toISOString() || ''
       }
     });
+
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(

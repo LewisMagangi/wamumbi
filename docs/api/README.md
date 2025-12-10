@@ -10,20 +10,21 @@ Welcome to the Wamumbi Charity Management System API documentation. This API pro
 - [Response Format](#response-format)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
-- [tRPC Procedures](#trpc-procedures)
+- [API Procedures](#api-procedures)
+- [Database Seeding](#database-seeding)
 - [Quick Start](#quick-start)
 
 ## Overview
 
 The Wamumbi API is built using tRPC with Next.js, providing type-safe, end-to-end API communication. It provides secure access to all system functionality including:
 
-- User management and authentication
-- Donation processing and tracking
-- Campaign management
-- Volunteer coordination
-- Event management
-- Project tracking
-- Team management
+- **User Management**: Clerk authentication with role-based access control
+- **Donation Processing**: Multi-currency donation tracking with seeded reference data
+- **Campaign Management**: Full CRUD operations with category and urgency level management
+- **Volunteer Coordination**: Complete volunteer lifecycle with user creation and emergency contacts
+- **Event Management**: Full CRUD operations with category management and editing
+- **Project Tracking**: Project management and coordination
+- **Team Management**: Team coordination and management
 
 ## Authentication
 
@@ -31,10 +32,11 @@ All tRPC procedures require authentication using Clerk's session-based authentic
 
 ### Authentication Flow
 
-1. Users authenticate through Clerk's authentication system
+1. Users authenticate through Clerk's authentication system (including social auth)
 2. Session tokens are automatically managed by the frontend
 3. tRPC procedures validate sessions using Clerk middleware
 4. User roles and permissions are enforced at the procedure level
+5. Sign out functionality properly clears sessions and redirects
 
 ### Headers Required
 
@@ -95,18 +97,56 @@ tRPC requests are limited to:
 - **Authenticated users**: 1000 requests per hour
 - **Donation procedures**: 100 requests per hour
 
-## tRPC Procedures
+## API Procedures
 
-### Core Procedures
+### Core Routers
+
+The API is organized into the following tRPC routers:
+
+- **auth-router.ts**: User authentication and session management
+- **campaigns-router.ts**: Campaign CRUD operations with category and urgency management
+- **donations-router.ts**: Donation processing and tracking
+- **events-router.ts**: Event management with full CRUD operations
+- **volunteers-router.ts**: Volunteer coordination with user creation
+- **teams-router.ts**: Team management and coordination
+- **blog-posts-router.ts**: Content management for blog posts
+- **dashboard-router.ts**: Dashboard analytics and reporting
+
+### Key Features Implemented
+
+#### Date Validation Fixes
+
+All date fields now use `z.coerce.date()` for proper validation:
+
+- Campaign start/end dates
+- Event dates
+- Volunteer registration dates
+
+#### Enhanced Volunteer Registration
+
+- `createWithUser` mutation creates user + volunteer + emergency contact in one transaction
+- Seamless registration flow without requiring pre-existing users
+
+#### Full Event CRUD
+
+- Create, read, update, and delete events
+- Category management with seeded reference data
+- Modal-based editing with form pre-population
+
+#### Database Seeding
+
+Comprehensive seeding of all reference tables (17 tables total):
+
+- Categories, urgency levels, currencies
+- Event types, volunteer roles, donation types
+- And more reference data for full functionality
+
+### Manual Documentation
+
+For detailed procedure descriptions and examples, see:
 
 - **[Authentication](./authentication.md)** - User authentication and session management
-- **[Users](./endpoints.md#users)** - User management and profiles
-- **[Donations](./endpoints.md#donations)** - Donation processing and tracking
-- **[Campaigns](./endpoints.md#campaigns)** - Fundraising campaign management
-- **[Volunteers](./endpoints.md#volunteers)** - Volunteer registration and management
-- **[Events](./endpoints.md#events)** - Event creation and registration
-- **[Projects](./endpoints.md#projects)** - Project tracking and management
-- **[Teams](./endpoints.md#teams)** - Team management
+- **[Endpoints](./endpoints.md)** - Detailed procedure documentation
 
 ## Quick Start
 

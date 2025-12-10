@@ -1,8 +1,9 @@
 import { TRPCError, initTRPC } from "@trpc/server"
+import { OpenApiMeta } from 'trpc-to-openapi'
 import { currentUser } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma";
 
-const t = initTRPC.create()
+const t = initTRPC.meta<OpenApiMeta>().create()
 const middleware = t.middleware
 
 const isAuth = middleware(async (opts) => {

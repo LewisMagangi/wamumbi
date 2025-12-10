@@ -3,7 +3,36 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const teamsRouter = router({
-  getAll: procedure.query(async () => {
+  getAll: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/teams',
+        tags: ['teams'],
+        summary: 'Get all teams',
+        description: 'Retrieves all teams with details'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      category: z.string(),
+      categoryId: z.number(),
+      status: z.string(),
+      maxMembers: z.number().nullable(),
+      membersCount: z.number(),
+      projectsCount: z.number(),
+      leader: z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string(),
+        imageUrl: z.string().nullable()
+      }).nullable(),
+      createdAt: z.date()
+    })))
+    .query(async () => {
     try {
       const teams = await prisma.team.findMany({
         include: {
@@ -53,7 +82,114 @@ export const teamsRouter = router({
     }
   }),
 
-  getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  // Get team overview for dashboard
+  getOverview: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/teams/overview',
+        tags: ['teams'],
+        summary: 'Get team overview',
+        description: 'Retrieves a brief overview of teams for dashboard display'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      membersCount: z.number(),
+      leader: z.object({
+        name: z.string(),
+        imageUrl: z.string().nullable()
+      }).nullable()
+    })))
+    .query(async () => {
+      try {
+        const teams = await prisma.team.findMany({
+          where: {
+            status: 'active'
+          },
+          include: {
+            leader: {
+              select: {
+                first_name: true,
+                last_name: true,
+                profile_image: true
+              }
+            },
+            _count: {
+              select: {
+                members: true
+              }
+            }
+          },
+          orderBy: {
+            created_at: 'desc'
+          },
+          take: 5
+        });
+
+        return teams.map(team => ({
+          id: team.id,
+          name: team.name,
+          membersCount: team._count.members,
+          leader: team.leader ? {
+            name: `${team.leader.first_name || ''} ${team.leader.last_name || ''}`.trim(),
+            imageUrl: team.leader.profile_image
+          } : null
+        }));
+      } catch (error) {
+        console.error('Error fetching team overview:', error);
+        return [];
+      }
+    }),
+
+  getById: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/teams/{id}',
+        tags: ['teams'],
+        summary: 'Get team by ID',
+        description: 'Retrieves a specific team by its ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      category: z.string(),
+      categoryId: z.number(),
+      status: z.string(),
+      maxMembers: z.number().nullable(),
+      leader: z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string(),
+        imageUrl: z.string().nullable()
+      }).nullable(),
+      members: z.array(z.object({
+        id: z.number(),
+        userId: z.number(),
+        name: z.string(),
+        email: z.string(),
+        imageUrl: z.string().nullable(),
+        role: z.string().nullable(),
+        status: z.string(),
+        joinedAt: z.date()
+      })),
+      projects: z.array(z.object({
+        id: z.number(),
+        title: z.string(),
+        status: z.string(),
+        startDate: z.date(),
+        endDate: z.date().nullable()
+      })),
+      createdAt: z.date(),
+      updatedAt: z.date()
+    }))
+    .query(async ({ input }) => {
     try {
       const team = await prisma.team.findUnique({
         where: { id: input.id },
@@ -88,7 +224,7 @@ export const teamsRouter = router({
             select: {
               id: true,
               title: true,
-              status: true,
+              status: { select: { name: true } },
               start_date: true,
               end_date: true
             },
@@ -128,7 +264,7 @@ export const teamsRouter = router({
         projects: team.projects.map(project => ({
           id: project.id,
           title: project.title,
-          status: project.status,
+          status: project.status.name,
           startDate: project.start_date,
           endDate: project.end_date
         })),
@@ -141,13 +277,33 @@ export const teamsRouter = router({
     }
   }),
 
-  create: procedure.input(z.object({
+  create: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/teams',
+        tags: ['teams'],
+        summary: 'Create team',
+        description: 'Creates a new team'
+      }
+    })
+    .input(z.object({
     name: z.string().min(1),
     description: z.string().optional(),
     categoryId: z.number(),
     teamLeaderId: z.number().optional(),
     maxMembers: z.number().positive().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      category: z.string(),
+      leader: z.string().nullable(),
+      status: z.string(),
+      createdAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const team = await prisma.team.create({
         data: {
@@ -196,7 +352,17 @@ export const teamsRouter = router({
     }
   }),
 
-  update: procedure.input(z.object({
+  update: procedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/teams/{id}',
+        tags: ['teams'],
+        summary: 'Update team',
+        description: 'Updates an existing team'
+      }
+    })
+    .input(z.object({
     id: z.number(),
     name: z.string().min(1).optional(),
     description: z.string().optional(),
@@ -204,7 +370,17 @@ export const teamsRouter = router({
     teamLeaderId: z.number().optional(),
     maxMembers: z.number().positive().optional(),
     status: z.enum(['active', 'inactive', 'archived']).optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      category: z.string(),
+      leader: z.string().nullable(),
+      status: z.string(),
+      updatedAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const { id, categoryId, teamLeaderId, maxMembers, ...rest } = input;
       
@@ -242,7 +418,19 @@ export const teamsRouter = router({
     }
   }),
 
-  delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  delete: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/teams/{id}',
+        tags: ['teams'],
+        summary: 'Delete team',
+        description: 'Deletes a team by ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       await prisma.team.delete({
         where: { id: input.id }
@@ -255,11 +443,30 @@ export const teamsRouter = router({
   }),
 
   // Add member to team
-  addMember: procedure.input(z.object({
+  addMember: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/teams/{teamId}/members',
+        tags: ['teams'],
+        summary: 'Add team member',
+        description: 'Adds a new member to a team'
+      }
+    })
+    .input(z.object({
     teamId: z.number(),
     userId: z.number(),
     role: z.string().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      teamId: z.number(),
+      name: z.string(),
+      email: z.string(),
+      role: z.string().nullable(),
+      joinedAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Check if team has capacity
       const team = await prisma.team.findUnique({
@@ -312,10 +519,22 @@ export const teamsRouter = router({
   }),
 
   // Remove member from team
-  removeMember: procedure.input(z.object({
+  removeMember: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/teams/{teamId}/members/{userId}',
+        tags: ['teams'],
+        summary: 'Remove team member',
+        description: 'Removes a member from a team'
+      }
+    })
+    .input(z.object({
     teamId: z.number(),
     userId: z.number()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       await prisma.teamMember.deleteMany({
         where: {
@@ -331,11 +550,28 @@ export const teamsRouter = router({
   }),
 
   // Update member status/role
-  updateMember: procedure.input(z.object({
+  updateMember: procedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/teams/members/{memberId}',
+        tags: ['teams'],
+        summary: 'Update team member',
+        description: 'Updates a team member role or status'
+      }
+    })
+    .input(z.object({
     memberId: z.number(),
     role: z.string().optional(),
     status: z.enum(['active', 'inactive']).optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      name: z.string(),
+      role: z.string().nullable(),
+      status: z.string()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const { memberId, role, status } = input;
 
@@ -369,7 +605,26 @@ export const teamsRouter = router({
     }
   }),
 
-  getCategories: procedure.query(async () => {
+  getCategories: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/teams/categories',
+        tags: ['teams'],
+        summary: 'Get team categories',
+        description: 'Retrieves all active team categories'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      type: z.string(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const categories = await prisma.category.findMany({
         where: { 

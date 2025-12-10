@@ -5,9 +5,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/footer';
 import Sidebar from '@/components/dashboard/Sidebar';
 import MenuButton from '@/components/dashboard/MenuButton';
-import { Calendar, MapPin, Users, DollarSign, Image as ImageIcon, ArrowLeft } from 'lucide-react';
-import { mockEvents, mockAddresses, mockEventRegistrations } from '@/lib/mockData';
-import { formatDate, formatTime } from '@/lib/dateUtils';
+import { Calendar, MapPin, Users, DollarSign, Image as ImageIcon, ArrowLeft, Loader2, Clock } from 'lucide-react';
+import { trpc } from '@/app/_trpc/client';
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -18,15 +17,73 @@ export default function EventDetailsPage() {
   
   const idParam = params?.id;
   const eventId = idParam ? parseInt(idParam as string, 10) : NaN;
-  const event = mockEvents.find(e => e.id === eventId);
+
+  // TanStack Query - Fetch event details
+  const { data: event, isLoading, error } = trpc.events.getById.useQuery(
+    { id: eventId },
+    { enabled: !isNaN(eventId) }
+  );
+
+  // TanStack Query utils for cache invalidation
+  const utils = trpc.useUtils();
+
+  // TanStack Mutation - Register for event
+  const registerMutation = trpc.events.register.useMutation({
+    onSuccess: () => {
+      utils.events.getById.invalidate({ id: eventId });
+      setShowTicketModal(false);
+      alert(`Successfully registered for ${ticketQuantity} ticket(s)!`);
+    },
+    onError: (err) => {
+      alert(`Registration failed: ${err.message}`);
+    }
+  });
+
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (date: Date | string) => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleRegister = () => {
+    // Using a placeholder userId=1 since auth is not implemented
+    registerMutation.mutate({
+      eventId,
+      userId: 1,
+      specialRequirements: ticketQuantity > 1 ? `Quantity: ${ticketQuantity}` : undefined
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+          <span className="ml-2 text-gray-600">Loading event details...</span>
+        </div>
+        <Footer />
+      </>
+    );
+  }
   
-  if (!event) {
+  if (error || !event) {
     return (
       <>
         <Navbar />
         <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Event Not Found</h1>
+            <p className="text-gray-600 mb-4">{error?.message || 'The requested event could not be found.'}</p>
             <button
               onClick={() => router.push('/events')}
               className="text-rose-600 hover:text-rose-700 font-medium"
@@ -40,16 +97,7 @@ export default function EventDetailsPage() {
     );
   }
 
-  const address = mockAddresses.find(a => a.id === event.address_id);
-  const registrations = mockEventRegistrations.filter(r => r.event_id === eventId);
-  const availableTickets = event.capacity - registrations.length;
-
-  const handleBuyTicket = () => {
-    // Implement ticket purchase logic
-    console.log('Buying', ticketQuantity, 'tickets for event', eventId);
-    alert(`Successfully registered for ${ticketQuantity} ticket(s)!`);
-    setShowTicketModal(false);
-  };
+  const availableTickets = event.availableSpots;
 
   return (
     <>
@@ -70,7 +118,11 @@ export default function EventDetailsPage() {
 
           {/* Event Header */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-            {event.image_url && (
+            {event.imageUrl ? (
+              <div className="h-96 bg-gradient-to-r from-rose-500 to-purple-600 relative">
+                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+              </div>
+            ) : (
               <div className="h-96 bg-gradient-to-r from-rose-500 to-purple-600 flex items-center justify-center">
                 <ImageIcon className="w-24 h-24 text-white opacity-50" />
               </div>
@@ -82,8 +134,13 @@ export default function EventDetailsPage() {
                   <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.title}</h1>
                   <p className="text-lg text-gray-700 mb-6">{event.description}</p>
                 </div>
-                <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  Scheduled
+                <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                  event.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                  event.status === 'ongoing' ? 'bg-green-100 text-green-800' :
+                  event.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {event.status}
                 </span>
               </div>
 
@@ -93,8 +150,8 @@ export default function EventDetailsPage() {
                   <Calendar className="w-5 h-5 text-rose-600 mr-3 mt-1" />
                   <div>
                     <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-semibold text-gray-900">{formatDate(event.event_date)}</p>
-                    <p className="text-sm text-gray-600">{formatTime(event.event_date)}</p>
+                    <p className="font-semibold text-gray-900">{formatDate(event.eventDate)}</p>
+                    <p className="text-sm text-gray-600">{formatTime(event.eventDate)}</p>
                   </div>
                 </div>
 
@@ -102,8 +159,11 @@ export default function EventDetailsPage() {
                   <MapPin className="w-5 h-5 text-rose-600 mr-3 mt-1" />
                   <div>
                     <p className="text-sm text-gray-600">Location</p>
-                    <p className="font-semibold text-gray-900">{address?.city}, {address?.country}</p>
-                    <p className="text-sm text-gray-600">{address?.street_line_1}</p>
+                    <p className="font-semibold text-gray-900">
+                      {event.address 
+                        ? `${event.address.street || ''}, ${event.address.city || ''}`.replace(/^, |, $/g, '') 
+                        : 'TBD'}
+                    </p>
                   </div>
                 </div>
 
@@ -111,7 +171,7 @@ export default function EventDetailsPage() {
                   <Users className="w-5 h-5 text-rose-600 mr-3 mt-1" />
                   <div>
                     <p className="text-sm text-gray-600">Capacity</p>
-                    <p className="font-semibold text-gray-900">{registrations.length} / {event.capacity}</p>
+                    <p className="font-semibold text-gray-900">{event.registrationsCount} / {event.capacity}</p>
                     <p className="text-sm text-gray-600">{availableTickets} spots left</p>
                   </div>
                 </div>
@@ -121,11 +181,22 @@ export default function EventDetailsPage() {
                   <div>
                     <p className="text-sm text-gray-600">Ticket Price</p>
                     <p className="font-semibold text-gray-900">
-                      {event.ticket_price > 0 ? `$${event.ticket_price}` : 'Free'}
+                      {event.ticketPrice > 0 ? `${event.currency} ${event.ticketPrice.toFixed(2)}` : 'Free'}
                     </p>
                   </div>
                 </div>
               </div>
+
+              {/* Registration Deadline */}
+              {event.registrationDeadline && (
+                <div className="flex items-center mb-6 p-4 bg-yellow-50 rounded-lg">
+                  <Clock className="w-5 h-5 text-yellow-600 mr-3" />
+                  <div>
+                    <p className="text-sm text-yellow-800">Registration Deadline</p>
+                    <p className="font-semibold text-yellow-900">{formatDate(event.registrationDeadline)}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex gap-4">
@@ -191,12 +262,21 @@ export default function EventDetailsPage() {
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Event Category</h3>
+                <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm">
+                  {event.category}
+                </span>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Important Information</h3>
                 <ul className="space-y-3 text-sm text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-rose-600 rounded-full mr-2 mt-1.5"></span>
-                    <span>Registration deadline: {event.registration_deadline && formatDate(event.registration_deadline)}</span>
-                  </li>
+                  {event.registrationDeadline && (
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-rose-600 rounded-full mr-2 mt-1.5"></span>
+                      <span>Registration deadline: {formatDate(event.registrationDeadline)}</span>
+                    </li>
+                  )}
                   <li className="flex items-start">
                     <span className="w-2 h-2 bg-rose-600 rounded-full mr-2 mt-1.5"></span>
                     <span>Please arrive 15 minutes early</span>
@@ -220,7 +300,7 @@ export default function EventDetailsPage() {
             
             <div className="mb-6">
               <p className="text-gray-700 mb-2">{event.title}</p>
-              <p className="text-sm text-gray-600">{formatDate(event.event_date)} at {formatTime(event.event_date)}</p>
+              <p className="text-sm text-gray-600">{formatDate(event.eventDate)} at {formatTime(event.eventDate)}</p>
             </div>
 
             <div className="mb-6">
@@ -242,7 +322,7 @@ export default function EventDetailsPage() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex justify-between mb-2">
                 <span className="text-gray-700">Ticket Price:</span>
-                <span className="font-semibold">${event.ticket_price}</span>
+                <span className="font-semibold">${event.ticketPrice}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-700">Quantity:</span>
@@ -252,7 +332,7 @@ export default function EventDetailsPage() {
                 <div className="flex justify-between">
                   <span className="font-bold text-gray-900">Total:</span>
                   <span className="font-bold text-rose-600">
-                    ${(event.ticket_price * ticketQuantity).toFixed(2)}
+                    ${(event.ticketPrice * ticketQuantity).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -260,7 +340,7 @@ export default function EventDetailsPage() {
 
             <div className="flex gap-4">
               <button
-                onClick={handleBuyTicket}
+                onClick={handleRegister}
                 className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
               >
                 Confirm Registration

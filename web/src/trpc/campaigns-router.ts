@@ -1,9 +1,36 @@
 import { procedure, router } from "./trpc";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 export const campaignsRouter = router({
-  getActive: procedure.query(async () => {
+  getActive: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/active',
+        tags: ['campaigns'],
+        summary: 'Get active campaigns',
+        description: 'Retrieves active campaigns with statistics'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number().describe('Campaign ID'),
+      title: z.string().describe('Campaign title'),
+      description: z.string().describe('Campaign description'),
+      goal: z.number().describe('Target funding goal'),
+      raised: z.number().describe('Current funding raised'),
+      endDate: z.date().nullable().describe('Campaign end date'),
+      startDate: z.date().describe('Campaign start date'),
+      donationsCount: z.number().describe('Number of donations'),
+      progressPercentage: z.number().describe('Completion percentage'),
+      category: z.string().describe('Campaign category'),
+      status: z.string().describe('Campaign status'),
+      urgencyLevel: z.string().describe('Urgency level'),
+      imageUrl: z.string().nullable().describe('Campaign image URL')
+    })))
+    .query(async () => {
     try {
       const campaigns = await prisma.campaign.findMany({
         where: {
@@ -52,7 +79,36 @@ export const campaignsRouter = router({
     }
   }),
 
-  getAll: procedure.query(async () => {
+  getAll: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns',
+        tags: ['campaigns'],
+        summary: 'Get all campaigns',
+        description: 'Retrieves all campaigns with details'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      goalAmount: z.number(),
+      currentAmount: z.number(),
+      imageUrl: z.string().nullable(),
+      status: z.string(),
+      statusId: z.number(),
+      category: z.string(),
+      categoryId: z.number(),
+      urgencyLevel: z.string(),
+      donationsCount: z.number(),
+      progressPercentage: z.number(),
+      startDate: z.date(),
+      endDate: z.date().nullable(),
+      createdAt: z.date()
+    })))
+    .query(async () => {
     try {
       const campaigns = await prisma.campaign.findMany({
         include: {
@@ -95,8 +151,52 @@ export const campaignsRouter = router({
     }
   }),
 
-  getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getById: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/{id}',
+        tags: ['campaigns'],
+        summary: 'Get campaign by ID',
+        description: 'Retrieves a specific campaign by its ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      goalAmount: z.number(),
+      currentAmount: z.number(),
+      imageUrl: z.string().nullable(),
+      status: z.string(),
+      statusId: z.number(),
+      category: z.string(),
+      categoryId: z.number(),
+      urgencyLevel: z.string(),
+      urgencyLevelId: z.number(),
+      currency: z.string(),
+      currencyId: z.number(),
+      targetBeneficiaries: z.number().nullable(),
+      startDate: z.date(),
+      endDate: z.date().nullable(),
+      progressPercentage: z.number(),
+      donationsCount: z.number(),
+      uniqueDonorsCount: z.number(),
+      averageDonation: z.number(),
+      recentDonations: z.array(z.object({
+        id: z.number(),
+        amount: z.number(),
+        donorName: z.string(),
+        donationDate: z.date(),
+        status: z.string()
+      })),
+      createdAt: z.date(),
+      updatedAt: z.date()
+    }))
+    .query(async ({ input }) => {
     try {
+      console.log('getById called with id:', input.id);
       const campaign = await prisma.campaign.findUnique({
         where: { id: input.id },
         include: {
@@ -124,8 +224,13 @@ export const campaignsRouter = router({
         }
       });
 
+      console.log('Campaign found:', campaign ? 'yes' : 'no');
+
       if (!campaign) {
-        throw new Error('Campaign not found');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Campaign with id ${input.id} not found`
+        });
       }
 
       return {
@@ -168,19 +273,44 @@ export const campaignsRouter = router({
     }
   }),
 
-  create: procedure.input(z.object({
+  create: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/campaigns',
+        tags: ['campaigns'],
+        summary: 'Create campaign',
+        description: 'Creates a new campaign'
+      }
+    })
+    .input(z.object({
     title: z.string().min(1),
     description: z.string().min(1),
     goalAmount: z.number().positive(),
     currencyId: z.number(),
     categoryId: z.number(),
-    startDate: z.date(),
-    endDate: z.date().optional(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().optional(),
     imageUrl: z.string().optional(),
     urgencyLevelId: z.number(),
     targetBeneficiaries: z.number().optional(),
     createdBy: z.number().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      goalAmount: z.number(),
+      currentAmount: z.number(),
+      imageUrl: z.string().nullable(),
+      status: z.string(),
+      category: z.string(),
+      urgencyLevel: z.string(),
+      startDate: z.date(),
+      endDate: z.date().nullable(),
+      createdAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Get active status
       const activeStatus = await prisma.campaignStatus.findFirst({
@@ -241,18 +371,43 @@ export const campaignsRouter = router({
     }
   }),
 
-  update: procedure.input(z.object({
+  update: procedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/campaigns/{id}',
+        tags: ['campaigns'],
+        summary: 'Update campaign',
+        description: 'Updates an existing campaign'
+      }
+    })
+    .input(z.object({
     id: z.number(),
     title: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
     goalAmount: z.number().positive().optional(),
     categoryId: z.number().optional(),
     statusId: z.number().optional(),
-    endDate: z.date().optional(),
+    endDate: z.coerce.date().optional(),
     imageUrl: z.string().optional(),
     urgencyLevelId: z.number().optional(),
     targetBeneficiaries: z.number().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      goalAmount: z.number(),
+      currentAmount: z.number(),
+      imageUrl: z.string().nullable(),
+      status: z.string(),
+      category: z.string(),
+      urgencyLevel: z.string(),
+      startDate: z.date(),
+      endDate: z.date().nullable(),
+      updatedAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const { id, goalAmount, categoryId, statusId, endDate, imageUrl, urgencyLevelId, targetBeneficiaries, ...rest } = input;
       
@@ -296,7 +451,19 @@ export const campaignsRouter = router({
     }
   }),
 
-  delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  delete: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/campaigns/{id}',
+        tags: ['campaigns'],
+        summary: 'Delete campaign',
+        description: 'Deletes a campaign by ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       await prisma.campaign.delete({
         where: { id: input.id }
@@ -308,7 +475,26 @@ export const campaignsRouter = router({
     }
   }),
 
-  getCategories: procedure.query(async () => {
+  getCategories: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/categories',
+        tags: ['campaigns'],
+        summary: 'Get campaign categories',
+        description: 'Retrieves all active campaign categories'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      type: z.string(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const categories = await prisma.category.findMany({
         where: { 
@@ -324,7 +510,25 @@ export const campaignsRouter = router({
     }
   }),
 
-  getStatuses: procedure.query(async () => {
+  getStatuses: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/statuses',
+        tags: ['campaigns'],
+        summary: 'Get campaign statuses',
+        description: 'Retrieves all active campaign statuses'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const statuses = await prisma.campaignStatus.findMany({
         where: { is_active: true },
@@ -337,7 +541,25 @@ export const campaignsRouter = router({
     }
   }),
 
-  getUrgencyLevels: procedure.query(async () => {
+  getUrgencyLevels: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/urgency-levels',
+        tags: ['campaigns'],
+        summary: 'Get urgency levels',
+        description: 'Retrieves all active urgency levels'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      priority_score: z.number(),
+      is_active: z.boolean()
+    })))
+    .query(async () => {
     try {
       const levels = await prisma.urgencyLevel.findMany({
         where: { is_active: true },
@@ -350,7 +572,25 @@ export const campaignsRouter = router({
     }
   }),
 
-  getCurrencies: procedure.query(async () => {
+  getCurrencies: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/campaigns/currencies',
+        tags: ['campaigns'],
+        summary: 'Get currencies',
+        description: 'Retrieves all active currencies'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      code: z.string(),
+      name: z.string(),
+      symbol: z.string(),
+      is_active: z.boolean()
+    })))
+    .query(async () => {
     try {
       const currencies = await prisma.currency.findMany({
         where: { is_active: true },

@@ -3,7 +3,33 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const eventsRouter = router({
-  getUpcoming: procedure.query(async () => {
+  getUpcoming: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/events/upcoming',
+        tags: ['events'],
+        summary: 'Get upcoming events',
+        description: 'Retrieves upcoming events'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      registrationsCount: z.number(),
+      availableSpots: z.number(),
+      ticketPrice: z.number(),
+      imageUrl: z.string().nullable(),
+      registrationDeadline: z.date().nullable(),
+      status: z.string(),
+      category: z.string(),
+      location: z.string()
+    })))
+    .query(async () => {
     try {
       const events = await prisma.event.findMany({
         where: {
@@ -48,7 +74,37 @@ export const eventsRouter = router({
     }
   }),
 
-  getAll: procedure.query(async () => {
+  getAll: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/events',
+        tags: ['events'],
+        summary: 'Get all events',
+        description: 'Retrieves all events with details'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      registrationsCount: z.number(),
+      availableSpots: z.number(),
+      ticketPrice: z.number(),
+      currency: z.string(),
+      imageUrl: z.string().nullable(),
+      registrationDeadline: z.date().nullable(),
+      status: z.string(),
+      statusId: z.number(),
+      category: z.string(),
+      categoryId: z.number(),
+      location: z.string(),
+      createdAt: z.date()
+    })))
+    .query(async () => {
     try {
       const events = await prisma.event.findMany({
         include: {
@@ -92,7 +148,58 @@ export const eventsRouter = router({
     }
   }),
 
-  getById: procedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getById: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/events/{id}',
+        tags: ['events'],
+        summary: 'Get event by ID',
+        description: 'Retrieves a specific event by its ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      registrationsCount: z.number(),
+      availableSpots: z.number(),
+      ticketPrice: z.number(),
+      currency: z.string(),
+      currencyId: z.number(),
+      imageUrl: z.string().nullable(),
+      registrationDeadline: z.date().nullable(),
+      status: z.string(),
+      statusId: z.number(),
+      category: z.string(),
+      categoryId: z.number(),
+      address: z.object({
+        street: z.string().nullable(),
+        city: z.string().nullable(),
+        state: z.string().nullable(),
+        postalCode: z.string().nullable(),
+        country: z.string().nullable()
+      }).nullable(),
+      creator: z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string()
+      }).nullable(),
+      registrations: z.array(z.object({
+        id: z.number(),
+        userId: z.number(),
+        userName: z.string(),
+        userEmail: z.string(),
+        status: z.string(),
+        registrationDate: z.date()
+      })),
+      createdAt: z.date(),
+      updatedAt: z.date()
+    }))
+    .query(async ({ input }) => {
     try {
       const event = await prisma.event.findUnique({
         where: { id: input.id },
@@ -179,19 +286,42 @@ export const eventsRouter = router({
     }
   }),
 
-  create: procedure.input(z.object({
+  create: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/events',
+        tags: ['events'],
+        summary: 'Create event',
+        description: 'Creates a new event'
+      }
+    })
+    .input(z.object({
     title: z.string().min(1),
     description: z.string().min(1),
-    eventDate: z.date(),
+    eventDate: z.coerce.date(),
     capacity: z.number().positive(),
     ticketPrice: z.number().min(0).default(0),
     currencyId: z.number(),
     categoryId: z.number(),
     imageUrl: z.string().optional(),
-    registrationDeadline: z.date().optional(),
+    registrationDeadline: z.coerce.date().optional(),
     addressId: z.number().optional(),
     createdBy: z.number().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      ticketPrice: z.number(),
+      currency: z.string(),
+      status: z.string(),
+      category: z.string(),
+      createdAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Get scheduled status (default for new events)
       const scheduledStatus = await prisma.eventStatus.findFirst({
@@ -250,18 +380,41 @@ export const eventsRouter = router({
     }
   }),
 
-  update: procedure.input(z.object({
+  update: procedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/events/{id}',
+        tags: ['events'],
+        summary: 'Update event',
+        description: 'Updates an existing event'
+      }
+    })
+    .input(z.object({
     id: z.number(),
     title: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
-    eventDate: z.date().optional(),
+    eventDate: z.coerce.date().optional(),
     capacity: z.number().positive().optional(),
     ticketPrice: z.number().min(0).optional(),
     categoryId: z.number().optional(),
     statusId: z.number().optional(),
     imageUrl: z.string().optional(),
-    registrationDeadline: z.date().optional()
-  })).mutation(async ({ input }) => {
+    registrationDeadline: z.coerce.date().optional()
+  }))
+    .output(z.object({
+      id: z.number(),
+      title: z.string(),
+      description: z.string(),
+      eventDate: z.date(),
+      capacity: z.number(),
+      ticketPrice: z.number(),
+      currency: z.string(),
+      status: z.string(),
+      category: z.string(),
+      updatedAt: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       const { id, eventDate, ticketPrice, categoryId, statusId, imageUrl, registrationDeadline, ...rest } = input;
       
@@ -301,7 +454,19 @@ export const eventsRouter = router({
     }
   }),
 
-  delete: procedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  delete: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/events/{id}',
+        tags: ['events'],
+        summary: 'Delete event',
+        description: 'Deletes an event by ID'
+      }
+    })
+    .input(z.object({ id: z.number() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       await prisma.event.delete({
         where: { id: input.id }
@@ -314,11 +479,29 @@ export const eventsRouter = router({
   }),
 
   // Register user for an event
-  register: procedure.input(z.object({
+  register: procedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/events/{eventId}/register',
+        tags: ['events'],
+        summary: 'Register for event',
+        description: 'Registers a user for an event'
+      }
+    })
+    .input(z.object({
     eventId: z.number(),
     userId: z.number(),
     specialRequirements: z.string().optional()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({
+      id: z.number(),
+      eventTitle: z.string(),
+      userName: z.string(),
+      status: z.string(),
+      registrationDate: z.date()
+    }))
+    .mutation(async ({ input }) => {
     try {
       // Check if event exists and has capacity
       const event = await prisma.event.findUnique({
@@ -389,9 +572,21 @@ export const eventsRouter = router({
   }),
 
   // Cancel registration
-  cancelRegistration: procedure.input(z.object({
+  cancelRegistration: procedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/events/registrations/{registrationId}',
+        tags: ['events'],
+        summary: 'Cancel registration',
+        description: 'Cancels an event registration'
+      }
+    })
+    .input(z.object({
     registrationId: z.number()
-  })).mutation(async ({ input }) => {
+  }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input }) => {
     try {
       const cancelledStatus = await prisma.registrationStatus.findFirst({
         where: { name: 'cancelled' }
@@ -411,7 +606,26 @@ export const eventsRouter = router({
     }
   }),
 
-  getCategories: procedure.query(async () => {
+  getCategories: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/events/categories',
+        tags: ['events'],
+        summary: 'Get event categories',
+        description: 'Retrieves all active event categories'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      type: z.string(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const categories = await prisma.category.findMany({
         where: { 
@@ -427,7 +641,25 @@ export const eventsRouter = router({
     }
   }),
 
-  getStatuses: procedure.query(async () => {
+  getStatuses: procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/events/statuses',
+        tags: ['events'],
+        summary: 'Get event statuses',
+        description: 'Retrieves all active event statuses'
+      }
+    })
+    .input(z.void())
+    .output(z.array(z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      is_active: z.boolean(),
+      display_order: z.number()
+    })))
+    .query(async () => {
     try {
       const statuses = await prisma.eventStatus.findMany({
         where: { is_active: true },

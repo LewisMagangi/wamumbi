@@ -7,6 +7,7 @@ This document outlines the technical and functional requirements for the Wamumbi
 ## Table of Contents
 
 - [Authentication System](#authentication-system)
+- [Database Seeding System](#database-seeding-system)
 - [Donation Management System](#donation-management-system)
 - [Campaign Management System](#campaign-management-system)
 - [Volunteer Management System](#volunteer-management-system)
@@ -216,6 +217,69 @@ This document outlines the technical and functional requirements for the Wamumbi
 
 ---
 
+## Database Seeding System
+
+### Overview
+
+The system requires comprehensive seeding of reference/lookup tables to ensure all dropdowns and selection fields are populated with appropriate data. This enables full functionality across campaigns, events, volunteers, and donations.
+
+### Functional Requirements
+
+#### FR-SEED-001: Reference Data Seeding
+
+**Description**: System shall seed all reference tables with comprehensive data on database initialization.
+
+**Implementation**: `prisma/seed.ts` script with upsert operations
+
+**Seeded Tables** (17 total):
+
+- **Currencies**: USD, EUR, GBP, KES, etc.
+- **Campaign Categories**: Education, Health, Environment, Poverty, etc.
+- **Campaign Urgency Levels**: Critical, High, Medium, Low
+- **Campaign Statuses**: Draft, Active, Completed, Cancelled
+- **Event Types**: Workshop, Seminar, Fundraiser, Community Service
+- **Event Categories**: Education, Health, Environment, etc.
+- **Event Statuses**: Planned, Confirmed, In Progress, Completed, Cancelled
+- **Volunteer Roles**: Coordinator, Assistant, Driver, Translator, etc.
+- **Volunteer Skills**: Teaching, Medical, Construction, Cooking, etc.
+- **Donation Types**: One-time, Monthly, Annual
+- **Payment Methods**: Credit Card, Bank Transfer, PayPal, M-Pesa
+- **Notification Types**: Email, SMS, Push Notification
+- **User Roles**: Admin, Team Leader, Volunteer, Donor
+- **User Statuses**: Active, Inactive, Suspended
+- **Project Statuses**: Planning, Active, Completed, On Hold
+- **Team Types**: Management, Operations, Outreach, Technical
+
+**Business Rules**:
+
+- All seed data uses upsert operations for idempotency
+- Data is inserted in correct dependency order
+- Seed script can be run multiple times safely
+- Comprehensive coverage ensures no empty dropdowns
+
+#### FR-SEED-002: Seed Script Execution
+
+**Description**: Seed script shall be executable via Prisma commands.
+
+**Commands**:
+
+```bash
+# Run seeding
+npx prisma db seed
+
+# Reset and seed
+npx prisma migrate reset
+```
+
+**Success Criteria**:
+
+- All 17 tables populated with reference data
+- No duplicate entries on re-execution
+- Foreign key relationships maintained
+- Execution completes within 30 seconds
+
+---
+
 ## Donation Management System
 
 ### FUNCTIONAL REQUIREMENTS
@@ -394,8 +458,8 @@ This document outlines the technical and functional requirements for the Wamumbi
   "currency_id": "integer (required, reference to currencies.id)",
   "category_id": "integer (required, reference to categories.id where type='campaign')",
   "status_id": "integer (required, reference to campaign_statuses.id)",
-  "start_date": "date (required)",
-  "end_date": "date (optional)",
+  "start_date": "date (required, uses z.coerce.date() for validation)",
+  "end_date": "date (optional, uses z.coerce.date() for validation)",
   "image_url": "string (optional)",
   "target_beneficiaries": "integer (optional)",
   "urgency_level_id": "integer (required, reference to urgency_levels.id)",
@@ -651,6 +715,92 @@ This document outlines the technical and functional requirements for the Wamumbi
 - Background check status update: Real-time
 - Audit log entry creation: < 100ms
 
+#### FR-VOL-001B: Seamless Volunteer Registration
+
+**Description**: System shall enable volunteer registration with automatic user creation in one transaction, eliminating the need for pre-existing user accounts.
+
+**API Endpoint**: `POST /api/volunteers/create-with-user`
+
+**Input Specifications**:
+
+```json
+{
+  "email": "string (required, valid email format)",
+  "firstName": "string (required, max 50 chars)",
+  "lastName": "string (required, max 50 chars)",
+  "phoneNumber": "string (required, max 20 chars)",
+  "dateOfBirth": "date (required, uses z.coerce.date() for validation)",
+  "address": "string (required)",
+  "city": "string (required)",
+  "state": "string (required)",
+  "zipCode": "string (required)",
+  "volunteerRoleId": "integer (required, reference to volunteer_roles.id)",
+  "skills": "integer[] (required, array of skill IDs from volunteer_skills table)",
+  "availability": "text (required)",
+  "emergencyContactName": "string (required, max 100 chars)",
+  "emergencyContactPhone": "string (required, max 20 chars)",
+  "emergencyContactRelationship": "string (required, max 50 chars)"
+}
+```
+
+**Output Specifications**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "volunteer": {
+      "id": "integer",
+      "userId": "integer",
+      "phoneNumber": "string",
+      "dateOfBirth": "date",
+      "volunteerRole": { "id": "integer", "name": "string" },
+      "skills": [{ "id": "integer", "name": "string" }],
+      "availability": "text",
+      "status": { "id": "integer", "name": "string" }
+    },
+    "user": {
+      "id": "integer",
+      "email": "string",
+      "firstName": "string",
+      "lastName": "string"
+    },
+    "emergencyContact": {
+      "id": "integer",
+      "name": "string",
+      "phone": "string",
+      "relationship": "string"
+    }
+  }
+}
+```
+
+**Business Rules**:
+
+- Creates user, volunteer, and emergency contact in single database transaction
+- Email must be unique across all users
+- Volunteer role and skills must exist in seeded reference data
+- Date of birth validation ensures volunteer is of appropriate age (18+)
+- Emergency contact information is mandatory for safety compliance
+- User account is created with default role and active status
+- Transaction rolls back completely if any step fails
+
+**Validation Rules**:
+
+- Email format validation and uniqueness check
+- Phone number format validation
+- Date of birth must be valid past date and volunteer must be 18+
+- All required fields must be provided
+- Reference IDs must exist in database
+- Address fields follow length restrictions
+
+**Performance Criteria**:
+
+- Complete registration processing: < 2 seconds
+- Database transaction completion: < 1 second
+- Email uniqueness validation: < 200ms
+- Reference data validation: < 100ms
+
 #### FR-VOL-002: Activity Logging
 
 **Description**: System shall track volunteer activities and hours.
@@ -703,7 +853,7 @@ This document outlines the technical and functional requirements for the Wamumbi
 {
   "title": "string (required, max 200 chars)",
   "description": "string (required)",
-  "event_date": "datetime (required)",
+  "event_date": "datetime (required, uses z.coerce.date() for validation)",
   "address": {
     "street_line_1": "string (required)",
     "street_line_2": "string (optional)",
