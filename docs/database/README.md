@@ -278,48 +278,94 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 ## Seeding
 
-### Seed Data
+### Comprehensive Seed Data System
 
-The database can be populated with initial data using Prisma's seeding functionality.
+The database includes a comprehensive seeding system that populates all reference/lookup tables with production-ready data. This ensures that all dropdowns, selection fields, and category options are fully functional from the start.
+
+#### Seeded Tables (17 Total)
+
+The seed script (`prisma/seed.ts`) populates the following reference tables using upsert operations for idempotency:
+
+**Core Reference Data:**
+
+- **Currencies**: USD, EUR, GBP, KES, TZS, UGX (with symbols and exchange rates)
+- **Categories**: Campaign categories (Education, Health, Environment, Poverty, etc.) and Event categories
+- **Urgency Levels**: Critical, High, Medium, Low for campaign prioritization
+- **Statuses**: Campaign statuses (Draft, Active, Completed, Cancelled), Event statuses, User statuses
+
+**Volunteer Management:**
+
+- **Volunteer Roles**: Coordinator, Assistant, Driver, Translator, Medical Assistant, etc.
+- **Volunteer Skills**: Teaching, Medical Aid, Construction, Cooking, Event Planning, etc.
+- **Background Check Statuses**: Pending, Approved, Rejected, Not Required
+
+**Event Management:**
+
+- **Event Types**: Workshop, Seminar, Fundraiser, Community Service, Training Session
+- **Event Categories**: Education, Health, Environment, Community Development, etc.
+
+**Donation & Payment:**
+
+- **Donation Types**: One-time, Monthly, Annual, Emergency
+- **Payment Methods**: Credit Card, Bank Transfer, PayPal, M-Pesa, Cash
+
+**System Administration:**
+
+- **User Roles**: Admin, Team Leader, Volunteer, Donor
+- **Notification Types**: Email, SMS, Push Notification, In-App
+- **Project Statuses**: Planning, Active, Completed, On Hold, Cancelled
+- **Team Types**: Management, Operations, Outreach, Technical Support
+
+#### Seed Script Implementation
 
 ```typescript
-// prisma/seed.ts
+// prisma/seed.ts - Comprehensive seeding with upsert operations
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create admin user
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@wamumbi.org',
-      passwordHash: 'hashed_password',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: 'ADMIN',
-      status: 'ACTIVE'
-    }
+  console.log('🌱 Starting comprehensive database seeding...');
+
+  // 1. Currencies (6 currencies)
+  await prisma.currency.createMany({
+    data: [
+      { code: 'USD', name: 'US Dollar', symbol: '$', exchangeRate: 1.0 },
+      { code: 'EUR', name: 'Euro', symbol: '€', exchangeRate: 0.85 },
+      { code: 'GBP', name: 'British Pound', symbol: '£', exchangeRate: 0.73 },
+      { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', exchangeRate: 129.5 },
+      { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh', exchangeRate: 2490.0 },
+      { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh', exchangeRate: 3700.0 }
+    ],
+    skipDuplicates: true
   });
 
-  // Create sample campaign
-  const campaign = await prisma.campaign.create({
-    data: {
-      title: 'Clean Water Initiative 2025',
-      description: 'Providing clean water access to rural communities',
-      goalAmount: 50000,
-      category: 'WATER_PROJECTS',
-      startDate: new Date('2025-01-01'),
-      endDate: new Date('2025-12-31'),
-      createdBy: admin.id
-    }
+  // 2. Categories (Campaign & Event categories)
+  await prisma.category.createMany({
+    data: [
+      // Campaign categories
+      { name: 'Education', type: 'CAMPAIGN', description: 'Education and literacy programs' },
+      { name: 'Health', type: 'CAMPAIGN', description: 'Medical and healthcare initiatives' },
+      { name: 'Environment', type: 'CAMPAIGN', description: 'Environmental conservation' },
+      { name: 'Poverty', type: 'CAMPAIGN', description: 'Poverty alleviation programs' },
+      // Event categories
+      { name: 'Workshop', type: 'EVENT', description: 'Educational workshops' },
+      { name: 'Fundraiser', type: 'EVENT', description: 'Fundraising events' },
+      // ... additional categories
+    ],
+    skipDuplicates: true
   });
 
-  console.log('Seed data created successfully');
+  // Additional seeding for all other tables...
+  // (Volunteer roles, skills, statuses, etc.)
+
+  console.log('✅ Database seeding completed successfully!');
+  console.log('📊 Seeded 17 reference tables with comprehensive data');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {
@@ -327,12 +373,35 @@ main()
   });
 ```
 
-### Running Seeds
+#### Running Seeds
 
 ```bash
-# Run seed script
+# Execute comprehensive seeding
 npx prisma db seed
+
+# Reset database and re-seed (development only)
+npx prisma migrate reset
+
+# Check seed execution
+npx prisma studio
 ```
+
+#### Seed Data Characteristics
+
+- **Idempotent**: Uses upsert operations - can be run multiple times safely
+- **Comprehensive**: Covers all 17 reference tables with realistic data
+- **Dependency-Aware**: Tables are seeded in correct foreign key order
+- **Production-Ready**: Includes all necessary options for full system functionality
+- **Localized**: Includes relevant currencies and categories for target regions
+
+#### Post-Seed Validation
+
+After seeding, verify that:
+
+- All dropdown menus in the UI are populated
+- Foreign key relationships are intact
+- No duplicate entries exist
+- All required reference data is present
 
 ## Backup and Recovery
 
