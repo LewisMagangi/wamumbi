@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { mockEvents, mockEventStatuses, mockAddresses } from '../../../lib/mockData';
 import { formatDate, formatTime } from '../../../lib/dateUtils';
 
@@ -8,6 +9,8 @@ interface EventsViewProps {
 }
 
 export const EventsView: React.FC<EventsViewProps> = ({ openModal }) => {
+  const router = useRouter();
+
   const getStatusName = (statusId: number) => {
     const status = mockEventStatuses.find(s => s.id === statusId);
     return status?.name || 'Unknown';
@@ -39,7 +42,8 @@ export const EventsView: React.FC<EventsViewProps> = ({ openModal }) => {
           const statusName = getStatusName(event.status_id);
           const location = getLocation(event.address_id);
           const attendeeCount = 0; // Mock data - would come from registrations
-          
+          const percentage = Math.round((attendeeCount / event.capacity) * 100);
+
           return (
             <div key={event.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -58,55 +62,57 @@ export const EventsView: React.FC<EventsViewProps> = ({ openModal }) => {
                   {statusName}
                 </span>
               </div>
-              
+
               <h3 className="font-bold text-lg mb-2">{event.title}</h3>
               <p className="text-sm text-gray-600 mb-4 line-clamp-2">{event.description}</p>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Date</span>
                   <span className="font-medium">{formatDate(event.event_date)}</span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Time</span>
                   <span className="font-medium">{formatTime(event.event_date)}</span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Location</span>
                   <span className="font-medium">{location}</span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Capacity</span>
                   <span className="font-medium">
                     {attendeeCount} / {event.capacity}
                   </span>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-600">Registration</span>
                     <span className="font-medium">
-                      {Math.round((attendeeCount / event.capacity) * 100)}%
+                      {percentage}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-rose-600 h-2 rounded-full"
-                      style={{ width: `${(attendeeCount / event.capacity) * 100}%` }}
+                      className={`bg-rose-600 h-2 rounded-full w-[${percentage}%]`}
                       role="progressbar"
-                      aria-valuenow={Math.round((attendeeCount / event.capacity) * 100)}
+                      aria-valuenow={percentage}
                       aria-valuemin={0}
                       aria-valuemax={100}
-                      aria-label={`Event registration: ${Math.round((attendeeCount / event.capacity) * 100)}%`}
+                      aria-label={`Event registration: ${percentage}%`}
                     />
                   </div>
                 </div>
               </div>
-              
-              <button className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
+
+              <button
+                onClick={() => router.push(`/events/${event.id}`)}
+                className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors"
+              >
                 View Details
               </button>
             </div>
