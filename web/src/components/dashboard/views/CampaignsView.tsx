@@ -504,6 +504,11 @@ export const CampaignsView: React.FC = () => {
                     <div
                       className="bg-rose-600 h-3 rounded-full transition-all"
                       style={{ width: `${Math.min(selectedCampaign.progressPercentage, 100)}%` }}
+                      role="progressbar"
+                      aria-valuenow={selectedCampaign.progressPercentage}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`Campaign progress: ${selectedCampaign.progressPercentage.toFixed(1)}%`}
                     />
                   </div>
                   <div className="flex justify-between mt-3">

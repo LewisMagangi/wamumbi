@@ -57,6 +57,11 @@ export const CampaignProgress = () => {
                   <div 
                     className="bg-rose-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(progress, 100)}%` }}
+                    role="progressbar"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Campaign progress: ${progress.toFixed(1)}%`}
                   />
                 </div>
                 <div className="flex justify-between items-center mt-2">
