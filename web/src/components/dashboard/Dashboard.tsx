@@ -995,7 +995,11 @@ export default function Dashboard() {
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
                               className="progress-bar-campaign"
-                              style={{ width: `${Math.min(campaign.progressPercentage, 100)}%` }}
+                              ref={(el) => {
+                                if (el) {
+                                  el.style.width = `${Math.min(campaign.progressPercentage, 100)}%`;
+                                }
+                              }}
                               role="progressbar"
                               aria-valuenow={Math.min(campaign.progressPercentage, 100)}
                               aria-valuemin={0}
