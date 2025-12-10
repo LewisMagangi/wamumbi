@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "generate:openapi": "npx tsx scripts/generate-openapi.ts",
+    "docs": "npx tsx scripts/generate-openapi.ts && echo 'View at: http://localhost:3000/api/docs'",
+    "db:seed": "npx tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.17.0",
@@ -24,17 +30,19 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.2.3",
     "lucide-react": "^0.503.0",
     "neondb": "^0.0.2",
     "next": "^15.5.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "swagger-ui-react": "^5.30.3",
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
+    "trpc-to-openapi": "^3.2.0-beta.0",
     "wouter": "^3.7.0",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "zod-openapi": "^5.4.5"
   },
   "devDependencies": {
     "@dbml/cli": "^2.5.2",
@@ -45,11 +53,13 @@
     "@types/react-dom": "^19",
     "@types/wouter": "^2.0.1",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8.5.3",
     "prisma": "^7.1.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "ws": "^8.18.3"
   }
 }
