@@ -12,8 +12,9 @@
   "dependencies": {
     "@clerk/nextjs": "^6.17.0",
     "@neondatabase/serverless": "^1.0.2",
-    "@prisma/adapter-neon": "^6.18.0",
-    "@prisma/client": "^6.18.0",
+    "@prisma/adapter-neon": "^7.1.0",
+    "@prisma/client": "^7.1.0",
+    "@prisma/config": "^7.1.0",
     "@radix-ui/react-slot": "^1.2.0",
     "@tanstack/react-query": "^5.76.1",
     "@trpc/client": "^11.1.2",
@@ -23,15 +24,17 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.503.0",
     "neondb": "^0.0.2",
-    "next": "15.3.6",
+    "next": "^15.5.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "wouter": "^3.7.0"
+    "wouter": "^3.7.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@dbml/cli": "^2.5.2",
@@ -45,7 +48,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8.5.3",
-    "prisma": "^6.18.0",
+    "prisma": "^7.1.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

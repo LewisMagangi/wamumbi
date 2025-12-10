@@ -20,36 +20,32 @@ A comprehensive digital platform for the Wamumbi Foundation to manage charitable
 
 Wamumbi is a modern charity management system built to streamline operations for non-profit organizations. The platform enables efficient management of:
 
-- **Donations & Fundraising**: Secure donation processing and campaign management
-- **Volunteer Coordination**: Volunteer registration, activity tracking, and team management
-- **Project Management**: Track charitable projects from planning to completion
-- **Event Organization**: Manage charity events and community gatherings
-- **Impact Reporting**: Generate reports on charitable activities and outcomes
+- **Donations & Fundraising**: Basic donation processing and campaign management
+- **Volunteer Coordination**: Volunteer registration and basic coordination
+- **Project Management**: Basic project tracking
+- **Event Organization**: Event creation and management
+- **Impact Reporting**: Basic reporting on activities
 
 ## Features
 
 ### 🎯 Core Functionality
 
-- **Multi-role User Management**: Admin, Team Leader, Volunteer, and Donor roles
-- **Campaign Management**: Create and track fundraising campaigns with real-time progress
-- **Donation Processing**: Secure payment processing with multiple payment methods
-- **Volunteer Portal**: Skills-based volunteer matching and activity logging
-- **Project Tracking**: Complete project lifecycle management with team collaboration
-- **Event Management**: Event creation, registration, and attendance tracking
+- **Basic User Management**: Admin, Team Leader, Volunteer, and Donor roles
+- **Campaign Management**: Create and manage fundraising campaigns
+- **Donation Processing**: Basic donation tracking with M-Pesa payment instructions
+- **Volunteer Portal**: Volunteer registration and basic management
+- **Project Tracking**: Basic project management
+- **Event Management**: Event creation and basic tracking
 
 ### 💳 Financial Management
 
-- Real-time donation tracking and reporting
-- Recurring donation support
-- Multiple payment gateway integration
-- Financial audit trails and reporting
+- Basic donation tracking with M-Pesa payment instructions
+- Donation history and reporting
 
 ### 👥 Community Features
 
-- Team communication and collaboration tools
-- Blog and content management system
-- Notification system for stakeholders
-- Anonymous donation options
+- Basic volunteer registration and management
+- Event creation and basic attendance tracking
 
 ## Architecture
 
@@ -58,10 +54,10 @@ Wamumbi is built using modern web technologies with a focus on scalability and m
 ### Technology Stack
 
 - **Frontend**: Next.js 14+ with TypeScript, Tailwind CSS, and Shadcn/UI components
-- **Backend**: Next.js API Routes with TypeScript
+- **Backend**: tRPC with Next.js for type-safe API communication
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: Clerk for secure user authentication and authorization
-- **Payments**: Integrated payment processing (Stripe/PayPal)
+- **Payments**: Basic M-Pesa payment instructions
 - **Deployment**: Vercel (Frontend) with cloud database hosting
 
 ### System Architecture
@@ -69,12 +65,12 @@ Wamumbi is built using modern web technologies with a focus on scalability and m
 ```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   API Layer     │    │   Database      │
-│   (Next.js)     │◄──►│   (API Routes)  │◄──►│   (PostgreSQL)  │
+│   (Next.js)     │◄──►│   (tRPC)        │◄──►│   (PostgreSQL)  │
 │                 │    │                 │    │                 │
 │ - Dashboard     │    │ - Auth Routes   │    │ - User Data     │
-│ - Campaigns     │    │ - CRUD APIs     │    │ - Donations     │
-│ - Volunteer     │    │ - Payment APIs  │    │ - Projects      │
-│ - Events        │    │ - File Upload   │    │ - Events        │
+│ - Campaigns     │    │ - tRPC Procedures│    │ - Donations     │
+│ - Volunteer     │    │ - Basic APIs     │    │ - Projects      │
+│ - Events        │    │                 │    │ - Events        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -128,7 +124,7 @@ Visit `http://localhost:3000` to see the application.
 
 Comprehensive documentation is available in the `docs/` directory:
 
-- 📖 **[API Documentation](docs/api/README.md)** - REST API endpoints and authentication
+- 📖 **[API Documentation](docs/api/README.md)** - tRPC procedures and authentication
 - 🗄️ **[Database Documentation](docs/database/README.md)** - Schema design and data models
 - 🎨 **[Frontend Documentation](docs/frontend/README.md)** - Component architecture and styling
 - 🚀 **[Deployment Guide](docs/deployment/README.md)** - Development and production deployment
@@ -137,31 +133,21 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ### For Administrators
 
-- Manage user roles and permissions
-- Create and oversee fundraising campaigns
-- Generate reports on donations and activities
-- Configure system settings
+- Basic user management
+- Create and manage fundraising campaigns
+- View donation reports
+- Basic system oversight
 
 ### For Team Leaders
 
 - Manage volunteer teams and projects
-- Track project progress and milestones
-- Coordinate team communications
-- Organize events and activities
+- Track basic project progress
+- Organize events
 
 ### For Volunteers
 
-- View available volunteer opportunities
-- Log volunteer hours and activities
-- Participate in team discussions
-- Track personal contribution history
-
-### For Donors
-
-- Make one-time or recurring donations
-- Track donation history
-- Support specific campaigns or projects
-- Receive impact updates
+- Register as volunteers
+- View volunteer opportunities
 
 ## Contributing
 

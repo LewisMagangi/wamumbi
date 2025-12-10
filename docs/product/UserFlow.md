@@ -1,4 +1,4 @@
-# Charity Management System - MVP User Flows
+# Charity Management System - User Flows
 
 ## Table of Contents
 
@@ -11,24 +11,22 @@
 
 ## Introduction
 
-This document outlines the **Minimum Viable Product (MVP)** user flows for the Charity Management System. The MVP focuses on the core functionality: campaigns and donations.
+This document outlines the user flows for the Charity Management System. The system provides comprehensive functionality for managing charitable activities, including campaigns, donations, events, volunteers, teams, and projects.
 
-### MVP Scope
+### System Features
 
 **Included:**
 
-- User registration and login
-- Campaign browsing and viewing
-- Making donations (anonymous and identified)
-- Basic campaign management (admin)
-
-**Excluded from MVP:**
-
-- Events, volunteers, teams, projects
+- User registration and authentication
+- Campaign creation, management, and browsing
+- Donation processing (anonymous and identified)
+- Event creation and registration
+- Volunteer registration and activity tracking
+- Team management and communications
+- Project tracking and management
 - Blog posts and content management
-- Advanced notifications
-- Recurring donations
-- Complex reporting
+- Notifications and communications
+- Dashboard and reporting
 
 ---
 
@@ -302,7 +300,7 @@ Show Confirmation
 - ✅ View donation list
 - ✅ Export data
 
-### System Features
+### SYSTEM FEATURES
 
 - ✅ User authentication
 - ✅ Payment processing

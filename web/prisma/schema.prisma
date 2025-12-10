@@ -8,7 +8,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // =============================================================================
@@ -417,6 +416,7 @@ model Donation {
   payment_reference      String?   @db.VarChar(100)
   status_id              Int
   is_recurring           Boolean   @default(false)
+  is_anonymous           Boolean   @default(false)
   recurring_frequency_id Int?
   parent_donation_id     Int?
   processing_fee         Decimal?  @db.Decimal(8, 2)

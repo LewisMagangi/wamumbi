@@ -1,11 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
 import MaxWidthWrapper from "@/components/max-width-wrapper"
 import Navbar from "@/components/Navbar"
-import Sidebar from "@/components/dashboard/Sidebar"
-import MenuButton from "@/components/dashboard/MenuButton"
 
 const Footer = dynamic(() => import("@/components/footer"), {
   ssr: true
@@ -52,13 +49,9 @@ const perks = [
 ]
 
 export default function LandingPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
   return (
     <>
       <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
       <MaxWidthWrapper className="flex flex-col pt-16">
         <div className="flex-grow flex-1">
         <MaxWidthWrapper>
