@@ -739,26 +739,30 @@ export const EventsView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
                           Event Date *
                         </label>
                         <input
+                          id="eventDate"
                           type="date"
                           value={formData.eventDate}
                           onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          title="Event Date"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 mb-2">
                           Event Time *
                         </label>
                         <input
+                          id="eventTime"
                           type="time"
                           value={formData.eventTime}
                           onChange={(e) => setFormData({...formData, eventTime: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          title="Event Time"
                           required
                         />
                       </div>
@@ -766,41 +770,47 @@ export const EventsView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-2">
                           Capacity *
                         </label>
                         <input
+                          id="capacity"
                           type="number"
                           value={formData.capacity}
                           onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 0})}
                           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                           min="1"
+                          title="Event Capacity"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="ticketPrice" className="block text-sm font-medium text-gray-700 mb-2">
                           Ticket Price
                         </label>
                         <input
+                          id="ticketPrice"
                           type="number"
                           value={formData.ticketPrice}
                           onChange={(e) => setFormData({...formData, ticketPrice: parseFloat(e.target.value) || 0})}
                           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                           min="0"
                           step="0.01"
+                          title="Ticket Price"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
                         Category
                       </label>
                       <select
+                        id="categoryId"
                         value={formData.categoryId}
                         onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value)})}
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        title="Event Category"
                       >
                         {categories?.map((cat) => (
                           <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -809,25 +819,29 @@ export const EventsView: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="registrationDeadline" className="block text-sm font-medium text-gray-700 mb-2">
                         Registration Deadline
                       </label>
                       <input
+                        id="registrationDeadline"
                         type="date"
                         value={formData.registrationDeadline}
                         onChange={(e) => setFormData({...formData, registrationDeadline: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        title="Registration Deadline"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-2">
                         Image URL
                       </label>
                       <input
+                        id="imageUrl"
                         type="url"
                         value={formData.imageUrl}
                         onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
+                        title="Image URL"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                         placeholder="https://example.com/image.jpg"
                       />
