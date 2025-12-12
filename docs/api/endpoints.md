@@ -1,6 +1,7 @@
 # tRPC Procedures
 
-This document provides detailed information about all available tRPC procedures in the Wamumbi Charity Management System.
+This document provides detailed information about all available tRPC procedures
+in the Wamumbi Charity Management System.
 
 ## Table of Contents
 
@@ -21,7 +22,8 @@ This document provides detailed information about all available tRPC procedures 
 
 **Type:** Mutation
 
-**Description:** Handles user authentication callback from Clerk, creating or updating user in database.
+**Description:** Handles user authentication callback from Clerk,
+creating or updating user in database.
 
 **Input:** None
 
@@ -49,7 +51,8 @@ This document provides detailed information about all available tRPC procedures 
 
 **Type:** Query
 
-**Description:** Retrieves dashboard statistics including total donations, active campaigns, volunteers, etc.
+**Description:** Retrieves dashboard statistics including total donations,
+active campaigns, volunteers, etc.
 
 **Input:** None
 
@@ -445,7 +448,8 @@ This document provides detailed information about all available tRPC procedures 
 
 **Type:** Mutation
 
-**Description:** Creates a new user and volunteer with emergency contact in one transaction. Enables seamless volunteer registration without requiring pre-existing users.
+**Description:** Creates a new user and volunteer with emergency contact in one transaction.
+Enables seamless volunteer registration without requiring pre-existing users.
 
 **Input:**
 
@@ -478,9 +482,17 @@ This document provides detailed information about all available tRPC procedures 
 
 **Type:** Mutation
 
-**Description:** Updates volunteer information.
+**Description:** Updates volunteer information such as availability and status.
 
-**Input:** Volunteer update data
+**Input:**
+
+```typescript
+{
+  id: number;
+  availability?: string;
+  statusId?: number;
+}
+```
 
 **Output:** Updated volunteer
 
@@ -627,4 +639,5 @@ All procedures throw `TRPCError` with appropriate codes:
 
 ### Type Safety
 
-All inputs and outputs are fully typed with TypeScript. The tRPC client provides end-to-end type safety.
+All inputs and outputs are fully typed with TypeScript.
+The tRPC client provides end-to-end type safety.
