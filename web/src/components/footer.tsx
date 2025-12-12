@@ -1,4 +1,4 @@
-import { Heart, Facebook, Instagram, Twitter, Linkedin, Music2 } from "lucide-react"
+import { Heart, Facebook, Instagram, Twitter, Linkedin, Music2, Send } from "lucide-react"
 import Link from "next/link"
 
 export default function Footer() {
@@ -18,7 +18,7 @@ export default function Footer() {
             {/* Social Media Links */}
             <div className="flex space-x-4">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/WamumbiFoundation"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-rose-500 transition-colors"
@@ -27,13 +27,22 @@ export default function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/wamumbifoundation?igsh=YjA2cXQ2MXYwam84"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-rose-500 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="https://t.me/wamumbifoundation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-rose-500 transition-colors"
+                aria-label="Telegram"
+              >
+                <Send className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"

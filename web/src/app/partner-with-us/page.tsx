@@ -5,6 +5,7 @@ import Footer from '@/components/footer';
 import Sidebar from '@/components/dashboard/Sidebar';
 import MenuButton from '@/components/dashboard/MenuButton';
 import { Building2, Mail, Phone, Users } from 'lucide-react';
+import { trpc } from '@/app/_trpc/client';
 
 export default function PartnerWithUsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,15 +20,40 @@ export default function PartnerWithUsPage() {
     website: '',
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submitInquiryMutation = trpc.partnership.submitInquiry.useMutation({
+    onSuccess: (data: { success: boolean; message: string }) => {
+      setSubmitMessage(data.message);
+      // Reset form
+      setFormData({
+        organizationName: '',
+        contactPerson: '',
+        email: '',
+        phone: '',
+        organizationType: '',
+        partnershipInterest: '',
+        message: '',
+        website: '',
+      });
+    },
+    onError: (error: { message: string }) => {
+      setSubmitMessage(error.message || 'Failed to submit partnership inquiry. Please try again.');
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Partnership inquiry submitted:', formData);
-    alert('Thank you for your interest in partnering with us! We will contact you soon to discuss opportunities.');
-    // Here you would send data to your API
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+
+    submitInquiryMutation.mutate(formData);
+    setIsSubmitting(false);
   };
 
   return (
@@ -250,13 +276,32 @@ export default function PartnerWithUsPage() {
                 </div>
               </div>
 
+              {/* Submit Message */}
+              {submitMessage && (
+                <div className={`p-4 rounded-lg mb-4 ${
+                  submitMessage.includes('Thank you')
+                    ? 'bg-green-50 border border-green-200 text-green-800'
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}>
+                  {submitMessage}
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex gap-4 pt-6 border-t border-gray-200">
                 <button
                   type="submit"
-                  className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
+                  disabled={isSubmitting || submitInquiryMutation.isPending}
+                  className="flex-1 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center"
                 >
-                  Submit Partnership Inquiry
+                  {(isSubmitting || submitInquiryMutation.isPending) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Partnership Inquiry'
+                  )}
                 </button>
                 <button
                   type="button"

@@ -21,6 +21,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  Send,
   Twitter,
   Users2Icon,
 } from "lucide-react"
@@ -326,11 +327,31 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-8 flex space-x-4">
                   <a
-                    href="#"
+                    href="https://www.facebook.com/WamumbiFoundation"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label="Visit our Facebook page"
                     className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                   >
                     <Facebook className="h-5 w-5 text-gray-700" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/wamumbifoundation?igsh=YjA2cXQ2MXYwam84"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Follow us on Instagram"
+                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    <Instagram className="h-5 w-5 text-gray-700" />
+                  </a>
+                  <a
+                    href="https://t.me/wamumbifoundation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Join us on Telegram"
+                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    <Send className="h-5 w-5 text-gray-700" />
                   </a>
                   <a
                     href="#"
@@ -338,13 +359,6 @@ export default function LandingPage() {
                     className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                   >
                     <Twitter className="h-5 w-5 text-gray-700" />
-                  </a>
-                  <a
-                    href="#"
-                    aria-label="Follow us on Instagram"
-                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    <Instagram className="h-5 w-5 text-gray-700" />
                   </a>
                 </div>
               </div>
