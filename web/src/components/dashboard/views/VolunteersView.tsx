@@ -44,6 +44,15 @@ export const VolunteersView: React.FC = () => {
 
   // TanStack Query utils for cache invalidation
   const utils = trpc.useUtils();
+  const deleteVolunteerMutation = trpc.volunteers.delete.useMutation({
+    onSuccess: () => {
+      utils.volunteers.getAll.invalidate();
+      setError(null);
+    },
+    onError: (err) => {
+      setError(err.message);
+    }
+  });
 
   // TanStack Mutation - Create volunteer with user
   const createVolunteerMutation = trpc.volunteers.createWithUser.useMutation({
@@ -98,6 +107,13 @@ export const VolunteersView: React.FC = () => {
   const handleViewVolunteer = (volunteerId: number) => {
     setSelectedVolunteerId(volunteerId);
     setShowViewModal(true);
+  };
+
+  const handleDeleteVolunteer = async (volunteerId: number, volunteerName: string) => {
+    if (window.confirm(`Are you sure you want to delete ${volunteerName}? This action cannot be undone.`)) {
+      setError(null);
+      deleteVolunteerMutation.mutate({ id: volunteerId });
+    }
   };
 
   // Calculate stats from data
@@ -233,7 +249,12 @@ export const VolunteersView: React.FC = () => {
                         <button className="text-green-600 hover:text-green-800" title="Edit">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-800" title="Delete">
+                        <button 
+                          onClick={() => handleDeleteVolunteer(volunteer.id, volunteer.name)}
+                          disabled={deleteVolunteerMutation.isPending}
+                          className="text-red-600 hover:text-red-800 disabled:text-red-400" 
+                          title="Delete"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
