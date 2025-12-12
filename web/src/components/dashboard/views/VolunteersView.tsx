@@ -16,10 +16,27 @@ interface VolunteerFormData {
   emergencyContactRelationship: string;
 }
 
+interface Volunteer {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  profileImage: string | null;
+  availability: string | null;
+  skills: string[];
+  status: string;
+  totalHours?: number | unknown;
+  activitiesCount: number;
+  joinedAt: string; // Date comes back as string from API
+}
+
 export const VolunteersView: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVolunteerId, setSelectedVolunteerId] = useState<number | null>(null);
+  const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<VolunteerFormData>({
     firstName: '',
@@ -47,6 +64,19 @@ export const VolunteersView: React.FC = () => {
   const deleteVolunteerMutation = trpc.volunteers.delete.useMutation({
     onSuccess: () => {
       utils.volunteers.getAll.invalidate();
+      setError(null);
+    },
+    onError: (err) => {
+      setError(err.message);
+    }
+  });
+
+  // TanStack Mutation - Update volunteer
+  const updateVolunteerMutation = trpc.volunteers.update.useMutation({
+    onSuccess: () => {
+      utils.volunteers.getAll.invalidate();
+      setShowEditModal(false);
+      setEditingVolunteer(null);
       setError(null);
     },
     onError: (err) => {
@@ -114,6 +144,11 @@ export const VolunteersView: React.FC = () => {
       setError(null);
       deleteVolunteerMutation.mutate({ id: volunteerId });
     }
+  };
+
+  const handleEditVolunteer = (volunteer: Volunteer) => {
+    setEditingVolunteer(volunteer);
+    setShowEditModal(true);
   };
 
   // Calculate stats from data
@@ -246,7 +281,11 @@ export const VolunteersView: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-800" title="Edit">
+                        <button 
+                          onClick={() => handleEditVolunteer(volunteer)}
+                          className="text-green-600 hover:text-green-800" 
+                          title="Edit"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button 
@@ -633,6 +672,99 @@ export const VolunteersView: React.FC = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Volunteer Modal */}
+      {showEditModal && editingVolunteer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Volunteer</h2>
+
+            {error && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">{error}</p>
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={(e) => {
+              e.preventDefault();
+              const availability = (e.target as HTMLFormElement).availability.value || undefined;
+              const statusValue = (e.target as HTMLFormElement).status.value;
+              
+              updateVolunteerMutation.mutate({
+                id: editingVolunteer.id,
+                availability: availability,
+                statusId: statusValue ? parseInt(statusValue) : undefined
+              });
+            }}>
+              {/* Volunteer Info Display */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{editingVolunteer.name}</h3>
+                <p className="text-gray-600">{editingVolunteer.email}</p>
+                <p className="text-gray-600">{editingVolunteer.phone || 'No phone'}</p>
+              </div>
+
+              {/* Availability */}
+              <div>
+                <label htmlFor="edit-availability" className="block text-sm font-medium text-gray-700 mb-2">
+                  Availability
+                </label>
+                <textarea
+                  id="edit-availability"
+                  name="availability"
+                  defaultValue={editingVolunteer.availability || ''}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  placeholder="e.g., Weekends, weekday evenings..."
+                />
+              </div>
+
+              {/* Status */}
+              <div>
+                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  id="edit-status"
+                  name="status"
+                  defaultValue={editingVolunteer.status === 'active' ? '1' : '2'}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="1">Active</option>
+                  <option value="2">Inactive</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4 mt-4">
+                <button
+                  type="submit"
+                  disabled={updateVolunteerMutation.isPending}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center"
+                >
+                  {updateVolunteerMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Volunteer'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingVolunteer(null);
+                    setError(null);
+                  }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

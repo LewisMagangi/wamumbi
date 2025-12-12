@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { signOut } = useClerk();
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+    signOut({ redirectUrl: '/' });
   };
 
   const userInitials = user?.firstName?.[0] || user?.lastName?.[0] || 'U';
