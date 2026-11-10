@@ -68,8 +68,7 @@ const ways = [
 function SectionHeader({ eyebrow, title, children }: { eyebrow: string; title: string; children?: React.ReactNode }) {
   return (
     <Reveal className="max-w-2xl">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2 className="mt-4 text-display-sm">{title}</h2>
+      <h2 id={`h-${eyebrow.toLowerCase().replace(/\s+/g, "-")}`} className="text-display-sm">{title}</h2>
       {children && <p className="mt-5 text-lg leading-relaxed text-muted-foreground">{children}</p>}
     </Reveal>
   )
@@ -92,13 +91,11 @@ function Hero() {
       {/* Scrim: keeps the photo visible while guaranteeing text contrast in both themes */}
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/70 to-background/5" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
+      <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-background/80 to-transparent" />
 
       <div className="mx-auto w-full max-w-screen-xl px-5 pb-16 pt-32 md:px-10 md:pb-24">
         <Reveal>
-          <p className="eyebrow text-foreground/80">Wamumbi Foundation · Touching hearts</p>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <h1 className="mt-5 max-w-3xl text-display-lg">Bringing hope to orphaned children.</h1>
+          <h1 className="max-w-3xl text-display-lg">Bringing hope to orphaned children.</h1>
         </Reveal>
         <Reveal delay={0.16}>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/85 md:text-xl">
@@ -196,7 +193,7 @@ function Story() {
                           placeholder="blur" blurDataURL={cover.blurDataURL}
                           className="object-cover transition-transform duration-slow ease-out group-hover:scale-[1.03]" />
                       ) : (
-                        <div className="grid h-full place-items-center font-display text-5xl text-muted-foreground/40">{e.year}</div>
+                        <div className="grid h-full place-items-center font-display text-5xl text-muted-foreground">{e.year}</div>
                       )}
                     </div>
                     <p className="mt-4 text-sm tabular-nums text-muted-foreground">{e.dateLabel}{count ? ` · ${count} photos` : ""}</p>

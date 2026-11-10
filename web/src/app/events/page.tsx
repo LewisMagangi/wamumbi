@@ -56,8 +56,7 @@ export default function EventsPage() {
         <div className="mx-auto max-w-screen-xl px-5 md:px-10">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <p className="eyebrow">Events</p>
-              <h1 className="mt-4 text-display-md">Come and be part of it.</h1>
+              <h1 className="text-display-md">Come and be part of it.</h1>
             </div>
             <PermissionGate anyOf={["events:create", "events:update"]}>
               <Button asChild variant="outline" className="rounded-full">
@@ -87,7 +86,7 @@ export default function EventsPage() {
                             placeholder="blur" blurDataURL={cover.blurDataURL}
                             className="object-cover transition-transform duration-slow ease-out group-hover:scale-[1.02]" />
                         ) : (
-                          <span className="grid h-full place-items-center font-display text-6xl text-muted-foreground/30">{e.year}</span>
+                          <span className="grid h-full place-items-center font-display text-6xl text-muted-foreground">{e.year}</span>
                         )}
                       </Link>
                       <div>

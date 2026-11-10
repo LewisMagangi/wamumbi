@@ -48,6 +48,7 @@ export default async function PastEventPage({ params }: { params: Promise<Params
             <Image src={cover.src} alt="" fill priority sizes="100vw" placeholder="blur" blurDataURL={cover.blurDataURL} className="-z-20 object-cover" />
           )}
           <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/75 to-background/20" />
+          <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-background/80 to-transparent" />
           <div className="mx-auto w-full max-w-screen-xl px-5 pb-12 pt-32 md:px-10">
             <Link href="/events" className="inline-flex items-center gap-1.5 text-sm text-foreground/80 hover:text-foreground">
               <ArrowLeft className="h-4 w-4" /> All events

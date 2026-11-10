@@ -6,9 +6,10 @@ import TrpcProvider from "@/components/trpc-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 
 // Fonts are self-hosted (no runtime call to Google Fonts): faster and more private
-const geistSans = localFont({
-  src: "./fonts/Geist-Variable.woff2",
-  variable: "--font-geist-sans",
+// Body: Hanken Grotesk, a warm humanist grotesque (OFL)
+const sans = localFont({
+  src: "./fonts/HankenGrotesk-Variable.woff2",
+  variable: "--font-sans",
   weight: "100 900",
   display: "swap",
 })
@@ -20,11 +21,11 @@ const geistMono = localFont({
   display: "swap",
 })
 
-// Display face for headings: warm, humane serif for storytelling (Fraunces, OFL)
-const fraunces = localFont({
-  src: "./fonts/Fraunces-Variable.woff2",
+// Display: Newsreader, an editorial serif with optical sizes, for storytelling (OFL)
+const display = localFont({
+  src: "./fonts/Newsreader-Variable.woff2",
   variable: "--font-display",
-  weight: "100 900",
+  weight: "200 800",
   display: "swap",
 })
 
@@ -54,7 +55,7 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={publishableKey ?? ''}>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased`}>
+        <body className={`${sans.variable} ${geistMono.variable} ${display.variable} antialiased`}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             <TrpcProvider>
               {children}

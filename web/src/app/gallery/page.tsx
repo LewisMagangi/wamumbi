@@ -23,8 +23,7 @@ export default function GalleryPage() {
     <>
       <Navbar />
       <main className="mx-auto max-w-screen-xl px-5 pb-24 pt-32 md:px-10">
-        <p className="eyebrow">Gallery</p>
-        <h1 className="mt-4 max-w-2xl text-display-md">Moments from our outreach.</h1>
+        <h1 className="max-w-2xl text-display-md">Moments from our outreach.</h1>
         <p className="mt-5 max-w-xl text-lg text-muted-foreground">
           Photos from our visits and events since 2021. Every photo here was reviewed before publishing.
         </p>

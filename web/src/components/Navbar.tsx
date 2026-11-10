@@ -65,7 +65,7 @@ export default function Navbar() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "rounded-md px-3 py-2 text-sm transition-colors duration-fast",
-                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    active ? "text-foreground" : scrolled ? "text-muted-foreground hover:text-foreground" : "text-foreground/85 hover:text-foreground"
                   )}
                 >
                   {l.label}

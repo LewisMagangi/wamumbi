@@ -120,15 +120,15 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "ss01", "cv11";
   }
 
   h1, h2, h3 {
     @apply font-display tracking-tight;
+    font-optical-sizing: auto;
     text-wrap: balance;
   }
 
-  p {
+  p, blockquote, li {
     text-wrap: pretty;
   }
 

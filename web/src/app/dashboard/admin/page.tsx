@@ -281,9 +281,9 @@ function AdminInner() {
 
   return (
     <div>
-      <div className="flex flex-col gap-1">
-        <p className="eyebrow">{user?.roleLabel}</p>
+      <div className="flex flex-wrap items-baseline gap-x-3">
         <h1 className="font-display text-display-sm">Manage</h1>
+        <p className="text-sm text-muted-foreground">Signed in as {user?.roleLabel}</p>
       </div>
       <div role="tablist" aria-label="Admin sections" className="mt-8 flex gap-1 overflow-x-auto border-b">
         {tabs.map((t) => (
