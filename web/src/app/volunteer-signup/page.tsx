@@ -42,28 +42,28 @@ export default function VolunteerSignupPage() {
       <Navbar />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="min-h-screen bg-muted/50 pt-16">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Become a Volunteer</h1>
-            <p className="text-xl text-gray-600">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Become a Volunteer</h1>
+            <p className="text-xl text-muted-foreground">
               Join our team and make a difference in the lives of orphaned children
             </p>
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <User className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <User className="w-6 h-6 mr-2 text-brand" />
                   Personal Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       First Name *
                     </label>
                     <input
@@ -72,12 +72,12 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="John"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Last Name *
                     </label>
                     <input
@@ -86,7 +86,7 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Doe"
                     />
                   </div>
@@ -95,13 +95,13 @@ export default function VolunteerSignupPage() {
 
               {/* Contact Information */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Mail className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Mail className="w-6 h-6 mr-2 text-brand" />
                   Contact Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Email Address *
                     </label>
                     <input
@@ -110,12 +110,12 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="john.doe@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Phone Number *
                     </label>
                     <input
@@ -124,7 +124,7 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="+254 123 456 789"
                     />
                   </div>
@@ -133,13 +133,13 @@ export default function VolunteerSignupPage() {
 
               {/* Address */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <MapPin className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <MapPin className="w-6 h-6 mr-2 text-brand" />
                   Address
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Street Address
                     </label>
                     <input
@@ -147,13 +147,13 @@ export default function VolunteerSignupPage() {
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="123 Main Street"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         City
                       </label>
                       <input
@@ -161,12 +161,12 @@ export default function VolunteerSignupPage() {
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="Nairobi"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         State/County
                       </label>
                       <input
@@ -174,12 +174,12 @@ export default function VolunteerSignupPage() {
                         name="state"
                         value={formData.state}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="Nairobi"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         Postal Code
                       </label>
                       <input
@@ -187,7 +187,7 @@ export default function VolunteerSignupPage() {
                         name="postalCode"
                         value={formData.postalCode}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="00100"
                       />
                     </div>
@@ -197,13 +197,13 @@ export default function VolunteerSignupPage() {
 
               {/* Availability & Skills */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Calendar className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Calendar className="w-6 h-6 mr-2 text-brand" />
                   Availability & Skills
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Availability *
                     </label>
                     <textarea
@@ -212,12 +212,12 @@ export default function VolunteerSignupPage() {
                       value={formData.availability}
                       onChange={handleChange}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="e.g., Weekends, weekday evenings, specific days..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Skills & Expertise *
                     </label>
                     <textarea
@@ -226,12 +226,12 @@ export default function VolunteerSignupPage() {
                       value={formData.skills}
                       onChange={handleChange}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="e.g., Teaching, healthcare, fundraising, event planning..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Relevant Experience
                     </label>
                     <textarea
@@ -239,12 +239,12 @@ export default function VolunteerSignupPage() {
                       value={formData.experience}
                       onChange={handleChange}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Tell us about your relevant volunteer or professional experience..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Why do you want to volunteer with us? *
                     </label>
                     <textarea
@@ -253,7 +253,7 @@ export default function VolunteerSignupPage() {
                       value={formData.motivation}
                       onChange={handleChange}
                       rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Share your motivation..."
                     />
                   </div>
@@ -262,13 +262,13 @@ export default function VolunteerSignupPage() {
 
               {/* Emergency Contact */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Phone className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Phone className="w-6 h-6 mr-2 text-brand" />
                   Emergency Contact
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Name *
                     </label>
                     <input
@@ -277,12 +277,12 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.emergencyContactName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Jane Doe"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Phone *
                     </label>
                     <input
@@ -291,12 +291,12 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.emergencyContactPhone}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="+254 987 654 321"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Relationship *
                     </label>
                     <input
@@ -305,7 +305,7 @@ export default function VolunteerSignupPage() {
                       required
                       value={formData.emergencyContactRelationship}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Spouse, Parent, Sibling..."
                     />
                   </div>
@@ -313,17 +313,17 @@ export default function VolunteerSignupPage() {
               </div>
 
               {/* Submit Button */}
-              <div className="flex gap-4 pt-6 border-t border-gray-200">
+              <div className="flex gap-4 pt-6 border-t border-border">
                 <button
                   type="submit"
-                  className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg transition duration-300"
                 >
                   Submit Application
                 </button>
                 <button
                   type="button"
                   onClick={() => window.history.back()}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition duration-300"
+                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg transition duration-300"
                 >
                   Cancel
                 </button>

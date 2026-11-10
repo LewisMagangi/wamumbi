@@ -1,161 +1,143 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Menu, X } from "lucide-react"
 import {
   SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
 } from "@clerk/nextjs"
+import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { cn } from "@/lib/utils"
+
+const links = [
+  { href: "/about", label: "About" },
+  { href: "/events", label: "Events" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/campaigns", label: "Campaigns" },
+  { href: "/volunteer-signup", label: "Volunteer" },
+]
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
+  // Close the mobile menu on navigation
+  useEffect(() => setOpen(false), [pathname])
 
   return (
-    <nav className="fixed w-full z-10 top-0 bg-background/80 backdrop-blur-md border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold">
-              Wamumbi
-            </Link>
-          </div>
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-40 transition-[background-color,border-color] duration-base ease-out",
+        scrolled || open
+          ? "border-b bg-background/85 backdrop-blur-md"
+          : "border-b border-transparent bg-transparent"
+      )}
+    >
+      <nav className="mx-auto flex h-16 max-w-screen-xl items-center justify-between gap-6 px-5 md:px-10" aria-label="Main">
+        <Link href="/" className="flex items-center gap-2.5 rounded-md" aria-label="Wamumbi Foundation home">
+          <Image src="/brand/logo-mark.png" alt="" width={32} height={32} className="h-8 w-8" priority />
+          <span className="font-display text-lg font-semibold tracking-tight">Wamumbi</span>
+        </Link>
 
-          {/* Desktop Donate Button */}
-          {mounted && (
-            <div className="hidden md:flex items-center justify-center flex-grow">
-              <SignedIn>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1"
+        <ul className="hidden items-center gap-1 lg:flex">
+          {links.map((l) => {
+            const active = pathname === l.href || pathname?.startsWith(l.href + "/")
+            return (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "rounded-md px-3 py-2 text-sm transition-colors duration-fast",
+                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
                 >
-                  <Link href="/donate">
-                    Donate <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </SignedIn>
-            </div>
-          )}
+                  {l.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
 
-          {/* Desktop Auth Buttons */}
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           {mounted && (
-            <div className="hidden md:flex items-center space-x-4">
+            <>
               <SignedOut>
                 <SignInButton mode="modal">
-                  <Button variant="ghost">Sign In</Button>
+                  <Button variant="ghost" className="hidden sm:inline-flex">Sign in</Button>
                 </SignInButton>
-                <SignUpButton mode="modal">
-                  <Button className="flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
-                    Get Started <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </SignUpButton>
               </SignedOut>
-
               <SignedIn>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className="hidden sm:inline-flex">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: { avatarBox: "h-8 w-8" },
-                  }}
-                />
+                <UserButton appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
               </SignedIn>
-            </div>
+            </>
           )}
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-4">
-            {mounted && (
-              <SignedIn>
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: { avatarBox: "h-8 w-8" },
-                  }}
-                />
-              </SignedIn>
-            )}
-            <Button
-              variant="ghost"
-              onClick={toggleMobileMenu}
-              className="inline-flex items-center justify-center p-2"
-              aria-expanded={isMobileMenuOpen}
-            >
-              <span className="sr-only">Open main menu</span>
-              <svg
-                className="block h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d={
-                    isMobileMenuOpen
-                      ? "M6 18L18 6M6 6l12 12"
-                      : "M4 6h16M4 12h16M4 18h16"
-                  }
-                />
-              </svg>
-            </Button>
-          </div>
+          <Button asChild className="ml-1 rounded-full px-5">
+            <Link href="/donate">Donate</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label={open ? "Close menu" : "Open menu"}
+          >
+            {open ? <X /> : <Menu />}
+          </Button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
-      {mounted && isMobileMenuOpen && (
-        <div className="md:hidden px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
-          <SignedIn>
-            <Button
-              variant="ghost"
-              asChild
-              className="justify-start bg-rose-500 hover:bg-rose-600 text-white flex items-center gap-1"
-            >
-              <Link href="/donate">
-                Donate <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </SignedIn>
-
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button className="w-full justify-start">Sign In</Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button className="w-full justify-start flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white">
-                Get Started <ArrowRight className="h-4 w-4" />
-              </Button>
-            </SignUpButton>
-          </SignedOut>
-
-          <SignedIn>
-            <Button variant="ghost" asChild className="justify-start">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-          </SignedIn>
+      {open && (
+        <div id="mobile-menu" className="border-t bg-background lg:hidden">
+          <ul className="mx-auto flex max-w-screen-xl flex-col px-5 py-3">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="block rounded-md px-2 py-3 text-base text-foreground/90 hover:bg-accent">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+            {mounted && (
+              <>
+                <SignedOut>
+                  <li>
+                    <SignInButton mode="modal">
+                      <button className="block w-full rounded-md px-2 py-3 text-left text-base text-foreground/90 hover:bg-accent">Sign in</button>
+                    </SignInButton>
+                  </li>
+                </SignedOut>
+                <SignedIn>
+                  <li>
+                    <Link href="/dashboard" className="block rounded-md px-2 py-3 text-base text-foreground/90 hover:bg-accent">Dashboard</Link>
+                  </li>
+                </SignedIn>
+              </>
+            )}
+          </ul>
         </div>
       )}
-    </nav>
+    </header>
   )
 }

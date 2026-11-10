@@ -13,8 +13,8 @@ export default function DonationChart({ data }: DonationChartProps) {
   const maxAmount = Math.max(...data.map(d => d.amount));
   
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Donation Trends</h2>
+    <div className="bg-card rounded-lg shadow-md p-6">
+      <h2 className="text-xl font-bold text-foreground mb-6">Donation Trends</h2>
       
       <div className="space-y-4">
         {data.map((item, index) => {
@@ -22,14 +22,14 @@ export default function DonationChart({ data }: DonationChartProps) {
           return (
             <div key={`${item.month}-${index}`} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-700">{item.month}</span>
-                <span className="font-semibold text-gray-900">
+                <span className="font-medium text-foreground/80">{item.month}</span>
+                <span className="font-semibold text-foreground">
                   {formatAmount(item.amount)}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                  className="bg-brand h-3 rounded-full transition-all duration-500"
                   style={{ width: `${percentage}%` } as React.CSSProperties}
                 />
               </div>
@@ -38,10 +38,10 @@ export default function DonationChart({ data }: DonationChartProps) {
         })}
       </div>
 
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      <div className="mt-6 pt-6 border-t border-border">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Total (Last 5 Months)</span>
-          <span className="text-lg font-bold text-gray-900">
+          <span className="text-muted-foreground">Total (Last 5 Months)</span>
+          <span className="text-lg font-bold text-foreground">
             {formatAmount(data.reduce((sum, item) => sum + item.amount, 0))}
           </span>
         </div>

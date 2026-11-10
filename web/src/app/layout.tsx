@@ -1,22 +1,47 @@
-import { type Metadata } from "next"
+import { type Metadata, type Viewport } from "next"
 import { ClerkProvider } from "@clerk/nextjs"
-import { Geist, Geist_Mono } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 import TrpcProvider from "@/components/trpc-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 
-const geistSans = Geist({
+// Fonts are self-hosted (no runtime call to Google Fonts): faster and more private
+const geistSans = localFont({
+  src: "./fonts/Geist-Variable.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
 })
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "./fonts/GeistMono-Variable.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
+})
+
+// Display face for headings: warm, humane serif for storytelling (Fraunces, OFL)
+const fraunces = localFont({
+  src: "./fonts/Fraunces-Variable.woff2",
+  variable: "--font-display",
+  weight: "100 900",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
-  title: "Wamumbi Charity Foundation",
-  description: "A charity foundation for the needy",
+  title: {
+    default: "Wamumbi Foundation · Touching hearts",
+    template: "%s · Wamumbi Foundation",
+  },
+  description:
+    "Wamumbi Foundation supports orphaned and vulnerable children and their guardians in Kenya through community outreach, education and care.",
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#100e0d" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfaf7" },
+  ],
 }
 
 export default function RootLayout({
@@ -25,14 +50,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  
+
   return (
     <ClerkProvider publishableKey={publishableKey ?? ''}>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <TrpcProvider>
-            {children}
-          </TrpcProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased`}>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+            <TrpcProvider>
+              {children}
+            </TrpcProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

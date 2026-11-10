@@ -25,7 +25,7 @@ export function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-info/40"></div>
       </div>
     );
   }
@@ -40,14 +40,14 @@ export function ProtectedRoute({
   if (adminOnly && !isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <div className="text-red-600 text-5xl mb-4">
+        <div className="text-destructive text-5xl mb-4">
           <i className="ri-lock-2-line"></i>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-        <p className="text-gray-600 mb-6">You don't have permission to access this page.</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+        <p className="text-muted-foreground mb-6">You don't have permission to access this page.</p>
         <button 
           onClick={() => setLocation('/')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Go to Homepage
         </button>
@@ -61,14 +61,14 @@ export function ProtectedRoute({
     if (!can(action, resource)) {
       return (
         <div className="flex flex-col items-center justify-center h-screen">
-          <div className="text-red-600 text-5xl mb-4">
+          <div className="text-destructive text-5xl mb-4">
             <i className="ri-lock-2-line"></i>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-6">You don't have permission to {action} {resource}.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">You don't have permission to {action} {resource}.</p>
           <button 
             onClick={() => setLocation('/')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Go to Homepage
           </button>

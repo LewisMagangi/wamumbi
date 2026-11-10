@@ -112,15 +112,15 @@ export const CampaignsView: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
-        <span className="ml-2 text-gray-600">Loading campaigns...</span>
+        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+        <span className="ml-2 text-muted-foreground">Loading campaigns...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-12 text-red-500">
+      <div className="flex items-center justify-center py-12 text-destructive">
         <AlertCircle className="w-6 h-6 mr-2" />
         <span>Error loading campaigns: {error.message}</span>
       </div>
@@ -131,12 +131,12 @@ export const CampaignsView: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Campaign Management</h2>
-          <p className="text-gray-600 mt-1">Create and manage your fundraising campaigns</p>
+          <h2 className="text-2xl font-bold text-foreground">Campaign Management</h2>
+          <p className="text-muted-foreground mt-1">Create and manage your fundraising campaigns</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors"
+          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>New Campaign</span>
@@ -150,12 +150,12 @@ export const CampaignsView: React.FC = () => {
           placeholder="Search campaigns..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+          className="flex-1 px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
         />
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+          className="px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
           title="Filter campaigns"
           aria-label="Filter campaigns by status"
         >
@@ -169,27 +169,27 @@ export const CampaignsView: React.FC = () => {
       {/* Campaigns Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCampaigns.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-500">
+          <div className="col-span-full text-center py-12 text-muted-foreground">
             <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>No campaigns found</p>
           </div>
         ) : (
           filteredCampaigns.map((campaign) => (
-            <div key={campaign.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div key={campaign.id} className="bg-card rounded-xl shadow-sm border border-border p-6">
               <div className="flex justify-between items-start mb-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   campaign.status === 'active' 
-                    ? 'bg-green-100 text-green-700' 
+                    ? 'bg-success/15 text-success' 
                     : campaign.status === 'completed'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700'
+                    ? 'bg-info/15 text-info'
+                    : 'bg-muted text-foreground/80'
                 }`}>
                   {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                 </span>
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => handleViewDetails(campaign.id)}
-                    className="text-gray-400 hover:text-blue-600"
+                    className="text-muted-foreground/70 hover:text-info"
                     title="View campaign details"
                     aria-label="View campaign details"
                   >
@@ -197,16 +197,16 @@ export const CampaignsView: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">{campaign.title}</h3>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">{campaign.description}</p>
+              <h3 className="font-bold text-lg text-foreground mb-2">{campaign.title}</h3>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{campaign.description}</p>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
+                  <span className="text-muted-foreground">Progress</span>
                   <span className="font-medium">{campaign.progressPercentage.toFixed(0)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div
-                    className="bg-rose-600 h-2 rounded-full transition-all"
+                    className="bg-primary h-2 rounded-full transition-all"
                     style={{ width: `${Math.min(campaign.progressPercentage, 100)}%` }}
                     role="progressbar"
                     aria-valuenow={campaign.progressPercentage}
@@ -216,15 +216,15 @@ export const CampaignsView: React.FC = () => {
                   />
                 </div>
                 <div className="flex justify-between text-sm pt-2">
-                  <span className="text-gray-600">Raised:</span>
-                  <span className="font-bold text-rose-600">{formatAmount(campaign.currentAmount)}</span>
+                  <span className="text-muted-foreground">Raised:</span>
+                  <span className="font-bold text-brand">{formatAmount(campaign.currentAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Goal:</span>
+                  <span className="text-muted-foreground">Goal:</span>
                   <span className="font-medium">{formatAmount(campaign.goalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Donations:</span>
+                  <span className="text-muted-foreground">Donations:</span>
                   <span className="font-medium">{campaign.donationsCount}</span>
                 </div>
               </div>
@@ -236,12 +236,12 @@ export const CampaignsView: React.FC = () => {
       {/* Create Campaign Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-              <h2 className="text-xl font-bold text-gray-900">Create New Campaign</h2>
+          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-card">
+              <h2 className="text-xl font-bold text-foreground">Create New Campaign</h2>
               <button 
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground/70 hover:text-foreground"
                 title="Close modal"
                 aria-label="Close modal"
               >
@@ -251,27 +251,27 @@ export const CampaignsView: React.FC = () => {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Campaign Title <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                  Campaign Title <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                   placeholder="Enter campaign title"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                  Description <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 min-h-[100px]"
+                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring min-h-[100px]"
                   placeholder="Describe your campaign goals and purpose"
                   required
                 />
@@ -279,14 +279,14 @@ export const CampaignsView: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Goal Amount <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
+                    Goal Amount <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
                     value={formData.goalAmount}
                     onChange={(e) => setFormData({ ...formData, goalAmount: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     placeholder="10000"
                     min="1"
                     required
@@ -294,13 +294,13 @@ export const CampaignsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Currency <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
+                    Currency <span className="text-destructive">*</span>
                   </label>
                   <select
                     value={formData.currencyId}
                     onChange={(e) => setFormData({ ...formData, currencyId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Select currency"
                     required
                   >
@@ -316,13 +316,13 @@ export const CampaignsView: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
+                    Category <span className="text-destructive">*</span>
                   </label>
                   <select
                     value={formData.categoryId}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Select category"
                     required
                   >
@@ -336,13 +336,13 @@ export const CampaignsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Urgency Level <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
+                    Urgency Level <span className="text-destructive">*</span>
                   </label>
                   <select
                     value={formData.urgencyLevelId}
                     onChange={(e) => setFormData({ ...formData, urgencyLevelId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Select urgency level"
                     required
                   >
@@ -358,28 +358,28 @@ export const CampaignsView: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
+                    Start Date <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Campaign start date"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Campaign end date"
                     min={formData.startDate}
                   />
@@ -387,28 +387,28 @@ export const CampaignsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
                   Target Beneficiaries
                 </label>
                 <input
                   type="number"
                   value={formData.targetBeneficiaries}
                   onChange={(e) => setFormData({ ...formData, targetBeneficiaries: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                   placeholder="Number of people to help"
                   min="1"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
                   Image URL
                 </label>
                 <input
                   type="url"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
@@ -417,7 +417,7 @@ export const CampaignsView: React.FC = () => {
                 <button
                   type="submit"
                   disabled={createCampaign.isPending}
-                  className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {createCampaign.isPending ? (
                     <>
@@ -431,7 +431,7 @@ export const CampaignsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition-colors"
+                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -444,15 +444,15 @@ export const CampaignsView: React.FC = () => {
       {/* Campaign Detail Modal */}
       {showDetailModal && selectedCampaignId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-              <h2 className="text-xl font-bold text-gray-900">Campaign Details</h2>
+          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-card">
+              <h2 className="text-xl font-bold text-foreground">Campaign Details</h2>
               <button 
                 onClick={() => {
                   setShowDetailModal(false);
                   setSelectedCampaignId(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground/70 hover:text-foreground"
                 title="Close modal"
                 aria-label="Close modal"
               >
@@ -462,47 +462,47 @@ export const CampaignsView: React.FC = () => {
             
             {isLoadingDetail ? (
               <div className="p-6 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand" />
                 <span className="ml-2">Loading details...</span>
               </div>
             ) : detailError ? (
-              <div className="p-6 text-center text-red-500">
+              <div className="p-6 text-center text-destructive">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2" />
                 <p>Error loading campaign: {detailError.message}</p>
               </div>
             ) : selectedCampaign ? (
               <div className="p-6 space-y-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedCampaign.title}</h3>
+                  <h3 className="text-2xl font-bold text-foreground">{selectedCampaign.title}</h3>
                   <div className="flex items-center gap-2 mt-2">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       selectedCampaign.status === 'active' 
-                        ? 'bg-green-100 text-green-700' 
+                        ? 'bg-success/15 text-success' 
                         : selectedCampaign.status === 'completed'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-info/15 text-info'
+                        : 'bg-muted text-foreground/80'
                     }`}>
                       {selectedCampaign.status}
                     </span>
-                    <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs">
+                    <span className="px-3 py-1 bg-brand/10 text-brand rounded-full text-xs">
                       {selectedCampaign.category}
                     </span>
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">
+                    <span className="px-3 py-1 bg-warning/15 text-warning rounded-full text-xs">
                       {selectedCampaign.urgencyLevel}
                     </span>
                   </div>
                 </div>
 
-                <p className="text-gray-700">{selectedCampaign.description}</p>
+                <p className="text-foreground/80">{selectedCampaign.description}</p>
 
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-muted/50 rounded-lg p-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">Progress</span>
+                    <span className="text-muted-foreground">Progress</span>
                     <span className="font-medium">{selectedCampaign.progressPercentage.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-muted rounded-full h-3">
                     <div
-                      className="bg-rose-600 h-3 rounded-full transition-all"
+                      className="bg-primary h-3 rounded-full transition-all"
                       style={{ width: `${Math.min(selectedCampaign.progressPercentage, 100)}%` }}
                       role="progressbar"
                       aria-valuenow={selectedCampaign.progressPercentage}
@@ -513,14 +513,14 @@ export const CampaignsView: React.FC = () => {
                   </div>
                   <div className="flex justify-between mt-3">
                     <div>
-                      <p className="text-sm text-gray-600">Raised</p>
-                      <p className="text-xl font-bold text-rose-600">
+                      <p className="text-sm text-muted-foreground">Raised</p>
+                      <p className="text-xl font-bold text-brand">
                         {formatAmount(selectedCampaign.currentAmount)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Goal</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-sm text-muted-foreground">Goal</p>
+                      <p className="text-xl font-bold text-foreground">
                         {formatAmount(selectedCampaign.goalAmount)}
                       </p>
                     </div>
@@ -528,35 +528,35 @@ export const CampaignsView: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-2xl font-bold text-blue-600">{selectedCampaign.donationsCount}</p>
-                    <p className="text-sm text-gray-600">Donations</p>
+                  <div className="bg-info/15 rounded-lg p-4">
+                    <p className="text-2xl font-bold text-info">{selectedCampaign.donationsCount}</p>
+                    <p className="text-sm text-muted-foreground">Donations</p>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <p className="text-2xl font-bold text-green-600">{selectedCampaign.uniqueDonorsCount}</p>
-                    <p className="text-sm text-gray-600">Unique Donors</p>
+                  <div className="bg-success/15 rounded-lg p-4">
+                    <p className="text-2xl font-bold text-success">{selectedCampaign.uniqueDonorsCount}</p>
+                    <p className="text-sm text-muted-foreground">Unique Donors</p>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-4">
-                    <p className="text-2xl font-bold text-purple-600">
+                  <div className="bg-chart-4/15 rounded-lg p-4">
+                    <p className="text-2xl font-bold text-chart-4">
                       {formatAmount(selectedCampaign.averageDonation)}
                     </p>
-                    <p className="text-sm text-gray-600">Avg. Donation</p>
+                    <p className="text-sm text-muted-foreground">Avg. Donation</p>
                   </div>
                 </div>
 
                 {selectedCampaign.recentDonations.length > 0 && (
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-3">Recent Donations</h4>
+                    <h4 className="font-bold text-foreground mb-3">Recent Donations</h4>
                     <div className="space-y-2">
                       {selectedCampaign.recentDonations.slice(0, 5).map((donation) => (
-                        <div key={donation.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <div key={donation.id} className="flex justify-between items-center py-2 border-b border-border">
                           <div>
-                            <p className="font-medium text-gray-900">{donation.donorName}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-medium text-foreground">{donation.donorName}</p>
+                            <p className="text-xs text-muted-foreground">
                               {new Date(donation.donationDate).toLocaleDateString()}
                             </p>
                           </div>
-                          <span className="font-bold text-rose-600">{formatAmount(donation.amount)}</span>
+                          <span className="font-bold text-brand">{formatAmount(donation.amount)}</span>
                         </div>
                       ))}
                     </div>
@@ -565,25 +565,25 @@ export const CampaignsView: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600">Start Date</p>
+                    <p className="text-muted-foreground">Start Date</p>
                     <p className="font-medium">{new Date(selectedCampaign.startDate).toLocaleDateString()}</p>
                   </div>
                   {selectedCampaign.endDate && (
                     <div>
-                      <p className="text-gray-600">End Date</p>
+                      <p className="text-muted-foreground">End Date</p>
                       <p className="font-medium">{new Date(selectedCampaign.endDate).toLocaleDateString()}</p>
                     </div>
                   )}
                   {selectedCampaign.targetBeneficiaries && (
                     <div>
-                      <p className="text-gray-600">Target Beneficiaries</p>
+                      <p className="text-muted-foreground">Target Beneficiaries</p>
                       <p className="font-medium">{selectedCampaign.targetBeneficiaries}</p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="p-6 text-center text-gray-500">
+              <div className="p-6 text-center text-muted-foreground">
                 Campaign not found
               </div>
             )}

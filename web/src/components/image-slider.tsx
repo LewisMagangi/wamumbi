@@ -31,11 +31,11 @@ export default function ImageSlider() {
   }, [swiper, urls])
 
   const activeStyles =
-    "active:scale-[0.97] grid opacity-100 hover:scale-105 absolute top-1/2 -translate-y-1/2 aspect-square h-8 w-8 z-50 place-items-center rounded-full border-2 bg-white border-zinc-300"
-  const inactiveStyles = "hidden text-gray-400"
+    "active:scale-[0.97] grid opacity-100 hover:scale-105 absolute top-1/2 -translate-y-1/2 aspect-square h-8 w-8 z-50 place-items-center rounded-full border-2 bg-card border-input"
+  const inactiveStyles = "hidden text-muted-foreground/70"
 
   return (
-    <div className="group relative bg-zinc-100 aspect-square overflow-hidden rounded-xl">
+    <div className="group relative bg-muted aspect-square overflow-hidden rounded-xl">
       <div className="absolute z-10 inset-0 opacity-0 group-hover:opacity-100 transition">
         <button
           onClick={(e) => {
@@ -49,7 +49,7 @@ export default function ImageSlider() {
           })}
           aria-label="next image"
         >
-          <ChevronRight className="h-4 w-4 text-zinc-700" />{" "}
+          <ChevronRight className="h-4 w-4 text-foreground/80" />{" "}
         </button>
         <button
           onClick={(e) => {
@@ -63,7 +63,7 @@ export default function ImageSlider() {
           })}
           aria-label="previous image"
         >
-          <ChevronLeft className="h-4 w-4 text-zinc-700" />{" "}
+          <ChevronLeft className="h-4 w-4 text-foreground/80" />{" "}
         </button>
       </div>
 

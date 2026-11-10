@@ -17,12 +17,12 @@ export const ProjectsView: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Project Management</h2>
-          <p className="text-gray-600 mt-1">Track and manage ongoing projects</p>
+          <h2 className="text-2xl font-bold text-foreground">Project Management</h2>
+          <p className="text-muted-foreground mt-1">Track and manage ongoing projects</p>
         </div>
         <button
           onClick={() => setShowComingSoonModal(true)}
-          className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+          className="flex items-center space-x-2 bg-secondary text-primary-foreground px-4 py-2 rounded-lg hover:bg-accent transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Project</span>
@@ -35,36 +35,36 @@ export const ProjectsView: React.FC = () => {
           const progress = getProjectProgress(project.id);
           
           return (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div key={project.id} className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <FolderKanban className="w-6 h-6 text-gray-600" />
+                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                  <FolderKanban className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   statusName === 'Active' || statusName === 'In Progress'
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-success/15 text-success'
                     : statusName === 'Planning'
-                    ? 'bg-blue-100 text-blue-800'
+                    ? 'bg-info/15 text-info'
                     : statusName === 'Completed'
-                    ? 'bg-gray-100 text-gray-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                    ? 'bg-muted text-foreground'
+                    : 'bg-warning/15 text-warning'
                 }`}>
                   {statusName}
                 </span>
               </div>
               
               <h3 className="font-bold text-lg mb-2">{project.title}</h3>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">{project.description}</p>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
               
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Progress</span>
+                    <span className="text-muted-foreground">Progress</span>
                     <span className="font-medium">{progress?.progress_percentage || 0}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div
-                      className="bg-rose-600 h-2 rounded-full"
+                      className="bg-primary h-2 rounded-full"
                       style={{ width: `${progress?.progress_percentage || 0}%` }}
                       role="progressbar"
                       aria-valuenow={progress?.progress_percentage || 0}
@@ -76,22 +76,22 @@ export const ProjectsView: React.FC = () => {
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Team Size</span>
+                  <span className="text-muted-foreground">Team Size</span>
                   <span className="font-medium">{progress?.volunteers_count || 0}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Budget</span>
+                  <span className="text-muted-foreground">Budget</span>
                   <span className="font-medium">${project.budget.toLocaleString()}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Deadline</span>
+                  <span className="text-muted-foreground">Deadline</span>
                   <span className="font-medium">{formatDate(project.end_date)}</span>
                 </div>
               </div>
               
-              <button className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
+              <button className="w-full mt-4 px-4 py-2 border border-input rounded-lg hover:bg-accent text-sm font-medium transition-colors">
                 View Details
               </button>
             </div>
@@ -102,32 +102,32 @@ export const ProjectsView: React.FC = () => {
       {/* Coming Soon Modal */}
       {showComingSoonModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center relative">
+          <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-8 text-center relative">
             <button 
               onClick={() => setShowComingSoonModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-muted-foreground/70 hover:text-foreground"
               title="Close modal"
               aria-label="Close coming soon modal"
             >
               <X className="w-6 h-6" />
             </button>
             
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Clock className="w-8 h-8 text-gray-600" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="w-8 h-8 text-muted-foreground" />
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-            <p className="text-gray-600 mb-6">
-              The ability to add new projects is coming in <span className="font-semibold text-rose-600">Version 2</span>.
+            <h2 className="text-2xl font-bold text-foreground mb-2">Coming Soon</h2>
+            <p className="text-muted-foreground mb-6">
+              The ability to add new projects is coming in <span className="font-semibold text-brand">Version 2</span>.
             </p>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               We&apos;re working hard to bring you project management features including 
               task tracking, team assignments, and budget management.
             </p>
             
             <button
               onClick={() => setShowComingSoonModal(false)}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              className="w-full bg-secondary hover:bg-accent text-primary-foreground font-bold py-3 px-6 rounded-lg transition-colors"
             >
               Got it!
             </button>

@@ -44,33 +44,33 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+        className="absolute inset-0 bg-secondary bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       />
       
       {/* Sidebar */}
       <div
-        className={`absolute top-0 left-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 left-0 h-full w-80 bg-card shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-rose-50 to-pink-50">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-card">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-rose-500 rounded-lg">
-              <LayoutDashboard className="w-6 h-6 text-white" />
+            <div className="p-2 bg-primary rounded-lg">
+              <LayoutDashboard className="w-6 h-6 text-background" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
-              <p className="text-xs text-gray-600">Navigation Menu</p>
+              <h2 className="text-xl font-bold text-foreground">Dashboard</h2>
+              <p className="text-xs text-muted-foreground">Navigation Menu</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close sidebar"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -81,38 +81,38 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               key={item.name}
               href={item.href}
               onClick={onClose}
-              className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-all group hover:shadow-sm border border-transparent hover:border-gray-200"
+              className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-accent transition-all group hover:shadow-sm border border-transparent hover:border-border"
             >
-              <div className={`p-2 rounded-lg bg-gradient-to-br from-${item.color}-50 to-${item.color}-100 transition-all`}>
-                <item.icon className={`w-5 h-5 text-${item.color}-500 transition-transform group-hover:scale-110`} />
+              <div className={`p-2 rounded-lg bg-muted group-hover:bg-accent transition-all`}>
+                <item.icon className={`w-5 h-5 text-foreground/80 transition-transform group-hover:scale-110`} />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 group-hover:text-gray-900">
+                <p className="font-semibold text-foreground group-hover:text-foreground">
                   {item.name}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {item.description}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-500 transition-all group-hover:translate-x-1" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground/70 group-hover:text-brand transition-all group-hover:translate-x-1" />
             </Link>
           ))}
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-border bg-card">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-brand-foreground font-bold">
               {userInitials}
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">{userName}</p>
-              <p className="text-xs text-gray-600">{userEmail}</p>
+              <p className="text-sm font-semibold text-foreground">{userName}</p>
+              <p className="text-xs text-muted-foreground">{userEmail}</p>
             </div>
           </div>
           <button 
             onClick={handleSignOut}
-            className="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-lg transition-colors"
+            className="w-full py-2 px-4 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-lg transition-colors"
           >
             Sign Out
           </button>

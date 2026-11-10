@@ -61,71 +61,71 @@ export default function PartnerWithUsPage() {
       <Navbar />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="min-h-screen bg-muted/50 pt-16">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Partner With Us</h1>
-            <p className="text-xl text-gray-600">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Partner With Us</h1>
+            <p className="text-xl text-muted-foreground">
               Join us in creating lasting change for orphaned children
             </p>
           </div>
 
           {/* Partnership Benefits */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Partner With Wamumbi?</h2>
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8 mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Why Partner With Wamumbi?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start">
-                <div className="bg-rose-100 rounded-lg p-3 mr-4">
-                  <Users className="w-6 h-6 text-rose-600" />
+                <div className="bg-brand/10 rounded-lg p-3 mr-4">
+                  <Users className="w-6 h-6 text-brand" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Community Impact</h3>
-                  <p className="text-gray-600">Make a direct impact on the lives of orphaned children</p>
+                  <h3 className="font-bold text-foreground mb-2">Community Impact</h3>
+                  <p className="text-muted-foreground">Make a direct impact on the lives of orphaned children</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-rose-100 rounded-lg p-3 mr-4">
-                  <Building2 className="w-6 h-6 text-rose-600" />
+                <div className="bg-brand/10 rounded-lg p-3 mr-4">
+                  <Building2 className="w-6 h-6 text-brand" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Brand Visibility</h3>
-                  <p className="text-gray-600">Showcase your commitment to social responsibility</p>
+                  <h3 className="font-bold text-foreground mb-2">Brand Visibility</h3>
+                  <p className="text-muted-foreground">Showcase your commitment to social responsibility</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-rose-100 rounded-lg p-3 mr-4">
-                  <Mail className="w-6 h-6 text-rose-600" />
+                <div className="bg-brand/10 rounded-lg p-3 mr-4">
+                  <Mail className="w-6 h-6 text-brand" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Collaborative Projects</h3>
-                  <p className="text-gray-600">Work together on meaningful initiatives</p>
+                  <h3 className="font-bold text-foreground mb-2">Collaborative Projects</h3>
+                  <p className="text-muted-foreground">Work together on meaningful initiatives</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-rose-100 rounded-lg p-3 mr-4">
-                  <Phone className="w-6 h-6 text-rose-600" />
+                <div className="bg-brand/10 rounded-lg p-3 mr-4">
+                  <Phone className="w-6 h-6 text-brand" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Ongoing Support</h3>
-                  <p className="text-gray-600">Dedicated partnership management and reporting</p>
+                  <h3 className="font-bold text-foreground mb-2">Ongoing Support</h3>
+                  <p className="text-muted-foreground">Dedicated partnership management and reporting</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Organization Information */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Building2 className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Building2 className="w-6 h-6 mr-2 text-brand" />
                   Organization Information
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Organization Name *
                     </label>
                     <input
@@ -134,13 +134,13 @@ export default function PartnerWithUsPage() {
                       required
                       value={formData.organizationName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="ABC Corporation"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         Organization Type *
                       </label>
                       <select
@@ -148,7 +148,7 @@ export default function PartnerWithUsPage() {
                         required
                         value={formData.organizationType}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         aria-label="Select organization type"
                       >
                         <option value="">Select type...</option>
@@ -162,7 +162,7 @@ export default function PartnerWithUsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         Website
                       </label>
                       <input
@@ -170,7 +170,7 @@ export default function PartnerWithUsPage() {
                         name="website"
                         value={formData.website}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="https://example.com"
                       />
                     </div>
@@ -180,13 +180,13 @@ export default function PartnerWithUsPage() {
 
               {/* Contact Person */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Users className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Users className="w-6 h-6 mr-2 text-brand" />
                   Contact Person
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Full Name *
                     </label>
                     <input
@@ -195,12 +195,12 @@ export default function PartnerWithUsPage() {
                       required
                       value={formData.contactPerson}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="John Doe"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Email Address *
                     </label>
                     <input
@@ -209,12 +209,12 @@ export default function PartnerWithUsPage() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="john.doe@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Phone Number *
                     </label>
                     <input
@@ -223,7 +223,7 @@ export default function PartnerWithUsPage() {
                       required
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="+254 123 456 789"
                     />
                   </div>
@@ -232,13 +232,13 @@ export default function PartnerWithUsPage() {
 
               {/* Partnership Interest */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Mail className="w-6 h-6 mr-2 text-rose-600" />
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                  <Mail className="w-6 h-6 mr-2 text-brand" />
                   Partnership Interest
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Type of Partnership *
                     </label>
                     <select
@@ -246,7 +246,7 @@ export default function PartnerWithUsPage() {
                       required
                       value={formData.partnershipInterest}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       aria-label="Select type of partnership"
                     >
                       <option value="">Select partnership type...</option>
@@ -260,7 +260,7 @@ export default function PartnerWithUsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Tell us about your partnership goals *
                     </label>
                     <textarea
@@ -269,7 +269,7 @@ export default function PartnerWithUsPage() {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Share your ideas, goals, and how you envision partnering with us..."
                     />
                   </div>
@@ -280,19 +280,19 @@ export default function PartnerWithUsPage() {
               {submitMessage && (
                 <div className={`p-4 rounded-lg mb-4 ${
                   submitMessage.includes('Thank you')
-                    ? 'bg-green-50 border border-green-200 text-green-800'
-                    : 'bg-red-50 border border-red-200 text-red-800'
+                    ? 'bg-success/15 border border-success/40 text-success'
+                    : 'bg-destructive/15 border border-destructive/40 text-destructive'
                 }`}>
                   {submitMessage}
                 </div>
               )}
 
               {/* Submit Button */}
-              <div className="flex gap-4 pt-6 border-t border-gray-200">
+              <div className="flex gap-4 pt-6 border-t border-border">
                 <button
                   type="submit"
                   disabled={isSubmitting || submitInquiryMutation.isPending}
-                  className="flex-1 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center"
+                  className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center"
                 >
                   {(isSubmitting || submitInquiryMutation.isPending) ? (
                     <>
@@ -306,7 +306,7 @@ export default function PartnerWithUsPage() {
                 <button
                   type="button"
                   onClick={() => window.history.back()}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition duration-300"
+                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg transition duration-300"
                 >
                   Cancel
                 </button>
