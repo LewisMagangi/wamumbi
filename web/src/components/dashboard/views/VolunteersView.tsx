@@ -26,9 +26,21 @@ interface Volunteer {
   availability: string | null;
   skills: string[];
   status: string;
-  totalHours?: number | unknown;
+  totalHours: number | unknown;
   activitiesCount: number;
   joinedAt: string; // Date comes back as string from API
+}
+
+interface VolunteerFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  availability: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  emergencyContactEmail: string;
+  emergencyContactRelationship: string;
 }
 
 export const VolunteersView: React.FC = () => {
