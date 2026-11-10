@@ -51,6 +51,9 @@ function readManifest(dir) {
 async function processAll() {
   fs.mkdirSync(PROCESSED, { recursive: true })
   fs.mkdirSync(SHEETS, { recursive: true })
+  // Resumable: each image writes meta.json; MAX_SECONDS stops early so long runs can be split.
+  const deadline = Date.now() + Number(process.env.MAX_SECONDS ?? 1e9) * 1000
+  let pending = 0
   const catalog = []
   for (const source of fs.readdirSync(EXTRACTED)) {
     const dir = path.join(EXTRACTED, source)
@@ -60,6 +63,9 @@ async function processAll() {
       const rel = path.relative(dir, file).split(path.sep).join("/")
       const meta = manifest.get(rel) ?? {}
       const id = `${source === "telegram" ? "tg" : "gp"}-${rel.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-")}`.toLowerCase()
+      const metaFile = path.join(PROCESSED, id, "meta.json")
+      if (fs.existsSync(metaFile)) { catalog.push(JSON.parse(fs.readFileSync(metaFile, "utf8"))); continue }
+      if (Date.now() > deadline) { pending++; continue }
       try {
         const img = sharp(file, { failOn: "none" }).rotate() // apply EXIF orientation; output drops EXIF/GPS
         const { width, height } = await img.metadata()
@@ -73,7 +79,7 @@ async function processAll() {
         }
         const blur = await sharp(file, { failOn: "none" }).rotate().resize(16).webp({ quality: 40 }).toBuffer()
         const oriented = (await sharp(file, { failOn: "none" }).rotate().toBuffer({ resolveWithObject: true })).info
-        catalog.push({
+        const entry = {
           id,
           source,
           album: meta.album ?? (source === "telegram" ? "Telegram" : rel.split("/")[0]),
@@ -83,7 +89,9 @@ async function processAll() {
           height: oriented.height,
           widths: WIDTHS.filter((w) => fs.existsSync(path.join(out, `${w}.webp`))),
           blurDataURL: `data:image/webp;base64,${blur.toString("base64")}`,
-        })
+        }
+        fs.writeFileSync(metaFile, JSON.stringify(entry))
+        catalog.push(entry)
       } catch (e) {
         console.warn("skip", rel, e.message)
       }
@@ -91,8 +99,8 @@ async function processAll() {
   }
   catalog.sort((a, b) => (a.album + a.id).localeCompare(b.album + b.id))
   fs.writeFileSync(CATALOG, JSON.stringify(catalog, null, 1))
-  console.log("catalog:", catalog.length, "images")
-  await contactSheets(catalog)
+  console.log("catalog:", catalog.length, "images;", pending, "still to process")
+  if (pending === 0 && !process.env.NO_SHEETS) await contactSheets(catalog)
 }
 
 /** 6x4 grids of numbered thumbnails, one album at a time, for curation. */

@@ -179,7 +179,7 @@ function Story() {
           </Reveal>
         </div>
 
-        <ol className="mt-14 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-5">
+        <ol className="mt-14 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {events.map((e, i) => {
             const cover = coverFor(e.slug)
             const count = photosFor(e.slug).length

@@ -1,1 +1,81 @@
-{ "hero": null, "events": {} }
+{
+ "hero": "gp-album1-019",
+ "events": {
+  "kabete-childrens-home-2021": [
+   "gp-album1-019",
+   "gp-album1-038",
+   "gp-album1-017",
+   "gp-album1-010",
+   "gp-album1-012",
+   "gp-album1-040",
+   "gp-album1-043",
+   "gp-album1-027",
+   "gp-album1-029",
+   "gp-album1-037",
+   "gp-album1-001",
+   "gp-album1-020",
+   "gp-album1-015",
+   "gp-album1-034"
+  ],
+  "githurai-street-charity-2021": [
+   "gp-album4-009",
+   "gp-album4-002",
+   "gp-album4-006",
+   "gp-album4-003",
+   "gp-album4-007",
+   "gp-album4-001"
+  ],
+  "bishop-luigi-locati-2022": [
+   "gp-album2-101",
+   "gp-album2-015",
+   "gp-album2-006",
+   "gp-album2-007",
+   "gp-album2-009",
+   "gp-album2-023",
+   "gp-album2-024",
+   "gp-album2-021",
+   "gp-album2-097",
+   "gp-album2-104",
+   "gp-album2-106",
+   "gp-album2-120",
+   "gp-album2-111",
+   "gp-album2-002"
+  ],
+  "familia-moja-2024": [
+   "gp-album3-003",
+   "gp-album3-005",
+   "gp-album3-007",
+   "gp-album3-009",
+   "gp-album3-001",
+   "gp-album3-010",
+   "gp-album3-014",
+   "gp-album3-153",
+   "gp-album3-158",
+   "gp-album3-161",
+   "gp-album3-166",
+   "gp-album3-150",
+   "gp-album3-006",
+   "gp-album3-020"
+  ],
+  "childrens-home-outreach-2023": [
+   "tg-2023-10-04-106-014",
+   "tg-2023-10-04-106-021",
+   "tg-2023-10-04-16-129",
+   "tg-2023-10-04-16-122",
+   "tg-2023-10-04-16-126",
+   "tg-2023-10-04-46-079",
+   "tg-2023-10-04-46-080",
+   "tg-2023-10-04-6-112",
+   "tg-2023-10-04-86-038",
+   "tg-2023-10-04-86-040",
+   "tg-2023-10-04-96-046",
+   "tg-2023-10-04-56-088"
+  ],
+  "ruiru-rehabilitation-centre-2021": [
+   "tg-2021-08-16-3-132"
+  ],
+  "muranga-rescue-centre-2025": [
+   "tg-2025-10-21-165-011"
+  ]
+ }
+}
