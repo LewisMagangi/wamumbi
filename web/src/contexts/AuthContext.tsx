@@ -1,180 +1,85 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+"use client"
 
-// Define user roles
-export type UserRole = 'admin' | 'volunteer' | 'donor' | 'team_leader' | 'Volunteer';
+import { useClerk } from "@clerk/nextjs"
+import { trpc } from "@/app/_trpc/client"
+import type { Permission } from "@/lib/rbac/permissions"
+import type { Role } from "@/lib/rbac/roles"
 
-// Define user type
+export type UserRole = Role
+
 export interface AuthUser {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  profileImage?: string;
+  id: number
+  name: string
+  email: string
+  role: Role
+  roleLabel: string
+  permissions: Permission[]
 }
 
-// Define the shape of our auth context
-type AuthContextType = {
-  user: AuthUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  hasPermission: (action: string, resource: string) => boolean;
-  role: UserRole | null;
-  logout: () => void;
-  login: (username: string, password: string) => Promise<void>;
-};
+/**
+ * Legacy (action, resource) checks map onto the new permission strings so existing
+ * components that call hasPermission("create", "campaigns") keep working.
+ */
+const LEGACY_MAP: Record<string, Permission[]> = {
+  "create:campaigns": ["campaigns:create"],
+  "update:campaigns": ["campaigns:update"],
+  "delete:campaigns": ["campaigns:delete"],
+  "create:events": ["events:create"],
+  "update:events": ["events:update"],
+  "delete:events": ["events:delete"],
+  "create:registrations": ["registrations:manage", "registrations:manage_team"],
+  "read:volunteers": ["volunteers:view", "volunteers:view_team", "volunteers:view_anonymized"],
+  "create:volunteers": ["volunteers:manage"],
+  "update:volunteers": ["volunteers:manage"],
+  "delete:volunteers": ["volunteers:manage"],
+  "read:teams": ["teams:view"],
+  "create:teams": ["teams:manage"],
+  "update:teams": ["teams:manage", "teams:manage_own"],
+  "delete:teams": ["teams:manage"],
+  "read:donations": ["donations:view_all", "donations:view_aggregate", "donations:view_own"],
+  "update:donations": ["donations:manage"],
+  "delete:donations": ["donations:manage"],
+  "create:blog": ["blog:create"],
+  "update:blog": ["blog:update"],
+  "delete:blog": ["blog:delete"],
+  "create:projects": ["campaigns:create"],
+  "update:projects": ["campaigns:update"],
+  "delete:projects": ["campaigns:delete"],
+}
 
-// Create the context with default values
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isLoading: true,
-  isAuthenticated: false,
-  isAdmin: false,
-  hasPermission: () => false,
-  role: null,
-  logout: () => {},
-  login: async () => {},
-});
-
-// For development only - mock user for testing
-const MOCK_USER: AuthUser = {
-  id: 1,
-  username: 'admin',
-  name: 'Admin User',
-  email: 'admin@charity.org',
-  role: 'admin',
-  profileImage: 'https://randomuser.me/api/portraits/men/1.jpg',
-};
-
-// Provider component that wraps the app and makes auth object available
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [mockUser, setMockUser] = useState<AuthUser | null>(null);
-  
-  // In a real app, this would be a real API call
-  const { data: user, isLoading } = useQuery<AuthUser>({
-    queryKey: ['/api/auth/me'],
+/** Reads the signed-in user and role from the server (trpc.admin.me). No provider needed. */
+export function useAuth() {
+  const { data, isLoading } = trpc.admin.me.useQuery(undefined, {
+    staleTime: 60_000,
     retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: false, // Disable automatic fetching, we'll use mock data
-  });
+  })
+  const { signOut } = useClerk()
 
-  // For development, use the mock user
-  useEffect(() => {
-    // Simulate API load time
-    const timer = setTimeout(() => {
-      setMockUser(MOCK_USER);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  const user = (data ?? null) as AuthUser | null
+  const has = (p: Permission) => !!user?.permissions.includes(p)
 
-  // Use the real user if available, otherwise use the mock user
-  const currentUser = user || mockUser;
-  
-  // Determine if user is authenticated
-  const isAuthenticated = !!currentUser;
-  
-  // Determine if user is an admin
-  const isAdmin = currentUser?.role === 'admin';
-  
-  // Current user role
-  const role = currentUser?.role || null;
-
-  // Permission checking function
   const hasPermission = (action: string, resource: string): boolean => {
-    if (!isAuthenticated) return false;
-    
-    // Admin can do anything
-    if (isAdmin) return true;
-    
-    // Define permissions for different roles
-    const permissions: Record<string, Record<string, string[]>> = {
-      volunteer: {
-        read: ['campaigns', 'events', 'projects', 'teams', 'blog', 'donations'],
-        create: ['comments', 'registrations'],
-        update: ['profile']
-      },
-      donor: {
-        read: ['campaigns', 'events', 'projects', 'blog', 'donations'],
-        create: ['donations'],
-        update: ['profile']
-      },
-      team_leader: {
-        read: ['campaigns', 'events', 'projects', 'teams', 'blog', 'donations', 'volunteers'],
-        create: ['comments', 'discussions', 'registrations', 'polls'],
-        update: ['profile', 'teams', 'discussions', 'polls']
-      },
-      Volunteer: {
-        read: ['campaigns', 'events', 'blog'],
-        create: [],
-        update: []
-      }
-    };
-    
-    // Check if the user's role has the permission
-    if (!role || !permissions[role]) return false;
-    
-    const rolePermissions = permissions[role];
-    return !!rolePermissions[action]?.includes(resource);
-  };
+    if (!user) return false
+    if (action === "read" && ["campaigns", "events", "projects", "blog"].includes(resource)) return true
+    if (resource === "profile" || resource === "comments") return true
+    const mapped = LEGACY_MAP[`${action}:${resource}`]
+    return mapped ? mapped.some(has) : false
+  }
 
-  // Mock login function
-  const login = async (username: string, password: string) => {
-    // Simulate login process
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        if (username === 'admin' && password === 'admin') {
-          setMockUser(MOCK_USER);
-          resolve();
-        } else if (username === 'volunteer' && password === 'volunteer') {
-          setMockUser({
-            id: 2,
-            username: 'volunteer',
-            name: 'Volunteer User',
-            email: 'volunteer@charity.org',
-            role: 'volunteer',
-            profileImage: 'https://randomuser.me/api/portraits/women/2.jpg',
-          });
-          resolve();
-        } else if (username === 'donor' && password === 'donor') {
-          setMockUser({
-            id: 3,
-            username: 'donor',
-            name: 'Donor User',
-            email: 'donor@charity.org',
-            role: 'donor',
-            profileImage: 'https://randomuser.me/api/portraits/men/3.jpg',
-          });
-          resolve();
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 1000);
-    });
-  };
-
-  // Logout function
-  const logout = () => {
-    setMockUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ 
-      user: currentUser, 
-      isLoading: isLoading && !mockUser, 
-      isAuthenticated, 
-      isAdmin,
-      hasPermission,
-      role,
-      logout,
-      login
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === "super_admin",
+    role: user?.role ?? null,
+    has,
+    hasAny: (ps: Permission[]) => ps.some(has),
+    hasPermission,
+    logout: () => signOut({ redirectUrl: "/" }),
+  }
 }
 
-// Hook for components to get the auth context
-export const useAuth = () => useContext(AuthContext);
+/** Kept so older imports keep compiling; the hook above needs no provider. */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

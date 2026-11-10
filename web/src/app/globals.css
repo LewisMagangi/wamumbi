@@ -181,3 +181,8 @@
 .bg-primary-blue { background-color: hsl(var(--info)); }
 .bg-primary-green { background-color: hsl(var(--success)); }
 .bg-primary-red { background-color: hsl(var(--brand)); }
+
+@keyframes hero-zoom {
+  from { transform: scale(1.06); }
+  to { transform: scale(1); }
+}

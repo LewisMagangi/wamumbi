@@ -3,8 +3,11 @@ import React from 'react';
 import Link from 'next/link';
 import { 
   X, ChevronRight, LayoutDashboard, Megaphone, HandHeart, 
-  UserCheck, FolderKanban, CalendarDays, BarChart3, Info, Home, Handshake
+  UserCheck, FolderKanban, CalendarDays, BarChart3, Home,
+  ImageUp, ShieldCheck, ClipboardCheck, Users
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Permission } from '@/lib/rbac/permissions';
 import { useUser, useClerk } from '@clerk/nextjs';
 
 interface SidebarProps {
@@ -12,22 +15,30 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const navigationItems = [
-  { name: 'Home', href: '/', icon: Home, color: 'rose', description: 'Back to landing page' },
-  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, color: 'rose', description: 'Dashboard overview' },
-  { name: 'About Us', href: '/about', icon: Info, color: 'cyan', description: 'Our mission & values' },
-  { name: 'Campaigns', href: '/campaigns', icon: Megaphone, color: 'purple', description: 'Manage campaigns' },
-  { name: 'Donations', href: '/donations', icon: HandHeart, color: 'green', description: 'Track donations' },
-  { name: 'Volunteers', href: '/volunteers', icon: UserCheck, color: 'blue', description: 'Volunteer management' },
-  { name: 'Projects', href: '/projects', icon: FolderKanban, color: 'orange', description: 'Project tracking' },
-  { name: 'Events', href: '/events', icon: CalendarDays, color: 'teal', description: 'Event management' },
-  { name: 'Partner With Us', href: '/partner-with-us', icon: Handshake, color: 'amber', description: 'Partnership opportunities' },
-  { name: 'Reports', href: '/reports', icon: BarChart3, color: 'indigo', description: 'Analytics & reports' },
+type NavItem = { name: string; href: string; icon: React.ComponentType<{ className?: string }>; description: string; anyOf?: Permission[] };
+
+// Items without `anyOf` are visible to everyone signed in; the server enforces the same rules.
+const navigationItems: NavItem[] = [
+  { name: 'Home', href: '/', icon: Home, description: 'Back to the website' },
+  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, description: 'Your dashboard', anyOf: ['dashboard:view'] },
+  { name: 'Campaigns', href: '/campaigns', icon: Megaphone, description: 'Manage campaigns', anyOf: ['campaigns:create', 'campaigns:update'] },
+  { name: 'Donations', href: '/donations', icon: HandHeart, description: 'Donations and donors', anyOf: ['donations:view_all', 'donations:view_aggregate', 'donations:view_own'] },
+  { name: 'Volunteers', href: '/volunteers', icon: UserCheck, description: 'Volunteer management', anyOf: ['volunteers:view', 'volunteers:view_team', 'volunteers:view_anonymized'] },
+  { name: 'Projects', href: '/projects', icon: FolderKanban, description: 'Project tracking', anyOf: ['dashboard:view'] },
+  { name: 'Events', href: '/events', icon: CalendarDays, description: 'Upcoming and past events' },
+  { name: 'Manage events', href: '/dashboard/events', icon: CalendarDays, description: 'Create events, registrations', anyOf: ['events:create', 'events:update', 'registrations:manage', 'registrations:manage_team'] },
+  { name: 'Reports', href: '/reports', icon: BarChart3, description: 'Financial reports', anyOf: ['reports:view_financial'] },
+  { name: 'Photos', href: '/dashboard/admin?tab=uploads', icon: ImageUp, description: 'Upload event photos', anyOf: ['media:upload', 'media:upload_restricted'] },
+  { name: 'Moderation', href: '/dashboard/admin?tab=moderation', icon: ShieldCheck, description: 'Review uploaded photos', anyOf: ['media:moderate'] },
+  { name: 'Approvals', href: '/dashboard/admin?tab=approvals', icon: ClipboardCheck, description: 'Approve content to go live', anyOf: ['campaigns:publish', 'events:publish', 'blog:publish'] },
+  { name: 'Users & roles', href: '/dashboard/admin?tab=users', icon: Users, description: 'Assign roles', anyOf: ['users:manage'] },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { hasAny, user: appUser } = useAuth();
+  const visibleItems = navigationItems.filter((item) => !item.anyOf || hasAny(item.anyOf));
 
   const handleSignOut = () => {
     signOut({ redirectUrl: '/' });
@@ -76,7 +87,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation Items */}
         <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-240px)]">
-          {navigationItems.map((item) => (
+          {visibleItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
@@ -107,7 +118,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{userName}</p>
-              <p className="text-xs text-muted-foreground">{userEmail}</p>
+              <p className="text-xs text-muted-foreground">{appUser?.roleLabel ?? userEmail}</p>
             </div>
           </div>
           <button 

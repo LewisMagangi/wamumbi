@@ -3,6 +3,8 @@ import { neonConfig } from '@neondatabase/serverless';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import * as dotenv from 'dotenv';
 import * as ws from 'ws';
+import { ROLES, ROLE_META } from '../src/lib/rbac/roles';
+import { permissionsJson } from '../src/lib/rbac/permissions';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -24,44 +26,18 @@ async function main() {
 
   // Seed User Roles
   console.log('Creating user roles...');
-  const roles = await Promise.all([
-    prisma.userRole.upsert({
-      where: { name: 'admin' },
-      update: {},
-      create: {
-        name: 'admin',
-        description: 'Administrator with full access',
-        permissions: { all: true }
-      }
-    }),
-    prisma.userRole.upsert({
-      where: { name: 'staff' },
-      update: {},
-      create: {
-        name: 'staff',
-        description: 'Staff member with limited admin access',
-        permissions: { read: true, write: true, manage_volunteers: true }
-      }
-    }),
-    prisma.userRole.upsert({
-      where: { name: 'volunteer' },
-      update: {},
-      create: {
-        name: 'volunteer',
-        description: 'Volunteer user',
-        permissions: { read: true, volunteer: true }
-      }
-    }),
-    prisma.userRole.upsert({
-      where: { name: 'donor' },
-      update: {},
-      create: {
-        name: 'donor',
-        description: 'Donor user',
-        permissions: { read: true, donate: true }
-      }
-    })
-  ]);
+  // Nine RBAC roles; permissions come from src/lib/rbac/permissions.ts (single source of truth).
+  // Legacy roles (admin, staff) are kept so existing users keep working; the app maps them
+  // to super_admin and volunteer_coordinator.
+  const roles = await Promise.all(
+    ROLES.map((name) =>
+      prisma.userRole.upsert({
+        where: { name },
+        update: { description: ROLE_META[name].description, permissions: permissionsJson(name) },
+        create: { name, description: ROLE_META[name].description, permissions: permissionsJson(name) },
+      })
+    )
+  );
   console.log(`  ✓ Created ${roles.length} user roles`);
 
   // Seed User Statuses

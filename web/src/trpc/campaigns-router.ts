@@ -1,10 +1,11 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, permissionProcedure, router } from "./trpc";
+import { reviewStatus } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
 export const campaignsRouter = router({
-  getActive: procedure
+  getActive: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -79,7 +80,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getAll: procedure
+  getAll: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -151,7 +152,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getById: procedure
+  getById: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -273,7 +274,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  create: procedure
+  create: permissionProcedure("campaigns:create")
     .meta({
       openapi: {
         method: 'POST',
@@ -310,7 +311,7 @@ export const campaignsRouter = router({
       endDate: z.date().nullable(),
       createdAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       // Get active status
       const activeStatus = await prisma.campaignStatus.findFirst({
@@ -324,13 +325,13 @@ export const campaignsRouter = router({
           goal_amount: input.goalAmount,
           currency_id: input.currencyId,
           category_id: input.categoryId,
-          status_id: activeStatus?.id || 1,
+          status_id: await reviewStatus("campaign", activeStatus?.id || 1, ctx.user),
           start_date: input.startDate,
           end_date: input.endDate,
           image_url: input.imageUrl,
           urgency_level_id: input.urgencyLevelId,
           target_beneficiaries: input.targetBeneficiaries,
-          created_by: input.createdBy
+          created_by: ctx.user.id
         },
         include: {
           category: true,
@@ -371,7 +372,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  update: procedure
+  update: permissionProcedure("campaigns:update")
     .meta({
       openapi: {
         method: 'PUT',
@@ -407,14 +408,14 @@ export const campaignsRouter = router({
       endDate: z.date().nullable(),
       updatedAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       const { id, goalAmount, categoryId, statusId, endDate, imageUrl, urgencyLevelId, targetBeneficiaries, ...rest } = input;
       
       const dataToUpdate: Record<string, unknown> = { ...rest };
       if (goalAmount !== undefined) dataToUpdate.goal_amount = goalAmount;
       if (categoryId !== undefined) dataToUpdate.category_id = categoryId;
-      if (statusId !== undefined) dataToUpdate.status_id = statusId;
+      if (statusId !== undefined) dataToUpdate.status_id = await reviewStatus("campaign", statusId, ctx.user);
       if (endDate !== undefined) dataToUpdate.end_date = endDate;
       if (imageUrl !== undefined) dataToUpdate.image_url = imageUrl;
       if (urgencyLevelId !== undefined) dataToUpdate.urgency_level_id = urgencyLevelId;
@@ -451,7 +452,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("campaigns:delete")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -475,7 +476,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getCategories: procedure
+  getCategories: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -510,7 +511,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getStatuses: procedure
+  getStatuses: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -541,7 +542,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getUrgencyLevels: procedure
+  getUrgencyLevels: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -572,7 +573,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getCurrencies: procedure
+  getCurrencies: publicProcedure
     .meta({
       openapi: {
         method: 'GET',

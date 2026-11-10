@@ -1,8 +1,8 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, router } from "./trpc";
 import { z } from "zod";
 
 export const partnershipRouter = router({
-  submitInquiry: procedure
+  submitInquiry: publicProcedure
     .meta({
       openapi: {
         method: 'POST',

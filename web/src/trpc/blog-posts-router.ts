@@ -1,9 +1,10 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, permissionProcedure, router } from "./trpc";
+import { reviewStatus } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const blogPostsRouter = router({
-  getAll: procedure
+  getAll: permissionProcedure("blog:create", "blog:update", "blog:publish")
     .meta({
       openapi: {
         method: 'GET',
@@ -66,7 +67,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  getPublished: procedure
+  getPublished: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -130,7 +131,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  getById: procedure
+  getById: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -210,7 +211,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  create: procedure
+  create: permissionProcedure("blog:create")
     .meta({
       openapi: {
         method: 'POST',
@@ -241,7 +242,7 @@ export const blogPostsRouter = router({
       publishedAt: z.date().nullable(),
       createdAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       // Determine status based on publishedAt
       const draftStatus = await prisma.blogPostStatus.findFirst({
@@ -259,9 +260,9 @@ export const blogPostsRouter = router({
           content: input.content,
           excerpt: input.excerpt,
           category_id: input.categoryId,
-          status_id: statusId,
+          status_id: await reviewStatus("blog", statusId, ctx.user),
           featured_image: input.featuredImage,
-          author_id: input.authorId,
+          author_id: ctx.user.id,
           published_at: input.publishedAt
         },
         include: {
@@ -295,7 +296,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  update: procedure
+  update: permissionProcedure("blog:update")
     .meta({
       openapi: {
         method: 'PUT',
@@ -327,7 +328,7 @@ export const blogPostsRouter = router({
       publishedAt: z.date().nullable(),
       updatedAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       const { id, categoryId, statusId, featuredImage, publishedAt, ...rest } = input;
       
@@ -342,7 +343,7 @@ export const blogPostsRouter = router({
       } = { ...rest };
       
       if (categoryId) dataToUpdate.category_id = categoryId;
-      if (statusId) dataToUpdate.status_id = statusId;
+      if (statusId) dataToUpdate.status_id = await reviewStatus("blog", statusId, ctx.user);
       if (featuredImage) dataToUpdate.featured_image = featuredImage;
       if (publishedAt) dataToUpdate.published_at = publishedAt;
 
@@ -380,7 +381,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("blog:delete")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -405,7 +406,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  getCategories: procedure
+  getCategories: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -440,7 +441,7 @@ export const blogPostsRouter = router({
     }
   }),
 
-  getStatuses: procedure
+  getStatuses: publicProcedure
     .meta({
       openapi: {
         method: 'GET',

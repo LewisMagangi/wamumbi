@@ -1,9 +1,10 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, permissionProcedure, router } from "./trpc";
+import { assertTeamAccess } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const teamsRouter = router({
-  getAll: procedure
+  getAll: permissionProcedure("teams:view")
     .meta({
       openapi: {
         method: 'GET',
@@ -83,7 +84,7 @@ export const teamsRouter = router({
   }),
 
   // Get team overview for dashboard
-  getOverview: procedure
+  getOverview: permissionProcedure("teams:view")
     .meta({
       openapi: {
         method: 'GET',
@@ -144,7 +145,7 @@ export const teamsRouter = router({
       }
     }),
 
-  getById: procedure
+  getById: permissionProcedure("teams:view")
     .meta({
       openapi: {
         method: 'GET',
@@ -277,7 +278,7 @@ export const teamsRouter = router({
     }
   }),
 
-  create: procedure
+  create: permissionProcedure("teams:manage")
     .meta({
       openapi: {
         method: 'POST',
@@ -352,7 +353,7 @@ export const teamsRouter = router({
     }
   }),
 
-  update: procedure
+  update: permissionProcedure("teams:manage", "teams:manage_own")
     .meta({
       openapi: {
         method: 'PUT',
@@ -380,7 +381,8 @@ export const teamsRouter = router({
       status: z.string(),
       updatedAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTeamAccess(ctx.user, input.id);
     try {
       const { id, categoryId, teamLeaderId, maxMembers, ...rest } = input;
       
@@ -418,7 +420,7 @@ export const teamsRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("teams:manage")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -443,7 +445,7 @@ export const teamsRouter = router({
   }),
 
   // Add member to team
-  addMember: procedure
+  addMember: permissionProcedure("teams:manage", "teams:manage_own")
     .meta({
       openapi: {
         method: 'POST',
@@ -466,7 +468,8 @@ export const teamsRouter = router({
       role: z.string().nullable(),
       joinedAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTeamAccess(ctx.user, input.teamId);
     try {
       // Check if team has capacity
       const team = await prisma.team.findUnique({
@@ -519,7 +522,7 @@ export const teamsRouter = router({
   }),
 
   // Remove member from team
-  removeMember: procedure
+  removeMember: permissionProcedure("teams:manage", "teams:manage_own")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -534,7 +537,8 @@ export const teamsRouter = router({
     userId: z.number()
   }))
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTeamAccess(ctx.user, input.teamId);
     try {
       await prisma.teamMember.deleteMany({
         where: {
@@ -550,7 +554,7 @@ export const teamsRouter = router({
   }),
 
   // Update member status/role
-  updateMember: procedure
+  updateMember: permissionProcedure("teams:manage", "teams:manage_own")
     .meta({
       openapi: {
         method: 'PUT',
@@ -571,7 +575,9 @@ export const teamsRouter = router({
       role: z.string().nullable(),
       status: z.string()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const member = await prisma.teamMember.findUnique({ where: { id: input.memberId }, select: { team_id: true } });
+      if (member) await assertTeamAccess(ctx.user, member.team_id);
     try {
       const { memberId, role, status } = input;
 
@@ -605,7 +611,7 @@ export const teamsRouter = router({
     }
   }),
 
-  getCategories: procedure
+  getCategories: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
