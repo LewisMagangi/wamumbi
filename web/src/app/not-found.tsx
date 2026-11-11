@@ -1,37 +1,25 @@
-'use client';
-
-import Link from 'next/link';
-import { Home, ArrowLeft } from 'lucide-react';
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+import Navbar from "@/components/Navbar"
+import Footer from "@/components/footer"
+import { Button } from "@/components/ui/button"
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-muted/50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
-        <div className="mb-8">
-          <h1 className="text-9xl font-bold text-brand">404</h1>
-          <h2 className="text-3xl font-bold text-foreground mt-4 mb-2">Page Not Found</h2>
-          <p className="text-muted-foreground">
-            Sorry, we couldn&apos;t find the page you&apos;re looking for.
-          </p>
+    <>
+      <Navbar />
+      <main className="mx-auto flex min-h-[70svh] max-w-screen-xl flex-col justify-center px-5 pb-24 pt-32 md:px-10">
+        <p className="text-sm tabular-nums text-muted-foreground">404</p>
+        <h1 className="mt-3 max-w-2xl text-display-md">We couldn&apos;t find that page.</h1>
+        <p className="mt-5 max-w-xl text-lg text-muted-foreground">It may have moved, or the link may be mistyped. These are good places to start.</p>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg" className="h-12 rounded-full px-7 text-base"><Link href="/">Go to the home page</Link></Button>
+          <Button asChild size="lg" variant="ghost" className="group h-12 rounded-full px-7 text-base">
+            <Link href="/events">See upcoming events <ArrowRight className="transition-transform group-hover:translate-x-0.5" /></Link>
+          </Button>
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
-          >
-            <Home className="w-4 h-4 mr-2" />
-            Go Home
-          </Link>
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center justify-center px-6 py-3 bg-muted hover:bg-accent text-foreground/80 font-medium rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+      </main>
+      <Footer />
+    </>
+  )
 }
