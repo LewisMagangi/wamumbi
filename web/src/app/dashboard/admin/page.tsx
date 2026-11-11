@@ -64,7 +64,7 @@ function Inbox() {
       ) : (
         <ul className="divide-y rounded-lg border">
           {data.map((q) => {
-            const p = q.payload as Record<string, string | undefined>
+            const p = q.payload
             return (
               <li key={q.id} className="p-5">
                 <details>
