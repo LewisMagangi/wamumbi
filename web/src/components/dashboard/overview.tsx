@@ -155,7 +155,7 @@ function RecentDonations() {
 function Campaigns() {
   const { data, isLoading } = trpc.dashboard.getActiveCampaigns.useQuery()
   return (
-    <Panel title="Active campaigns" href="/campaigns">
+    <Panel title="Active campaigns" href="/dashboard/campaigns">
       {isLoading ? <Skeleton /> : !data?.length ? <Empty>No active campaigns.</Empty> : (
         <ul className="divide-y">
           {data.slice(0, 4).map((c) => {
@@ -230,7 +230,7 @@ function MyGiving() {
 }
 
 const ACTIONS: { label: string; href: string; anyOf: Permission[] }[] = [
-  { label: "New campaign", href: "/campaigns", anyOf: ["campaigns:create"] },
+  { label: "New campaign", href: "/dashboard/campaigns", anyOf: ["campaigns:create"] },
   { label: "Create event", href: "/dashboard/events", anyOf: ["events:create"] },
   { label: "Add volunteer", href: "/volunteers", anyOf: ["volunteers:manage"] },
   { label: "Upload photos", href: "/dashboard/admin?tab=uploads", anyOf: ["media:upload", "media:upload_restricted"] },

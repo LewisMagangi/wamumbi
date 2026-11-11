@@ -1,887 +1,290 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Loader2, X, MapPin, Users, DollarSign, Clock, Eye, Edit } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { trpc } from '@/app/_trpc/client';
+"use client"
 
-interface EventFormData {
-  title: string;
-  description: string;
-  eventDate: string;
-  eventTime: string;
-  capacity: number;
-  ticketPrice: number;
-  currencyId: number;
-  categoryId: number;
-  imageUrl: string;
-  registrationDeadline: string;
-  location: string;
+import { useMemo, useState, type FormEvent } from "react"
+import Link from "next/link"
+import { format, isPast } from "date-fns"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, Select, TextArea } from "@/components/forms/fields"
+import { trpc } from "@/app/_trpc/client"
+import { useAuth } from "@/contexts/AuthContext"
+import {
+  Empty, ErrorText, Facts, Panel, Progress, Sheet, Skeleton, StatStrip, Status, Toolbar, fmt,
+} from "@/components/dashboard/ui"
+
+type Form = {
+  title: string; description: string; date: string; time: string; capacity: string; ticketPrice: string
+  currencyId: string; categoryId: string; statusId: string; imageUrl: string; registrationDeadline: string
 }
+const blank = (): Form => ({
+  title: "", description: "", date: "", time: "09:00", capacity: "50", ticketPrice: "0",
+  currencyId: "", categoryId: "", statusId: "", imageUrl: "", registrationDeadline: "",
+})
+const ymd = (d: Date) => format(d, "yyyy-MM-dd")
 
-export const EventsView: React.FC = () => {
-  const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<EventFormData>({
-    title: '',
-    description: '',
-    eventDate: '',
-    eventTime: '09:00',
-    capacity: 50,
-    ticketPrice: 0,
-    currencyId: 1,
-    categoryId: 1,
-    imageUrl: '',
-    registrationDeadline: '',
-    location: ''
-  });
+/**
+ * Event management: create and edit events, see who registered. The public
+ * /events page shows upcoming events and the photo-led past events.
+ */
+export function EventsView() {
+  const { has } = useAuth()
+  const { data, isLoading, error } = trpc.events.getAll.useQuery()
+  const [q, setQ] = useState("")
+  const [when, setWhen] = useState<"upcoming" | "past">("upcoming")
+  const [editing, setEditing] = useState<number | "new" | null>(null)
+  const [openId, setOpenId] = useState<number | null>(null)
 
-  // TanStack Query - Fetch all events
-  const { data: events, isLoading, error: fetchError } = trpc.events.getAll.useQuery();
+  const all = useMemo(() => data ?? [], [data])
+  const upcoming = all.filter((e) => !isPast(new Date(e.eventDate)))
+  const rows = useMemo(() => {
+    const list = all.filter((e) => (when === "upcoming") === !isPast(new Date(e.eventDate)))
+      .filter((e) => !q || `${e.title} ${e.category} ${e.location}`.toLowerCase().includes(q.toLowerCase()))
+    return list.sort((a, b) => {
+      const d = new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+      return when === "upcoming" ? d : -d
+    })
+  }, [all, q, when])
 
-  // TanStack Query - Fetch event details
-  const { data: eventDetails, isLoading: isLoadingDetails } = trpc.events.getById.useQuery(
-    { id: selectedEventId! },
-    { enabled: !!selectedEventId && (showDetailModal || showEditModal) }
-  );
-
-  // TanStack Query - Fetch categories for event creation
-  const { data: categories } = trpc.events.getCategories.useQuery();
-
-  // TanStack Query utils for cache invalidation
-  const utils = trpc.useUtils();
-
-  // TanStack Mutation - Create event
-  const createEventMutation = trpc.events.create.useMutation({
-    onSuccess: () => {
-      utils.events.getAll.invalidate();
-      setShowAddModal(false);
-      resetForm();
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err.message);
-    }
-  });
-
-  // TanStack Mutation - Update event
-  const updateEventMutation = trpc.events.update.useMutation({
-    onSuccess: () => {
-      utils.events.getAll.invalidate();
-      utils.events.getById.invalidate({ id: selectedEventId! });
-      setShowEditModal(false);
-      resetForm();
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err.message);
-    }
-  });
-
-  // Populate form when editing
-  useEffect(() => {
-    if (showEditModal && eventDetails) {
-      const eventDate = new Date(eventDetails.eventDate);
-      setFormData({
-        title: eventDetails.title,
-        description: eventDetails.description,
-        eventDate: eventDate.toISOString().split('T')[0],
-        eventTime: eventDate.toTimeString().slice(0, 5),
-        capacity: eventDetails.capacity,
-        ticketPrice: eventDetails.ticketPrice,
-        currencyId: eventDetails.currencyId || 1,
-        categoryId: eventDetails.categoryId || 1,
-        imageUrl: eventDetails.imageUrl || '',
-        registrationDeadline: eventDetails.registrationDeadline 
-          ? new Date(eventDetails.registrationDeadline).toISOString().split('T')[0] 
-          : '',
-        location: ''
-      });
-    }
-  }, [showEditModal, eventDetails]);
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      eventDate: '',
-      eventTime: '09:00',
-      capacity: 50,
-      ticketPrice: 0,
-      currencyId: 1,
-      categoryId: 1,
-      imageUrl: '',
-      registrationDeadline: '',
-      location: ''
-    });
-  };
-
-  const handleCreateEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Combine date and time
-    const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime}`);
-    const registrationDeadline = formData.registrationDeadline 
-      ? new Date(formData.registrationDeadline) 
-      : undefined;
-
-    createEventMutation.mutate({
-      title: formData.title,
-      description: formData.description,
-      eventDate: eventDateTime,
-      capacity: formData.capacity,
-      ticketPrice: formData.ticketPrice,
-      currencyId: formData.currencyId,
-      categoryId: formData.categoryId,
-      imageUrl: formData.imageUrl || undefined,
-      registrationDeadline
-    });
-  };
-
-  const handleUpdateEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!selectedEventId) return;
-
-    // Combine date and time
-    const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime}`);
-    const registrationDeadline = formData.registrationDeadline 
-      ? new Date(formData.registrationDeadline) 
-      : undefined;
-
-    updateEventMutation.mutate({
-      id: selectedEventId,
-      title: formData.title,
-      description: formData.description,
-      eventDate: eventDateTime,
-      capacity: formData.capacity,
-      ticketPrice: formData.ticketPrice,
-      categoryId: formData.categoryId,
-      imageUrl: formData.imageUrl || undefined,
-      registrationDeadline
-    });
-  };
-
-  const handleEditEvent = (eventId: number) => {
-    setSelectedEventId(eventId);
-    setShowDetailModal(false);
-    setShowEditModal(true);
-  };
-
-  const handleViewDetails = (eventId: number) => {
-    setSelectedEventId(eventId);
-    setShowDetailModal(true);
-  };
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (date: Date | string) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (fetchError) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-destructive">Error loading events: {fetchError.message}</p>
-      </div>
-    );
-  }
+  const seats = upcoming.reduce((s, e) => s + e.capacity, 0)
+  const registered = upcoming.reduce((s, e) => s + e.registrationsCount, 0)
+  const next = [...upcoming].sort((a, b) => +new Date(a.eventDate) - +new Date(b.eventDate))[0]
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Event Management</h2>
-          <p className="text-muted-foreground mt-1">Plan and manage charity events</p>
+          <h1 className="font-display text-3xl tracking-tight md:text-4xl">Manage events</h1>
+          <p className="mt-2 text-muted-foreground">
+            Plan outreach days and see who&apos;s coming. <Link href="/events" className="underline underline-offset-4 hover:text-foreground">View the public page</Link>
+          </p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Event</span>
-        </button>
+        {has("events:create") && <Button onClick={() => setEditing("new")}><Plus /> New event</Button>}
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-brand" />
-          <span className="ml-2 text-muted-foreground">Loading events...</span>
-        </div>
-      ) : events && events.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.map((event) => {
-            const percentage = Math.round((event.registrationsCount / event.capacity) * 100);
+      <StatStrip
+        loading={isLoading}
+        stats={[
+          { label: "Upcoming events", value: fmt(upcoming.length) },
+          { label: "Registered", value: fmt(registered), hint: seats ? `${Math.round((registered / seats) * 100)}% of ${fmt(seats)} places` : undefined },
+          { label: "Next event", value: next ? format(new Date(next.eventDate), "d MMM") : "None", hint: next?.title },
+        ]}
+      />
 
-            return (
-              <div key={event.id} className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-brand" />
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    event.status === 'scheduled'
-                      ? 'bg-info/15 text-info'
-                      : event.status === 'ongoing'
-                      ? 'bg-success/15 text-success'
-                      : event.status === 'completed'
-                      ? 'bg-muted text-foreground'
-                      : 'bg-destructive/15 text-destructive'
-                  }`}>
-                    {event.status}
-                  </span>
-                </div>
-
-                <h3 className="font-bold text-lg mb-2">{event.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{event.description}</p>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Date</span>
-                    <span className="font-medium">{formatDate(event.eventDate)}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Time</span>
-                    <span className="font-medium">{formatTime(event.eventDate)}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Location</span>
-                    <span className="font-medium">{event.location || 'TBD'}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Capacity</span>
-                    <span className="font-medium">
-                      {event.registrationsCount} / {event.capacity}
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-muted-foreground">Registration</span>
-                      <span className="font-medium">{percentage}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${percentage}%` }}
-                        role="progressbar"
-                        aria-valuenow={percentage}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label={`Registration progress: ${percentage}%`}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleViewDetails(event.id)}
-                  className="w-full mt-4 px-4 py-2 border border-input rounded-lg hover:bg-accent text-sm font-medium transition-colors flex items-center justify-center"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-card rounded-xl shadow-sm border border-border">
-          <Calendar className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
-          <p className="text-muted-foreground">No events found</p>
-          <p className="text-sm text-muted-foreground mt-1">Create your first event to get started</p>
-        </div>
-      )}
-
-      {/* Add Event Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-foreground">Add New Event</h2>
+      <Panel>
+        <Toolbar count={rows.length}>
+          <div role="group" aria-label="Show" className="inline-flex rounded-md border p-0.5">
+            {(["upcoming", "past"] as const).map((w) => (
               <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setError(null);
-                  resetForm();
-                }}
-                className="text-muted-foreground/70 hover:text-foreground"
-                title="Close modal"
-                aria-label="Close add event modal"
+                key={w}
+                aria-pressed={when === w}
+                onClick={() => setWhen(w)}
+                className={`rounded px-3 py-1.5 text-sm capitalize transition-colors duration-fast ${when === w ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               >
-                <X className="w-6 h-6" />
+                {w}
               </button>
-            </div>
-
-            <div className="p-6">
-              {error && (
-                <div className="mb-4 p-4 bg-destructive/15 border border-destructive/40 rounded-lg">
-                  <p className="text-destructive">{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleCreateEvent} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    Event Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    placeholder="Enter event title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    placeholder="Describe your event..."
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Event Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.eventDate}
-                      onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      title="Event date"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Event Time *
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.eventTime}
-                      onChange={(e) => setFormData({...formData, eventTime: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      title="Event time"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Capacity *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={formData.capacity}
-                      onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 1})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      title="Event capacity"
-                      placeholder="50"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Ticket Price
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.ticketPrice}
-                      onChange={(e) => setFormData({...formData, ticketPrice: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      placeholder="0 for free event"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value)})}
-                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    title="Event category"
-                    required
-                  >
-                    {categories?.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    )) || (
-                      <>
-                        <option value={1}>Fundraising</option>
-                        <option value={2}>Community</option>
-                        <option value={3}>Awareness</option>
-                        <option value={4}>Volunteer</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    Registration Deadline
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.registrationDeadline}
-                    onChange={(e) => setFormData({...formData, registrationDeadline: e.target.value})}
-                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    title="Registration deadline date"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground/80 mb-2">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    title="Event image URL"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="submit"
-                    disabled={createEventMutation.isPending}
-                    className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-brand/20 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
-                  >
-                    {createEventMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Create Event'
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setError(null);
-                      resetForm();
-                    }}
-                    className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
+            ))}
           </div>
-        </div>
-      )}
+          <label htmlFor="event-search" className="sr-only">Search events</label>
+          <Input id="event-search" placeholder="Search title, category or place" value={q} onChange={(e) => setQ(e.target.value)} className="sm:max-w-xs" />
+        </Toolbar>
 
-      {/* Event Detail Modal */}
-      {showDetailModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-foreground">Event Details</h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedEventId(null);
-                }}
-                className="text-muted-foreground/70 hover:text-foreground"
-                title="Close modal"
-                aria-label="Close event details modal"
-              >
-                <X className="w-6 h-6" />
-              </button>
+        {error ? <ErrorText>{error.message}</ErrorText>
+          : isLoading ? <Skeleton />
+          : !rows.length ? <Empty>{q ? "No events match your search." : when === "upcoming" ? "Nothing scheduled. Create an event to open registrations." : "No past events recorded."}</Empty>
+          : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground">
+                  <tr className="border-b">
+                    <th className="px-5 py-2.5 font-normal">Date</th>
+                    <th className="px-5 py-2.5 font-normal">Event</th>
+                    <th className="px-5 py-2.5 font-normal">Status</th>
+                    <th className="w-48 px-5 py-2.5 font-normal">Registrations</th>
+                    <th className="px-5 py-2.5 text-right font-normal">Ticket</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {rows.map((e) => (
+                    <tr key={e.id} className="cursor-pointer hover:bg-accent/40" onClick={() => setOpenId(e.id)}>
+                      <td className="whitespace-nowrap px-5 py-3 tabular-nums">
+                        <p>{format(new Date(e.eventDate), "d MMM yyyy")}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(e.eventDate), "HH:mm")}</p>
+                      </td>
+                      <td className="max-w-[18rem] px-5 py-3">
+                        <button className="block max-w-full truncate text-left hover:underline" onClick={(ev) => { ev.stopPropagation(); setOpenId(e.id) }}>{e.title}</button>
+                        <p className="truncate text-xs text-muted-foreground">{e.category} · {e.location}</p>
+                      </td>
+                      <td className="px-5 py-3"><Status value={e.status} /></td>
+                      <td className="px-5 py-3">
+                        <Progress value={e.capacity ? (e.registrationsCount / e.capacity) * 100 : 0} label={`${e.registrationsCount} of ${e.capacity} places taken`} />
+                        <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">{e.registrationsCount} of {e.capacity}</p>
+                      </td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right tabular-nums">{e.ticketPrice ? `${e.currency} ${fmt(e.ticketPrice)}` : "Free"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
+      </Panel>
 
-            <div className="p-6">
-              {isLoadingDetails ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-brand" />
-                  <span className="ml-2 text-muted-foreground">Loading event details...</span>
-                </div>
-              ) : eventDetails ? (
-                <>
-                  {/* Event Header */}
-                  <div className="mb-6">
-                    {eventDetails.imageUrl && (
-                      <div className="h-48 bg-brand rounded-lg mb-4 flex items-center justify-center">
-                        <Calendar className="w-16 h-16 text-background opacity-50" />
-                      </div>
-                    )}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-2xl font-bold text-foreground">{eventDetails.title}</h3>
-                        <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                          eventDetails.status === 'scheduled'
-                            ? 'bg-info/15 text-info'
-                            : eventDetails.status === 'ongoing'
-                            ? 'bg-success/15 text-success'
-                            : 'bg-muted text-foreground'
-                        }`}>
-                          {eventDetails.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Description</h4>
-                    <p className="text-muted-foreground">{eventDetails.description}</p>
-                  </div>
-
-                  {/* Event Details Grid */}
-                  <div className="grid grid-cols-2 gap-6 mb-6">
-                    <div className="flex items-start">
-                      <Calendar className="w-5 h-5 text-brand mr-3 mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Date & Time</p>
-                        <p className="font-semibold text-foreground">{formatDate(eventDetails.eventDate)}</p>
-                        <p className="text-sm text-muted-foreground">{formatTime(eventDetails.eventDate)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <MapPin className="w-5 h-5 text-brand mr-3 mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Location</p>
-                        <p className="font-semibold text-foreground">
-                          {eventDetails.address 
-                            ? `${eventDetails.address.street || ''} ${eventDetails.address.city || ''} ${eventDetails.address.country || ''}`.trim() || 'TBD'
-                            : 'TBD'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <Users className="w-5 h-5 text-brand mr-3 mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Capacity</p>
-                        <p className="font-semibold text-foreground">
-                          {eventDetails.registrationsCount} / {eventDetails.capacity} registered
-                        </p>
-                        <p className="text-sm text-success">
-                          {eventDetails.availableSpots} spots available
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <DollarSign className="w-5 h-5 text-brand mr-3 mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Ticket Price</p>
-                        <p className="font-semibold text-foreground">
-                          {eventDetails.ticketPrice > 0 
-                            ? `${eventDetails.currency} ${eventDetails.ticketPrice.toFixed(2)}` 
-                            : 'Free'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Registration Deadline */}
-                  {eventDetails.registrationDeadline && (
-                    <div className="flex items-start mb-6">
-                      <Clock className="w-5 h-5 text-brand mr-3 mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Registration Deadline</p>
-                        <p className="font-semibold text-foreground">
-                          {formatDate(eventDetails.registrationDeadline)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Category */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Category</h4>
-                    <span className="px-3 py-1 bg-brand/10 text-brand rounded-full text-sm">
-                      {eventDetails.category}
-                    </span>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4 border-t border-border">
-                    <button
-                      onClick={() => handleEditEvent(eventDetails.id)}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Event
-                    </button>
-                    <button
-                      onClick={() => router.push(`/events/${eventDetails.id}`)}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg"
-                    >
-                      View Full Details
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowDetailModal(false);
-                        setSelectedEventId(null);
-                      }}
-                      className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-center text-muted-foreground">Event not found</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Event Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-foreground">Edit Event</h2>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedEventId(null);
-                  setError(null);
-                  resetForm();
-                }}
-                className="text-muted-foreground/70 hover:text-foreground"
-                title="Close modal"
-                aria-label="Close edit event modal"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {isLoadingDetails ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-brand" />
-                  <span className="ml-2 text-muted-foreground">Loading event...</span>
-                </div>
-              ) : (
-                <>
-                  {error && (
-                    <div className="mb-4 p-4 bg-destructive/15 border border-destructive/40 rounded-lg">
-                      <p className="text-destructive">{error}</p>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleUpdateEvent} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        Event Title *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="Enter event title"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        Description *
-                      </label>
-                      <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        rows={4}
-                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="Describe the event"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="eventDate" className="block text-sm font-medium text-foreground/80 mb-2">
-                          Event Date *
-                        </label>
-                        <input
-                          id="eventDate"
-                          type="date"
-                          value={formData.eventDate}
-                          onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
-                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                          title="Event Date"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="eventTime" className="block text-sm font-medium text-foreground/80 mb-2">
-                          Event Time *
-                        </label>
-                        <input
-                          id="eventTime"
-                          type="time"
-                          value={formData.eventTime}
-                          onChange={(e) => setFormData({...formData, eventTime: e.target.value})}
-                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                          title="Event Time"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="capacity" className="block text-sm font-medium text-foreground/80 mb-2">
-                          Capacity *
-                        </label>
-                        <input
-                          id="capacity"
-                          type="number"
-                          value={formData.capacity}
-                          onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 0})}
-                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                          min="1"
-                          title="Event Capacity"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="ticketPrice" className="block text-sm font-medium text-foreground/80 mb-2">
-                          Ticket Price
-                        </label>
-                        <input
-                          id="ticketPrice"
-                          type="number"
-                          value={formData.ticketPrice}
-                          onChange={(e) => setFormData({...formData, ticketPrice: parseFloat(e.target.value) || 0})}
-                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                          min="0"
-                          step="0.01"
-                          title="Ticket Price"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="categoryId" className="block text-sm font-medium text-foreground/80 mb-2">
-                        Category
-                      </label>
-                      <select
-                        id="categoryId"
-                        value={formData.categoryId}
-                        onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value)})}
-                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                        title="Event Category"
-                      >
-                        {categories?.map((cat) => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="registrationDeadline" className="block text-sm font-medium text-foreground/80 mb-2">
-                        Registration Deadline
-                      </label>
-                      <input
-                        id="registrationDeadline"
-                        type="date"
-                        value={formData.registrationDeadline}
-                        onChange={(e) => setFormData({...formData, registrationDeadline: e.target.value})}
-                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                        title="Registration Deadline"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="imageUrl" className="block text-sm font-medium text-foreground/80 mb-2">
-                        Image URL
-                      </label>
-                      <input
-                        id="imageUrl"
-                        type="url"
-                        value={formData.imageUrl}
-                        onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                        title="Image URL"
-                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-
-                    <div className="flex gap-4 pt-4">
-                      <button
-                        type="submit"
-                        disabled={updateEventMutation.isPending}
-                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        {updateEventMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Update Event'
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowEditModal(false);
-                          setSelectedEventId(null);
-                          setError(null);
-                          resetForm();
-                        }}
-                        className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <EventForm target={editing} onClose={() => setEditing(null)} />
+      <EventDetail
+        id={openId}
+        onClose={() => setOpenId(null)}
+        onEdit={has("events:update") ? (id) => { setOpenId(null); setEditing(id) } : undefined}
+        showRegistrations={has("registrations:manage") || has("registrations:manage_team") || has("events:update")}
+      />
     </div>
-  );
-};
+  )
+}
+
+function EventForm({ target, onClose }: { target: number | "new" | null; onClose: () => void }) {
+  const isNew = target === "new"
+  const id = typeof target === "number" ? target : null
+  const { has } = useAuth()
+  const utils = trpc.useUtils()
+  const open = target !== null
+  const { data: categories = [] } = trpc.events.getCategories.useQuery(undefined, { enabled: open })
+  const { data: currencies = [] } = trpc.donations.getCurrencies.useQuery(undefined, { enabled: open })
+  const { data: statuses = [] } = trpc.events.getStatuses.useQuery(undefined, { enabled: open && !isNew })
+  const { data: existing } = trpc.events.getById.useQuery({ id: id ?? 0 }, { enabled: id !== null })
+  const [form, setForm] = useState<Form>(blank)
+  const [loadedFor, setLoadedFor] = useState<number | "new" | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+
+  // Fill the form once per opened target (new, or an event once it has loaded).
+  if (open && loadedFor !== target && (isNew || existing?.id === id)) {
+    if (isNew) setForm(blank())
+    else if (existing) {
+      const d = new Date(existing.eventDate)
+      setForm({
+        title: existing.title, description: existing.description, date: ymd(d), time: format(d, "HH:mm"),
+        capacity: String(existing.capacity), ticketPrice: String(existing.ticketPrice),
+        currencyId: String(existing.currencyId), categoryId: String(existing.categoryId), statusId: String(existing.statusId),
+        imageUrl: existing.imageUrl ?? "",
+        registrationDeadline: existing.registrationDeadline ? ymd(new Date(existing.registrationDeadline)) : "",
+      })
+    }
+    setLoadedFor(target)
+    setErr(null)
+  }
+
+  const done = () => { utils.events.getAll.invalidate(); utils.events.getById.invalidate(); setLoadedFor(null); onClose() }
+  const create = trpc.events.create.useMutation({ onSuccess: done, onError: (e) => setErr(e.message) })
+  const update = trpc.events.update.useMutation({ onSuccess: done, onError: (e) => setErr(e.message) })
+  const pending = create.isPending || update.isPending
+  const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const close = () => { setLoadedFor(null); onClose() }
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    setErr(null)
+    const base = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      eventDate: new Date(`${form.date}T${form.time || "09:00"}`),
+      capacity: Number(form.capacity),
+      ticketPrice: Number(form.ticketPrice) || 0,
+      categoryId: Number(form.categoryId),
+      imageUrl: form.imageUrl || undefined,
+      registrationDeadline: form.registrationDeadline ? new Date(`${form.registrationDeadline}T23:59`) : undefined,
+    }
+    if (isNew) create.mutate({ ...base, currencyId: Number(form.currencyId) })
+    else if (id) update.mutate({ ...base, id, statusId: form.statusId ? Number(form.statusId) : undefined })
+  }
+
+  const canPublish = has("events:publish")
+  return (
+    <Sheet
+      open={open}
+      onClose={close}
+      title={isNew ? "New event" : "Edit event"}
+      description={isNew ? (canPublish ? "Registrations open as soon as you save it." : "An approver reviews it before it goes live.") : existing?.title}
+      footer={<><Button variant="ghost" onClick={close}>Cancel</Button><Button type="submit" form="event-form" disabled={pending || (!isNew && loadedFor !== target)}>{pending ? "Saving…" : isNew ? (canPublish ? "Create event" : "Submit for review") : "Save changes"}</Button></>}
+    >
+      {!isNew && loadedFor !== target ? <Skeleton rows={6} /> : (
+        <form id="event-form" onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
+          <Field className="sm:col-span-2" label="Title" name="title" required value={form.title} onChange={set("title")} placeholder="Christmas visit to Kabete" />
+          <TextArea className="sm:col-span-2" label="Description" name="description" required value={form.description} onChange={set("description")} hint="What happens, who it's for, what to bring." />
+          <Field label="Date" name="date" type="date" required value={form.date} onChange={set("date")} />
+          <Field label="Start time" name="time" type="time" required value={form.time} onChange={set("time")} />
+          <Field label="Places" name="capacity" type="number" min={1} required value={form.capacity} onChange={set("capacity")} />
+          <Field label="Registration closes" name="registrationDeadline" type="date" max={form.date || undefined} value={form.registrationDeadline} onChange={set("registrationDeadline")} />
+          <Select label="Category" name="categoryId" required value={form.categoryId} onChange={set("categoryId")} options={categories.map((c) => ({ value: String(c.id), label: c.name }))} />
+          {isNew ? (
+            <Select label="Currency" name="currencyId" required value={form.currencyId} onChange={set("currencyId")} options={currencies.map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))} />
+          ) : (
+            <Select label="Status" name="statusId" required value={form.statusId} onChange={set("statusId")} options={statuses.map((s) => ({ value: String(s.id), label: s.name.replace(/_/g, " ") }))} hint={canPublish ? undefined : "Making it live sends it for approval."} />
+          )}
+          <Field label="Ticket price" name="ticketPrice" type="number" min={0} value={form.ticketPrice} onChange={set("ticketPrice")} hint="0 for a free event." />
+          <Field label="Image URL" name="imageUrl" type="url" value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://…" />
+          {err && <p role="alert" className="text-sm text-destructive sm:col-span-2">{err}</p>}
+        </form>
+      )}
+    </Sheet>
+  )
+}
+
+function EventDetail({ id, onClose, onEdit, showRegistrations }: { id: number | null; onClose: () => void; onEdit?: (id: number) => void; showRegistrations: boolean }) {
+  const { data: e, isLoading, error } = trpc.events.getById.useQuery({ id: id ?? 0 }, { enabled: id !== null })
+  const place = e?.address ? [e.address.street, e.address.city, e.address.country].filter(Boolean).join(", ") : "To be confirmed"
+
+  return (
+    <Sheet
+      open={id !== null}
+      onClose={onClose}
+      title={e?.title ?? "Event"}
+      description={e ? format(new Date(e.eventDate), "EEEE d MMMM yyyy, HH:mm") : undefined}
+      footer={onEdit && e ? <Button variant="outline" onClick={() => onEdit(e.id)}>Edit event</Button> : undefined}
+    >
+      {error ? <p className="text-sm text-destructive">{error.message}</p>
+        : isLoading || !e ? <Skeleton rows={6} />
+        : (
+          <div className="space-y-8">
+            <Status value={e.status} />
+            <p className="leading-relaxed text-muted-foreground">{e.description}</p>
+
+            <div>
+              <div className="flex items-end justify-between">
+                <p className="font-display text-3xl tabular-nums">{e.registrationsCount}<span className="text-lg text-muted-foreground"> / {e.capacity}</span></p>
+                <p className="text-sm text-muted-foreground">{e.availableSpots > 0 ? `${e.availableSpots} places left` : "Full"}</p>
+              </div>
+              <div className="mt-3"><Progress value={e.capacity ? (e.registrationsCount / e.capacity) * 100 : 0} label="Places taken" /></div>
+            </div>
+
+            <Facts items={[
+              { label: "Where", value: place },
+              { label: "Category", value: e.category },
+              { label: "Ticket", value: e.ticketPrice ? `${e.currency} ${fmt(e.ticketPrice)}` : "Free" },
+              { label: "Registration closes", value: e.registrationDeadline ? format(new Date(e.registrationDeadline), "d MMM yyyy") : "When full" },
+              ...(e.creator ? [{ label: "Created by", value: e.creator.name || e.creator.email }] : []),
+            ]} />
+
+            {showRegistrations && (
+              <div>
+                <h3 className="font-sans text-sm font-medium">Registrations</h3>
+                {e.registrations.length ? (
+                  <ul className="mt-3 divide-y rounded-lg border">
+                    {e.registrations.map((r) => (
+                      <li key={r.id} className="flex items-center justify-between gap-4 px-4 py-2.5 text-sm">
+                        <div className="min-w-0">
+                          <p className="truncate">{r.userName || r.userEmail}</p>
+                          <p className="truncate text-xs text-muted-foreground">{r.userEmail} · {format(new Date(r.registrationDate), "d MMM")}</p>
+                        </div>
+                        <Status value={r.status} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="mt-2 text-sm text-muted-foreground">No one has registered yet.</p>}
+                {e.registrationsCount > e.registrations.length && (
+                  <p className="mt-2 text-xs text-muted-foreground">Showing the latest {e.registrations.length} of {e.registrationsCount}.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+    </Sheet>
+  )
+}
