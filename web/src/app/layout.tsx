@@ -2,6 +2,7 @@ import { type Metadata, type Viewport } from "next"
 import { ClerkProvider } from "@clerk/nextjs"
 import localFont from "next/font/local"
 import "./globals.css"
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 import TrpcProvider from "@/components/trpc-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 
@@ -30,12 +31,22 @@ const display = localFont({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Wamumbi Foundation · Touching hearts",
     template: "%s · Wamumbi Foundation",
   },
-  description:
-    "Wamumbi Foundation supports orphaned and vulnerable children and their guardians in Kenya through community outreach, education and care.",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  // Link previews on WhatsApp, Facebook, X and LinkedIn. The image is app/opengraph-image.jpg.
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_KE",
+    title: "Wamumbi Foundation · Touching hearts",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary_large_image" },
 }
 
 export const viewport: Viewport = {
