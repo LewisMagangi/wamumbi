@@ -1,9 +1,9 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, permissionProcedure, redactOutput, scopeToLedTeams, router } from "./trpc";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const volunteersRouter = router({
-  getAll: procedure
+  getAll: permissionProcedure("volunteers:view", "volunteers:view_team", "volunteers:view_anonymized").use(scopeToLedTeams(["volunteers:view", "volunteers:view_anonymized"])).use(redactOutput("people", ["volunteers:view", "volunteers:view_team"]))
     .meta({
       openapi: {
         method: 'GET',
@@ -81,7 +81,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  getById: procedure
+  getById: permissionProcedure("volunteers:view", "volunteers:view_team", "volunteers:view_anonymized").use(scopeToLedTeams(["volunteers:view", "volunteers:view_anonymized"])).use(redactOutput("people", ["volunteers:view", "volunteers:view_team"]))
     .meta({
       openapi: {
         method: 'GET',
@@ -197,7 +197,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  create: procedure
+  create: permissionProcedure("volunteers:manage")
     .meta({
       openapi: {
         method: 'POST',
@@ -320,7 +320,7 @@ export const volunteersRouter = router({
   }),
 
   // Create a volunteer with a new user in one transaction
-  createWithUser: procedure
+  createWithUser: permissionProcedure("volunteers:manage")
     .meta({
       openapi: {
         method: 'POST',
@@ -470,7 +470,7 @@ export const volunteersRouter = router({
       }
     }),
 
-  update: procedure
+  update: permissionProcedure("volunteers:manage")
     .meta({
       openapi: {
         method: 'PUT',
@@ -562,7 +562,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("volunteers:manage")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -586,7 +586,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  logActivity: procedure
+  logActivity: permissionProcedure("volunteers:manage", "volunteers:coordinate")
     .meta({
       openapi: {
         method: 'POST',
@@ -655,7 +655,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  getSkills: procedure
+  getSkills: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -686,7 +686,7 @@ export const volunteersRouter = router({
     }
   }),
 
-  getStatuses: procedure
+  getStatuses: publicProcedure
     .meta({
       openapi: {
         method: 'GET',

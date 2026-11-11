@@ -9,6 +9,9 @@ import { eventsRouter } from "./events-router"
 import { volunteersRouter } from "./volunteers-router"
 import { blogPostsRouter } from "./blog-posts-router"
 import { partnershipRouter } from "./partnership-router"
+import { adminRouter } from "./admin-router"
+import { mediaRouter } from "./media-router"
+import { inquiriesRouter } from "./inquiries-router"
 
 export const appRouter = router({
   auth: authRouter,
@@ -20,6 +23,9 @@ export const appRouter = router({
   volunteers: volunteersRouter,
   blogPosts: blogPostsRouter,
   partnership: partnershipRouter,
+  admin: adminRouter,
+  media: mediaRouter,
+  inquiries: inquiriesRouter,
 })
 
 export type AppRouter = typeof appRouter

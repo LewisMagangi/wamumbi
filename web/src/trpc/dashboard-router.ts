@@ -1,9 +1,9 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, protectedProcedure, permissionProcedure, redactOutput, router } from "./trpc";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const dashboardRouter = router({
-  getStats: procedure
+  getStats: permissionProcedure("dashboard:view")
     .meta({
       openapi: {
         method: 'GET',
@@ -93,7 +93,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getRecentDonations: procedure
+  getRecentDonations: permissionProcedure("donations:view_all", "donations:view_aggregate").use(redactOutput("donor", []))
     .meta({
       openapi: {
         method: 'GET',
@@ -163,7 +163,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getUpcomingEvents: procedure
+  getUpcomingEvents: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -227,7 +227,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getActiveCampaigns: procedure
+  getActiveCampaigns: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -303,7 +303,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getActiveProjects: procedure
+  getActiveProjects: permissionProcedure("dashboard:view")
     .meta({
       openapi: {
         method: 'GET',
@@ -371,7 +371,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getRecentBlogPosts: procedure
+  getRecentBlogPosts: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -436,7 +436,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getNotifications: procedure
+  getNotifications: protectedProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -484,7 +484,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getMonthlyDonationTrend: procedure
+  getMonthlyDonationTrend: permissionProcedure("reports:view_financial", "donations:view_aggregate")
     .meta({
       openapi: {
         method: 'GET',
@@ -549,7 +549,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getCampaignPerformance: procedure
+  getCampaignPerformance: permissionProcedure("reports:view_financial", "donations:view_aggregate")
     .meta({
       openapi: {
         method: 'GET',

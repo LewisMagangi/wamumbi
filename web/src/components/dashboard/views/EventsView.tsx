@@ -196,7 +196,7 @@ export const EventsView: React.FC = () => {
   if (fetchError) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600">Error loading events: {fetchError.message}</p>
+        <p className="text-destructive">Error loading events: {fetchError.message}</p>
       </div>
     );
   }
@@ -205,12 +205,12 @@ export const EventsView: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Event Management</h2>
-          <p className="text-gray-600 mt-1">Plan and manage charity events</p>
+          <h2 className="text-2xl font-bold text-foreground">Event Management</h2>
+          <p className="text-muted-foreground mt-1">Plan and manage charity events</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 bg-rose-400 text-white px-4 py-2 rounded-lg hover:bg-rose-500 transition-colors"
+          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Event</span>
@@ -219,8 +219,8 @@ export const EventsView: React.FC = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-          <span className="ml-2 text-gray-600">Loading events...</span>
+          <Loader2 className="w-8 h-8 animate-spin text-brand" />
+          <span className="ml-2 text-muted-foreground">Loading events...</span>
         </div>
       ) : events && events.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,45 +228,45 @@ export const EventsView: React.FC = () => {
             const percentage = Math.round((event.registrationsCount / event.capacity) * 100);
 
             return (
-              <div key={event.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div key={event.id} className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-rose-600" />
+                  <div className="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-brand" />
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     event.status === 'scheduled'
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'bg-info/15 text-info'
                       : event.status === 'ongoing'
-                      ? 'bg-green-100 text-green-800'
+                      ? 'bg-success/15 text-success'
                       : event.status === 'completed'
-                      ? 'bg-gray-100 text-gray-800'
-                      : 'bg-red-100 text-red-800'
+                      ? 'bg-muted text-foreground'
+                      : 'bg-destructive/15 text-destructive'
                   }`}>
                     {event.status}
                   </span>
                 </div>
 
                 <h3 className="font-bold text-lg mb-2">{event.title}</h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{event.description}</p>
 
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Date</span>
+                    <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{formatDate(event.eventDate)}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Time</span>
+                    <span className="text-muted-foreground">Time</span>
                     <span className="font-medium">{formatTime(event.eventDate)}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Location</span>
+                    <span className="text-muted-foreground">Location</span>
                     <span className="font-medium">{event.location || 'TBD'}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Capacity</span>
+                    <span className="text-muted-foreground">Capacity</span>
                     <span className="font-medium">
                       {event.registrationsCount} / {event.capacity}
                     </span>
@@ -274,12 +274,12 @@ export const EventsView: React.FC = () => {
 
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Registration</span>
+                      <span className="text-muted-foreground">Registration</span>
                       <span className="font-medium">{percentage}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-2">
                       <div
-                        className="bg-rose-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{ width: `${percentage}%` }}
                         role="progressbar"
                         aria-valuenow={percentage}
@@ -293,7 +293,7 @@ export const EventsView: React.FC = () => {
 
                 <button
                   onClick={() => handleViewDetails(event.id)}
-                  className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors flex items-center justify-center"
+                  className="w-full mt-4 px-4 py-2 border border-input rounded-lg hover:bg-accent text-sm font-medium transition-colors flex items-center justify-center"
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   View Details
@@ -303,26 +303,26 @@ export const EventsView: React.FC = () => {
           })}
         </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
-          <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No events found</p>
-          <p className="text-sm text-gray-500 mt-1">Create your first event to get started</p>
+        <div className="text-center py-12 bg-card rounded-xl shadow-sm border border-border">
+          <Calendar className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+          <p className="text-muted-foreground">No events found</p>
+          <p className="text-sm text-muted-foreground mt-1">Create your first event to get started</p>
         </div>
       )}
 
       {/* Add Event Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Add New Event</h2>
+          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-foreground">Add New Event</h2>
               <button
                 onClick={() => {
                   setShowAddModal(false);
                   setError(null);
                   resetForm();
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground/70 hover:text-foreground"
                 title="Close modal"
                 aria-label="Close add event modal"
               >
@@ -332,35 +332,35 @@ export const EventsView: React.FC = () => {
 
             <div className="p-6">
               {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800">{error}</p>
+                <div className="mb-4 p-4 bg-destructive/15 border border-destructive/40 rounded-lg">
+                  <p className="text-destructive">{error}</p>
                 </div>
               )}
 
               <form onSubmit={handleCreateEvent} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">
                     Event Title *
                   </label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     placeholder="Enter event title"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">
                     Description *
                   </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     placeholder="Describe your event..."
                     required
                   />
@@ -368,27 +368,27 @@ export const EventsView: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Event Date *
                     </label>
                     <input
                       type="date"
                       value={formData.eventDate}
                       onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                       title="Event date"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Event Time *
                     </label>
                     <input
                       type="time"
                       value={formData.eventTime}
                       onChange={(e) => setFormData({...formData, eventTime: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                       title="Event time"
                       required
                     />
@@ -397,7 +397,7 @@ export const EventsView: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Capacity *
                     </label>
                     <input
@@ -405,14 +405,14 @@ export const EventsView: React.FC = () => {
                       min="1"
                       value={formData.capacity}
                       onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 1})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                       title="Event capacity"
                       placeholder="50"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">
                       Ticket Price
                     </label>
                     <input
@@ -421,20 +421,20 @@ export const EventsView: React.FC = () => {
                       step="0.01"
                       value={formData.ticketPrice}
                       onChange={(e) => setFormData({...formData, ticketPrice: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                       placeholder="0 for free event"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">
                     Category *
                   </label>
                   <select
                     value={formData.categoryId}
                     onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value)})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Event category"
                     required
                   >
@@ -454,27 +454,27 @@ export const EventsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">
                     Registration Deadline
                   </label>
                   <input
                     type="date"
                     value={formData.registrationDeadline}
                     onChange={(e) => setFormData({...formData, registrationDeadline: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Registration deadline date"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground/80 mb-2">
                     Image URL
                   </label>
                   <input
                     type="url"
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
                     title="Event image URL"
                     placeholder="https://example.com/image.jpg"
                   />
@@ -484,7 +484,7 @@ export const EventsView: React.FC = () => {
                   <button
                     type="submit"
                     disabled={createEventMutation.isPending}
-                    className="flex-1 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center"
+                    className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-brand/20 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
                   >
                     {createEventMutation.isPending ? (
                       <>
@@ -502,7 +502,7 @@ export const EventsView: React.FC = () => {
                       setError(null);
                       resetForm();
                     }}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg"
+                    className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
                   >
                     Cancel
                   </button>
@@ -516,15 +516,15 @@ export const EventsView: React.FC = () => {
       {/* Event Detail Modal */}
       {showDetailModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+          <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-foreground">Event Details</h2>
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setSelectedEventId(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground/70 hover:text-foreground"
                 title="Close modal"
                 aria-label="Close event details modal"
               >
@@ -535,27 +535,27 @@ export const EventsView: React.FC = () => {
             <div className="p-6">
               {isLoadingDetails ? (
                 <div className="flex justify-center items-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-                  <span className="ml-2 text-gray-600">Loading event details...</span>
+                  <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                  <span className="ml-2 text-muted-foreground">Loading event details...</span>
                 </div>
               ) : eventDetails ? (
                 <>
                   {/* Event Header */}
                   <div className="mb-6">
                     {eventDetails.imageUrl && (
-                      <div className="h-48 bg-gradient-to-r from-rose-500 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
-                        <Calendar className="w-16 h-16 text-white opacity-50" />
+                      <div className="h-48 bg-brand rounded-lg mb-4 flex items-center justify-center">
+                        <Calendar className="w-16 h-16 text-background opacity-50" />
                       </div>
                     )}
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{eventDetails.title}</h3>
+                        <h3 className="text-2xl font-bold text-foreground">{eventDetails.title}</h3>
                         <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
                           eventDetails.status === 'scheduled'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-info/15 text-info'
                             : eventDetails.status === 'ongoing'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-success/15 text-success'
+                            : 'bg-muted text-foreground'
                         }`}>
                           {eventDetails.status}
                         </span>
@@ -565,26 +565,26 @@ export const EventsView: React.FC = () => {
 
                   {/* Description */}
                   <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
-                    <p className="text-gray-600">{eventDetails.description}</p>
+                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Description</h4>
+                    <p className="text-muted-foreground">{eventDetails.description}</p>
                   </div>
 
                   {/* Event Details Grid */}
                   <div className="grid grid-cols-2 gap-6 mb-6">
                     <div className="flex items-start">
-                      <Calendar className="w-5 h-5 text-rose-600 mr-3 mt-1" />
+                      <Calendar className="w-5 h-5 text-brand mr-3 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-600">Date & Time</p>
-                        <p className="font-semibold text-gray-900">{formatDate(eventDetails.eventDate)}</p>
-                        <p className="text-sm text-gray-600">{formatTime(eventDetails.eventDate)}</p>
+                        <p className="text-sm text-muted-foreground">Date & Time</p>
+                        <p className="font-semibold text-foreground">{formatDate(eventDetails.eventDate)}</p>
+                        <p className="text-sm text-muted-foreground">{formatTime(eventDetails.eventDate)}</p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
-                      <MapPin className="w-5 h-5 text-rose-600 mr-3 mt-1" />
+                      <MapPin className="w-5 h-5 text-brand mr-3 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-600">Location</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm text-muted-foreground">Location</p>
+                        <p className="font-semibold text-foreground">
                           {eventDetails.address 
                             ? `${eventDetails.address.street || ''} ${eventDetails.address.city || ''} ${eventDetails.address.country || ''}`.trim() || 'TBD'
                             : 'TBD'}
@@ -593,23 +593,23 @@ export const EventsView: React.FC = () => {
                     </div>
 
                     <div className="flex items-start">
-                      <Users className="w-5 h-5 text-rose-600 mr-3 mt-1" />
+                      <Users className="w-5 h-5 text-brand mr-3 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-600">Capacity</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm text-muted-foreground">Capacity</p>
+                        <p className="font-semibold text-foreground">
                           {eventDetails.registrationsCount} / {eventDetails.capacity} registered
                         </p>
-                        <p className="text-sm text-green-600">
+                        <p className="text-sm text-success">
                           {eventDetails.availableSpots} spots available
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
-                      <DollarSign className="w-5 h-5 text-rose-600 mr-3 mt-1" />
+                      <DollarSign className="w-5 h-5 text-brand mr-3 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-600">Ticket Price</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm text-muted-foreground">Ticket Price</p>
+                        <p className="font-semibold text-foreground">
                           {eventDetails.ticketPrice > 0 
                             ? `${eventDetails.currency} ${eventDetails.ticketPrice.toFixed(2)}` 
                             : 'Free'}
@@ -621,10 +621,10 @@ export const EventsView: React.FC = () => {
                   {/* Registration Deadline */}
                   {eventDetails.registrationDeadline && (
                     <div className="flex items-start mb-6">
-                      <Clock className="w-5 h-5 text-rose-600 mr-3 mt-1" />
+                      <Clock className="w-5 h-5 text-brand mr-3 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-600">Registration Deadline</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm text-muted-foreground">Registration Deadline</p>
+                        <p className="font-semibold text-foreground">
                           {formatDate(eventDetails.registrationDeadline)}
                         </p>
                       </div>
@@ -633,24 +633,24 @@ export const EventsView: React.FC = () => {
 
                   {/* Category */}
                   <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Category</h4>
-                    <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm">
+                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Category</h4>
+                    <span className="px-3 py-1 bg-brand/10 text-brand rounded-full text-sm">
                       {eventDetails.category}
                     </span>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4 border-t border-gray-200">
+                  <div className="flex gap-4 pt-4 border-t border-border">
                     <button
                       onClick={() => handleEditEvent(eventDetails.id)}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Event
                     </button>
                     <button
                       onClick={() => router.push(`/events/${eventDetails.id}`)}
-                      className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg"
                     >
                       View Full Details
                     </button>
@@ -659,14 +659,14 @@ export const EventsView: React.FC = () => {
                         setShowDetailModal(false);
                         setSelectedEventId(null);
                       }}
-                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg"
+                      className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
                     >
                       Close
                     </button>
                   </div>
                 </>
               ) : (
-                <p className="text-center text-gray-600">Event not found</p>
+                <p className="text-center text-muted-foreground">Event not found</p>
               )}
             </div>
           </div>
@@ -676,9 +676,9 @@ export const EventsView: React.FC = () => {
       {/* Edit Event Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Event</h2>
+          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-foreground">Edit Event</h2>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -686,7 +686,7 @@ export const EventsView: React.FC = () => {
                   setError(null);
                   resetForm();
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground/70 hover:text-foreground"
                 title="Close modal"
                 aria-label="Close edit event modal"
               >
@@ -697,41 +697,41 @@ export const EventsView: React.FC = () => {
             <div className="p-6">
               {isLoadingDetails ? (
                 <div className="flex justify-center items-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-                  <span className="ml-2 text-gray-600">Loading event...</span>
+                  <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                  <span className="ml-2 text-muted-foreground">Loading event...</span>
                 </div>
               ) : (
                 <>
                   {error && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-red-800">{error}</p>
+                    <div className="mb-4 p-4 bg-destructive/15 border border-destructive/40 rounded-lg">
+                      <p className="text-destructive">{error}</p>
                     </div>
                   )}
 
                   <form onSubmit={handleUpdateEvent} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         Event Title *
                       </label>
                       <input
                         type="text"
                         value={formData.title}
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="Enter event title"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground/80 mb-2">
                         Description *
                       </label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                         rows={4}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="Describe the event"
                         required
                       />
@@ -739,7 +739,7 @@ export const EventsView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="eventDate" className="block text-sm font-medium text-foreground/80 mb-2">
                           Event Date *
                         </label>
                         <input
@@ -747,13 +747,13 @@ export const EventsView: React.FC = () => {
                           type="date"
                           value={formData.eventDate}
                           onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                           title="Event Date"
                           required
                         />
                       </div>
                       <div>
-                        <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="eventTime" className="block text-sm font-medium text-foreground/80 mb-2">
                           Event Time *
                         </label>
                         <input
@@ -761,7 +761,7 @@ export const EventsView: React.FC = () => {
                           type="time"
                           value={formData.eventTime}
                           onChange={(e) => setFormData({...formData, eventTime: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                           title="Event Time"
                           required
                         />
@@ -770,7 +770,7 @@ export const EventsView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="capacity" className="block text-sm font-medium text-foreground/80 mb-2">
                           Capacity *
                         </label>
                         <input
@@ -778,14 +778,14 @@ export const EventsView: React.FC = () => {
                           type="number"
                           value={formData.capacity}
                           onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 0})}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                           min="1"
                           title="Event Capacity"
                           required
                         />
                       </div>
                       <div>
-                        <label htmlFor="ticketPrice" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="ticketPrice" className="block text-sm font-medium text-foreground/80 mb-2">
                           Ticket Price
                         </label>
                         <input
@@ -793,7 +793,7 @@ export const EventsView: React.FC = () => {
                           type="number"
                           value={formData.ticketPrice}
                           onChange={(e) => setFormData({...formData, ticketPrice: parseFloat(e.target.value) || 0})}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                          className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                           min="0"
                           step="0.01"
                           title="Ticket Price"
@@ -802,14 +802,14 @@ export const EventsView: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="categoryId" className="block text-sm font-medium text-foreground/80 mb-2">
                         Category
                       </label>
                       <select
                         id="categoryId"
                         value={formData.categoryId}
                         onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value)})}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         title="Event Category"
                       >
                         {categories?.map((cat) => (
@@ -819,7 +819,7 @@ export const EventsView: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="registrationDeadline" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="registrationDeadline" className="block text-sm font-medium text-foreground/80 mb-2">
                         Registration Deadline
                       </label>
                       <input
@@ -827,13 +827,13 @@ export const EventsView: React.FC = () => {
                         type="date"
                         value={formData.registrationDeadline}
                         onChange={(e) => setFormData({...formData, registrationDeadline: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         title="Registration Deadline"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="imageUrl" className="block text-sm font-medium text-foreground/80 mb-2">
                         Image URL
                       </label>
                       <input
@@ -842,7 +842,7 @@ export const EventsView: React.FC = () => {
                         value={formData.imageUrl}
                         onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
                         title="Image URL"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        className="w-full border border-input rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="https://example.com/image.jpg"
                       />
                     </div>
@@ -851,7 +851,7 @@ export const EventsView: React.FC = () => {
                       <button
                         type="submit"
                         disabled={updateEventMutation.isPending}
-                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                       >
                         {updateEventMutation.isPending ? (
                           <>
@@ -870,7 +870,7 @@ export const EventsView: React.FC = () => {
                           setError(null);
                           resetForm();
                         }}
-                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg"
+                        className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
                       >
                         Cancel
                       </button>

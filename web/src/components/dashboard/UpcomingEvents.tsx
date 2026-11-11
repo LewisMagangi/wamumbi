@@ -59,12 +59,12 @@ export const UpcomingEvents = () => {
         <h2 className="text-xl font-semibold">Upcoming Events</h2>
         <div className="flex items-center space-x-2">
           <EditPermissionGate resource="events">
-            <button className="text-blue-600 hover:text-blue-800 text-sm">
+            <button className="text-info hover:text-info text-sm">
               <i className="ri-add-line mr-1"></i>Create
             </button>
           </EditPermissionGate>
           
-          <button className="text-sm text-gray-600 hover:text-gray-800 flex items-center">
+          <button className="text-sm text-muted-foreground hover:text-foreground flex items-center">
             View All <i className="ri-arrow-right-s-line ml-1"></i>
           </button>
         </div>
@@ -73,10 +73,10 @@ export const UpcomingEvents = () => {
       <div className="space-y-3">
         {events.length === 0 ? (
           <div className="text-center py-8">
-            <i className="ri-calendar-line text-5xl text-gray-300 mb-2"></i>
-            <p className="text-gray-500">No upcoming events scheduled</p>
+            <i className="ri-calendar-line text-5xl text-muted-foreground/70 mb-2"></i>
+            <p className="text-muted-foreground">No upcoming events scheduled</p>
             <EditPermissionGate resource="events">
-              <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+              <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm">
                 <i className="ri-add-line mr-1"></i> Create Event
               </button>
             </EditPermissionGate>
@@ -91,7 +91,7 @@ export const UpcomingEvents = () => {
                 key={event.id} 
                 className={`flex border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${isPast ? 'opacity-60' : ''}`}
               >
-                <div className="w-16 flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 flex flex-col items-center justify-center p-2 text-white">
+                <div className="w-16 flex-shrink-0 bg-brand flex flex-col items-center justify-center p-2 text-brand-foreground">
                   <span className="text-xs font-medium uppercase">
                     {event.startDate.toLocaleDateString('en-US', { month: 'short' })}
                   </span>
@@ -103,9 +103,9 @@ export const UpcomingEvents = () => {
                 <div className="flex-1 p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{event.title}</h3>
+                      <h3 className="font-semibold text-foreground">{event.title}</h3>
                       
-                      <div className="flex flex-wrap items-center text-sm text-gray-600 mt-1 gap-x-3 gap-y-1">
+                      <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-x-3 gap-y-1">
                         <span className="flex items-center">
                           <i className="ri-time-line mr-1"></i>
                           {formatTime(event.startDate)}
@@ -125,12 +125,12 @@ export const UpcomingEvents = () => {
                       <div className="mt-2">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           isPast 
-                            ? 'bg-gray-100 text-gray-600' 
+                            ? 'bg-muted text-muted-foreground' 
                             : daysUntil === 'Today' 
-                            ? 'bg-red-100 text-red-700'
+                            ? 'bg-destructive/15 text-destructive'
                             : daysUntil === 'Tomorrow'
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-green-100 text-green-700'
+                            ? 'bg-warning/15 text-warning'
+                            : 'bg-success/15 text-success'
                         }`}>
                           <i className={`${isPast ? 'ri-time-line' : 'ri-calendar-check-line'} mr-1`}></i>
                           {daysUntil}
@@ -139,7 +139,7 @@ export const UpcomingEvents = () => {
                     </div>
                     
                     {!isPast && (
-                      <button className="ml-3 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap">
+                      <button className="ml-3 px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium whitespace-nowrap">
                         Register
                       </button>
                     )}
@@ -152,7 +152,7 @@ export const UpcomingEvents = () => {
       </div>
       
       <EditPermissionGate resource="events">
-        <button className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors text-sm mt-3 flex items-center justify-center">
+        <button className="w-full py-2 border border-dashed border-input rounded-lg text-muted-foreground hover:text-foreground hover:border-input transition-colors text-sm mt-3 flex items-center justify-center">
           <i className="ri-add-line mr-1"></i> Schedule New Event
         </button>
       </EditPermissionGate>

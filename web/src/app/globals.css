@@ -1,75 +1,188 @@
-/* Import progress bar styles */
+/* Progress bar width utilities (used by dashboard components) */
 @import './progress-bars.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Wamumbi design tokens
+ * ---------------------------------------------------------------
+ * Every colour in the UI comes from these variables (HSL channels,
+ * consumed by tailwind.config.ts as hsl(var(--token))).
+ * Dark is the default public theme; light is available via the toggle.
+ * See docs/design/design-system.md before adding a new token.
+ */
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #000000;
-    --primary-blue: #3B82F6;
-    --primary-green: #10B981;
-    --primary-red: #EF4444;
-    --border-color: #e5e7eb;
+    /* Light theme: warm paper, ink text */
+    --background: 40 30% 98%;
+    --foreground: 28 12% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 28 12% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 28 12% 9%;
+
+    /* Primary action = ink in light mode */
+    --primary: 28 12% 9%;
+    --primary-foreground: 40 30% 98%;
+
+    --secondary: 36 18% 93%;
+    --secondary-foreground: 28 12% 12%;
+    --muted: 36 16% 94%;
+    --muted-foreground: 28 6% 38%;
+    --accent: 36 18% 92%;
+    --accent-foreground: 28 12% 9%;
+
+    /* Brand accent: the red from the "touching hearts" mark */
+    --brand: 4 72% 47%;
+    --brand-foreground: 0 0% 100%;
+
+    --success: 152 55% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 34 90% 40%;
+    --warning-foreground: 0 0% 100%;
+    --info: 208 70% 40%;
+    --info-foreground: 0 0% 100%;
+    --destructive: 0 70% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 32 14% 86%;
+    --input: 32 14% 80%;
+    --ring: 28 12% 9%;
+
+    --chart-1: 4 72% 47%;
+    --chart-2: 208 60% 45%;
+    --chart-3: 152 45% 35%;
+    --chart-4: 266 35% 50%;
+    --chart-5: 34 80% 45%;
+
+    --radius: 0.625rem;
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
   }
-  
+
+  .dark {
+    /* Dark theme: warm near-black (never pure #000), soft off-white text */
+    --background: 30 8% 6%;
+    --foreground: 40 22% 95%;
+    --card: 30 7% 9%;
+    --card-foreground: 40 22% 95%;
+    --popover: 30 7% 10%;
+    --popover-foreground: 40 22% 95%;
+
+    /* Primary action = white button, near-black label */
+    --primary: 40 25% 97%;
+    --primary-foreground: 30 8% 7%;
+
+    --secondary: 30 6% 14%;
+    --secondary-foreground: 40 22% 95%;
+    --muted: 30 6% 13%;
+    --muted-foreground: 36 8% 66%;
+    --accent: 30 6% 15%;
+    --accent-foreground: 40 22% 95%;
+
+    --brand: 4 78% 62%;
+    --brand-foreground: 30 8% 6%;
+
+    --success: 150 45% 55%;
+    --success-foreground: 30 8% 6%;
+    --warning: 38 85% 60%;
+    --warning-foreground: 30 8% 6%;
+    --info: 208 75% 66%;
+    --info-foreground: 30 8% 6%;
+    --destructive: 0 72% 62%;
+    --destructive-foreground: 30 8% 6%;
+
+    --border: 30 6% 17%;
+    --input: 30 6% 22%;
+    --ring: 40 25% 90%;
+
+    --chart-1: 4 78% 62%;
+    --chart-2: 208 70% 64%;
+    --chart-3: 150 45% 55%;
+    --chart-4: 266 45% 70%;
+    --chart-5: 38 85% 60%;
+  }
+
   * {
-    border-color: var(--border-color);
+    @apply border-border;
   }
-  
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+
+  p, blockquote, li {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: hsl(var(--brand) / 0.3);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* Custom utility classes */
+/* Legacy component classes, now token-based so older views keep working */
 @layer components {
   .card {
-    @apply bg-white rounded-lg shadow p-5;
-    @apply sm:p-4 md:p-6 lg:p-8;
+    @apply bg-card text-card-foreground rounded-lg border p-5 md:p-6 lg:p-8;
   }
-  
+
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors;
-    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4;
+    @apply bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors md:px-5 md:py-3;
   }
-  
+
   .btn-success {
-    @apply bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors;
-    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4;
+    @apply bg-success text-success-foreground px-4 py-2 rounded-md hover:bg-success/90 transition-colors md:px-5 md:py-3;
   }
-  
+
   .btn-danger {
-    @apply bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors;
-    @apply sm:px-3 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-4
+    @apply bg-destructive text-destructive-foreground px-4 py-2 rounded-md hover:bg-destructive/90 transition-colors md:px-5 md:py-3;
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground;
   }
 }
 
-/* Additional custom styling */
-.text-primary-blue {
-  color: var(--primary-blue);
-}
+/* Kept for backwards compatibility with older markup */
+.text-primary-blue { color: hsl(var(--info)); }
+.text-primary-green { color: hsl(var(--success)); }
+.text-primary-red { color: hsl(var(--brand)); }
+.bg-primary-blue { background-color: hsl(var(--info)); }
+.bg-primary-green { background-color: hsl(var(--success)); }
+.bg-primary-red { background-color: hsl(var(--brand)); }
 
-.text-primary-green {
-  color: var(--primary-green);
-}
-
-.text-primary-red {
-  color: var(--primary-red);
-}
-
-.bg-primary-blue {
-  background-color: var(--primary-blue);
-}
-
-.bg-primary-green {
-  background-color: var(--primary-green);
-}
-
-.bg-primary-red {
-  background-color: var(--primary-red);
+@keyframes hero-zoom {
+  from { transform: scale(1.06); }
+  to { transform: scale(1); }
 }

@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-muted/50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         {/* Back Button */}
         <div>
@@ -63,23 +63,23 @@ export default function ForgotPasswordPage() {
 
         {/* Header */}
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             Reset your password
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             Enter your email address and we&apos;ll send you instructions to reset your password.
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground/80">
                 Email address
               </Label>
               <div className="mt-2 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/70" />
                 <Input
                   id="email"
                   name="email"
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full bg-rose-500 hover:bg-rose-600 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={isLoading || !isLoaded}
             >
               {isLoading ? 'Sending...' : 'Send reset email'}
@@ -118,15 +118,15 @@ export default function ForgotPasswordPage() {
 
           {/* Alternative Options */}
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Remember your password?{' '}
-              <Link href="/sign-in" className="font-medium text-rose-600 hover:text-rose-500">
+              <Link href="/sign-in" className="font-medium text-brand hover:text-brand">
                 Sign in
               </Link>
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
-              <Link href="/sign-up" className="font-medium text-rose-600 hover:text-rose-500">
+              <Link href="/sign-up" className="font-medium text-brand hover:text-brand">
                 Sign up
               </Link>
             </p>
@@ -134,8 +134,8 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Help Text */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-info/15 border border-info/40 rounded-lg p-4">
+          <p className="text-sm text-info">
             <strong>Note:</strong> If you don&apos;t receive an email within a few minutes, please check your spam folder or verify that you entered the correct email address.
           </p>
         </div>

@@ -75,22 +75,22 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
   if (isLoading) {
     return (
       <div className="card h-full p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded mb-4 w-1/3" />
+        <div className="h-6 bg-muted rounded mb-4 w-1/3" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <div className="h-4 bg-gray-200 rounded mb-3 w-full" />
-            <div className="h-3 bg-gray-200 rounded-full mb-4 w-full" />
-            <div className="h-4 bg-gray-200 rounded mb-6 w-2/3" />
+            <div className="h-4 bg-muted rounded mb-3 w-full" />
+            <div className="h-3 bg-muted rounded-full mb-4 w-full" />
+            <div className="h-4 bg-muted rounded mb-6 w-2/3" />
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-gray-200 mr-2" />
-                  <div className="h-3 bg-gray-200 rounded flex-1" />
+                  <div className="w-3 h-3 rounded-full bg-muted mr-2" />
+                  <div className="h-3 bg-muted rounded flex-1" />
                 </div>
               ))}
             </div>
           </div>
-          <div className="h-64 bg-gray-100 rounded" />
+          <div className="h-64 bg-muted rounded" />
         </div>
       </div>
     );
@@ -165,7 +165,7 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
           <text textAnchor="middle" dy="-6" className="font-semibold" style={{ fontSize: 14 }}>
             {percentage}%
           </text>
-          <text textAnchor="middle" dy="14" className="text-xs text-gray-500" style={{ fontSize: 12 }}>
+          <text textAnchor="middle" dy="14" className="text-xs text-muted-foreground" style={{ fontSize: 12 }}>
             of goal
           </text>
         </g>
@@ -188,7 +188,7 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
                 title={`${p.month}: ${formatCurrency(p.amount)}`}
                 aria-label={`${p.month} ${p.amount}`}
               />
-              <span className="text-xs text-gray-600 mt-2">{p.month}</span>
+              <span className="text-xs text-muted-foreground mt-2">{p.month}</span>
             </div>
           );
         })}
@@ -204,7 +204,7 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
         <div className="flex items-center space-x-3">
           <button
             onClick={exportCsv}
-            className="text-sm px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-50"
+            className="text-sm px-3 py-1 border rounded-md text-foreground/80 hover:bg-accent"
             aria-label="Export donation summary as CSV"
           >
             <i className="ri-download-line mr-2" aria-hidden /> Export CSV
@@ -213,13 +213,13 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
           <EditPermissionGate
             resource="donations"
             fallback={
-              <span className="text-xs text-gray-500 flex items-center">
+              <span className="text-xs text-muted-foreground flex items-center">
                 <i className="ri-information-line mr-1" /> View-only mode
               </span>
             }
           >
             <button
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+              className="text-sm text-info hover:text-info flex items-center"
               aria-label="Edit donation goals"
               disabled={!canEdit}
             >
@@ -239,7 +239,7 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
               <span className="text-sm font-medium">{percentage}% of target</span>
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-2"
+            <div className="w-full bg-muted rounded-full h-3 mb-2"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -247,12 +247,12 @@ export const DonationSummary: React.FC<Props> = ({ endpoint = "/api/dashboard/do
                 aria-label={`Donation progress: ${percentage}% of goal`}
             >
                 <div
-                    className="h-3 rounded-full bg-blue-600"
+                    className="h-3 rounded-full bg-info"
                     style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
                 />
             </div>
 
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>{formatCurrency(donationData.total)} raised</span>
               <span>Goal: {formatCurrency(donationData.target)}</span>
             </div>

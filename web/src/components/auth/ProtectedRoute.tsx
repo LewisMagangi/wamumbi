@@ -1,82 +1,47 @@
-import React, { ReactNode } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { usePermissions, Resource, PermissionAction } from '../../hooks/usePermissions';
-import { Redirect, useLocation } from 'wouter';
+"use client"
+
+import { ReactNode, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "../../contexts/AuthContext"
+import type { Permission } from "@/lib/rbac/permissions"
 
 interface ProtectedRouteProps {
-  children: ReactNode;
-  requiredPermission?: {
-    action: PermissionAction;
-    resource: Resource;
-  };
-  adminOnly?: boolean;
+  children: ReactNode
+  /** User needs at least one of these */
+  anyOf?: Permission[]
+  adminOnly?: boolean
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requiredPermission,
-  adminOnly = false 
-}: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
-  const { can } = usePermissions();
-  const [, setLocation] = useLocation();
-  
-  // Show loading state
-  if (isLoading) {
+/** Client-side page guard. Middleware already requires sign-in for /dashboard. */
+export function ProtectedRoute({ children, anyOf, adminOnly = false }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, isAdmin, hasAny } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) router.replace("/sign-in")
+  }, [isLoading, isAuthenticated, router])
+
+  if (isLoading || !isAuthenticated) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex h-[60vh] items-center justify-center" role="status" aria-live="polite">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+        <span className="sr-only">Loading</span>
       </div>
-    );
+    )
   }
-  
-  // If user is not authenticated, redirect to login
-  if (!isAuthenticated) {
-    setLocation('/login');
-    return null;
-  }
-  
-  // If admin only and user is not admin, redirect to home
-  if (adminOnly && !isAdmin) {
+
+  if ((adminOnly && !isAdmin) || (anyOf && !hasAny(anyOf))) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="text-red-600 text-5xl mb-4">
-          <i className="ri-lock-2-line"></i>
-        </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-        <p className="text-gray-600 mb-6">You don't have permission to access this page.</p>
-        <button 
-          onClick={() => setLocation('/')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Go to Homepage
-        </button>
+      <div className="mx-auto flex max-w-md flex-col items-center py-24 text-center">
+        <h2 className="font-display text-2xl">You don&apos;t have access to this page</h2>
+        <p className="mt-3 text-muted-foreground">
+          Your role doesn&apos;t include this area. If you think that&apos;s a mistake, ask a Super Admin to update your role.
+        </p>
+        <Link href="/dashboard" className="mt-6 text-sm underline underline-offset-4">Back to dashboard</Link>
       </div>
-    );
+    )
   }
-  
-  // If required permission is specified, check if user has it
-  if (requiredPermission) {
-    const { action, resource } = requiredPermission;
-    if (!can(action, resource)) {
-      return (
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="text-red-600 text-5xl mb-4">
-            <i className="ri-lock-2-line"></i>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-6">You don't have permission to {action} {resource}.</p>
-          <button 
-            onClick={() => setLocation('/')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Go to Homepage
-          </button>
-        </div>
-      );
-    }
-  }
-  
-  // If all checks pass, render children
-  return <>{children}</>;
+
+  return <>{children}</>
 }

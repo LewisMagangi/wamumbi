@@ -1,9 +1,11 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, protectedProcedure, permissionProcedure, redactOutput, router } from "./trpc";
+import { canAny } from "@/lib/rbac/permissions";
+import { TRPCError } from "@trpc/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const donationsRouter = router({
-  getRecent: procedure
+  getRecent: permissionProcedure("donations:view_all", "donations:view_aggregate").use(redactOutput("donor", []))
     .meta({
       openapi: {
         method: 'GET',
@@ -69,7 +71,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getAll: procedure
+  getAll: permissionProcedure("donations:view_all", "donations:view_aggregate", "donations:view_own").use(redactOutput("donor", []))
     .meta({
       openapi: {
         method: 'GET',
@@ -98,9 +100,11 @@ export const donationsRouter = router({
       notes: z.string().nullable(),
       createdAt: z.date()
     })))
-    .query(async () => {
+    .query(async ({ ctx }) => {
     try {
+      const ownOnly = !canAny(ctx.user.role, ["donations:view_all", "donations:view_aggregate"]);
       const donations = await prisma.donation.findMany({
+        where: ownOnly ? { donor: { user_id: ctx.user.id } } : undefined,
         include: {
           donor: {
             select: {
@@ -151,7 +155,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getById: procedure
+  getById: permissionProcedure("donations:view_all", "donations:view_aggregate", "donations:view_own").use(redactOutput("donor", []))
     .meta({
       openapi: {
         method: 'GET',
@@ -194,7 +198,7 @@ export const donationsRouter = router({
       notes: z.string().nullable(),
       createdAt: z.date()
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
     try {
       const donation = await prisma.donation.findUnique({
         where: { id: input.id },
@@ -210,6 +214,10 @@ export const donationsRouter = router({
 
       if (!donation) {
         throw new Error('Donation not found');
+      }
+
+      if (!canAny(ctx.user.role, ["donations:view_all", "donations:view_aggregate"]) && donation.donor?.user_id !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
       return {
@@ -245,12 +253,13 @@ export const donationsRouter = router({
         createdAt: donation.created_at
       };
     } catch (error) {
+      if (error instanceof TRPCError) throw error;
       console.error('Error fetching donation:', error);
       throw new Error('Failed to fetch donation');
     }
   }),
 
-  create: procedure
+  create: protectedProcedure
     .meta({
       openapi: {
         method: 'POST',
@@ -362,7 +371,7 @@ export const donationsRouter = router({
     }
   }),
 
-  update: procedure
+  update: permissionProcedure("donations:manage")
     .meta({
       openapi: {
         method: 'PUT',
@@ -414,7 +423,7 @@ export const donationsRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("donations:manage")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -456,7 +465,7 @@ export const donationsRouter = router({
   }),
 
   // Create or find donor
-  createDonor: procedure
+  createDonor: protectedProcedure
     .meta({
       openapi: {
         method: 'POST',
@@ -510,7 +519,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getPaymentMethods: procedure
+  getPaymentMethods: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -541,7 +550,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getStatuses: procedure
+  getStatuses: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -572,7 +581,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getRecurringFrequencies: procedure
+  getRecurringFrequencies: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -603,7 +612,7 @@ export const donationsRouter = router({
     }
   }),
 
-  getCurrencies: procedure
+  getCurrencies: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
