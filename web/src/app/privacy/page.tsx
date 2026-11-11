@@ -1,4 +1,7 @@
+import type { Metadata } from "next"
 import { PageShell } from "@/components/page-shell"
+
+export const metadata: Metadata = { title: "Privacy policy", description: "How Wamumbi Foundation collects, uses and protects your personal information." }
 
 // Prose styles for headings, paragraphs and lists, without a typography plugin.
 const prose =

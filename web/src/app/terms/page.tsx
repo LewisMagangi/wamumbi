@@ -1,4 +1,7 @@
+import type { Metadata } from "next"
 import { PageShell } from "@/components/page-shell"
+
+export const metadata: Metadata = { title: "Terms of use", description: "The terms for using Wamumbi Foundation's website and services." }
 
 // Prose styles for headings, paragraphs and lists, without a typography plugin.
 const prose =
