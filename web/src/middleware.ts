@@ -1,10 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Pages that need an account. Donating does not: the donate page is open to everyone.
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/profile(.*)',
-  '/donate(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
