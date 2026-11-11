@@ -1,142 +1,228 @@
-'use client';
+"use client"
 
-import React, { useState } from 'react';
-import { Plus, FolderKanban, X, Clock } from 'lucide-react';
-import { mockProjects, mockProjectStatuses, getProjectProgress } from '../../../lib/mockData';
-import { formatDate } from '../../../lib/dateUtils';
+import { useMemo, useState, type FormEvent } from "react"
+import { format } from "date-fns"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, Select, TextArea } from "@/components/forms/fields"
+import type { inferRouterOutputs } from "@trpc/server"
+import { trpc } from "@/app/_trpc/client"
+import type { AppRouter } from "@/trpc"
+import { useAuth } from "@/contexts/AuthContext"
+import {
+  Empty, ErrorText, Facts, Panel, Progress, Sheet, Skeleton, StatStrip, Status, Toolbar, fmt, selectClass,
+} from "@/components/dashboard/ui"
 
-export const ProjectsView: React.FC = () => {
-  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+type Form = {
+  title: string; description: string; statusId: string; startDate: string; endDate: string
+  teamId: string; campaignId: string; budget: string; currencyId: string; progress: string
+}
+const ymd = (d: Date | string) => format(new Date(d), "yyyy-MM-dd")
+const blank = (): Form => ({
+  title: "", description: "", statusId: "", startDate: ymd(new Date()), endDate: "",
+  teamId: "", campaignId: "", budget: "", currencyId: "", progress: "0",
+})
+const num = (s: string) => (s === "" ? null : Number(s))
 
-  const getStatusName = (statusId: number) => {
-    const status = mockProjectStatuses.find(s => s.id === statusId);
-    return status?.name || 'Unknown';
-  };
+/** The foundation's ongoing work, from the database. */
+export function ProjectsView() {
+  const { hasAny } = useAuth()
+  const canManage = hasAny(["teams:manage", "teams:manage_own"])
+  const { data, isLoading, error } = trpc.projects.list.useQuery()
+  const [q, setQ] = useState("")
+  const [status, setStatus] = useState("all")
+  const [editing, setEditing] = useState<number | "new" | null>(null)
+  const [openId, setOpenId] = useState<number | null>(null)
+
+  const all = useMemo(() => data ?? [], [data])
+  const rows = useMemo(() => all.filter((p) =>
+    (status === "all" || p.status === status) &&
+    (!q || `${p.title} ${p.team ?? ""} ${p.campaign ?? ""}`.toLowerCase().includes(q.toLowerCase()))
+  ), [all, q, status])
+  const statuses = useMemo(() => Array.from(new Set(all.map((p) => p.status))), [all])
+  const active = all.filter((p) => p.status === "in_progress")
+  const open = all.find((p) => p.id === openId) ?? null
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Project Management</h2>
-          <p className="text-muted-foreground mt-1">Track and manage ongoing projects</p>
-          <p role="note" className="mt-3 inline-block rounded-md border border-warning/40 bg-warning/10 px-3 py-1.5 text-sm">
-            Sample data: the projects module isn&apos;t connected to the database yet.
-          </p>
+          <h1 className="font-display text-3xl tracking-tight md:text-4xl">Projects</h1>
+          <p className="mt-2 text-muted-foreground">The work in progress, and how far along it is.</p>
         </div>
-        <button
-          onClick={() => setShowComingSoonModal(true)}
-          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-accent transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Project</span>
-        </button>
+        {canManage && <Button onClick={() => setEditing("new")}><Plus /> New project</Button>}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockProjects.map((project) => {
-          const statusName = getStatusName(project.status_id);
-          const progress = getProjectProgress(project.id);
-          
-          return (
-            <div key={project.id} className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                  <FolderKanban className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  statusName === 'Active' || statusName === 'In Progress'
-                    ? 'bg-success/15 text-success'
-                    : statusName === 'Planning'
-                    ? 'bg-info/15 text-info'
-                    : statusName === 'Completed'
-                    ? 'bg-muted text-foreground'
-                    : 'bg-warning/15 text-warning'
-                }`}>
-                  {statusName}
-                </span>
-              </div>
-              
-              <h3 className="font-bold text-lg mb-2">{project.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
-              
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{progress?.progress_percentage || 0}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{ width: `${progress?.progress_percentage || 0}%` }}
-                      role="progressbar"
-                      aria-valuenow={progress?.progress_percentage || 0}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={`Project progress: ${progress?.progress_percentage || 0}%`}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Team Size</span>
-                  <span className="font-medium">{progress?.volunteers_count || 0}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Budget</span>
-                  <span className="font-medium">${project.budget.toLocaleString()}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Deadline</span>
-                  <span className="font-medium">{formatDate(project.end_date)}</span>
-                </div>
-              </div>
-              
-              <button className="w-full mt-4 px-4 py-2 border border-input rounded-lg hover:bg-accent text-sm font-medium transition-colors">
-                View Details
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      <StatStrip
+        loading={isLoading}
+        stats={[
+          { label: "In progress", value: fmt(active.length) },
+          { label: "Average progress", value: active.length ? `${Math.round(active.reduce((s, p) => s + p.progress, 0) / active.length)}%` : "–" },
+          { label: "Volunteer hours", value: fmt(all.reduce((s, p) => s + p.hoursLogged, 0)) },
+        ]}
+      />
 
-      {/* Coming Soon Modal */}
-      {showComingSoonModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-8 text-center relative">
-            <button 
-              onClick={() => setShowComingSoonModal(false)}
-              className="absolute top-4 right-4 text-muted-foreground/70 hover:text-foreground"
-              title="Close modal"
-              aria-label="Close coming soon modal"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-              <Clock className="w-8 h-8 text-muted-foreground" />
+      <Panel>
+        <Toolbar count={rows.length}>
+          <label htmlFor="project-search" className="sr-only">Search projects</label>
+          <Input id="project-search" placeholder="Search title, team or campaign" value={q} onChange={(e) => setQ(e.target.value)} className="sm:max-w-xs" />
+          <label htmlFor="project-status" className="sr-only">Filter by status</label>
+          <select id="project-status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
+            <option value="all">All statuses</option>
+            {statuses.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+          </select>
+        </Toolbar>
+
+        {error ? <ErrorText>{error.message}</ErrorText>
+          : isLoading ? <Skeleton />
+          : !rows.length ? <Empty>{all.length ? "No projects match your filters." : canManage ? "No projects yet. Add the first one to start tracking it." : "No projects yet."}</Empty>
+          : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground">
+                  <tr className="border-b">
+                    <th className="px-5 py-2.5 font-normal">Project</th>
+                    <th className="px-5 py-2.5 font-normal">Status</th>
+                    <th className="w-48 px-5 py-2.5 font-normal">Progress</th>
+                    <th className="px-5 py-2.5 font-normal">Team</th>
+                    <th className="px-5 py-2.5 font-normal">Dates</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {rows.map((p) => (
+                    <tr key={p.id} className="cursor-pointer hover:bg-accent/40" onClick={() => setOpenId(p.id)}>
+                      <td className="max-w-[18rem] px-5 py-3">
+                        <button className="block max-w-full truncate text-left hover:underline" onClick={(e) => { e.stopPropagation(); setOpenId(p.id) }}>{p.title}</button>
+                        {p.campaign && <p className="truncate text-xs text-muted-foreground">{p.campaign}</p>}
+                      </td>
+                      <td className="px-5 py-3"><Status value={p.status} /></td>
+                      <td className="px-5 py-3">
+                        <Progress value={p.progress} label={`${p.title}: ${p.progress}% done`} />
+                        <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">{p.progress}%</p>
+                      </td>
+                      <td className="px-5 py-3 text-muted-foreground">{p.team ?? "No team"}</td>
+                      <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">
+                        {format(new Date(p.startDate), "d MMM yyyy")}{p.endDate ? ` – ${format(new Date(p.endDate), "d MMM yyyy")}` : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            
-            <h2 className="text-2xl font-bold text-foreground mb-2">Coming Soon</h2>
-            <p className="text-muted-foreground mb-6">
-              The ability to add new projects is coming in <span className="font-semibold text-brand">Version 2</span>.
-            </p>
-            <p className="text-sm text-muted-foreground mb-6">
-              We&apos;re working hard to bring you project management features including 
-              task tracking, team assignments, and budget management.
-            </p>
-            
-            <button
-              onClick={() => setShowComingSoonModal(false)}
-              className="w-full bg-primary hover:bg-accent text-primary-foreground font-bold py-3 px-6 rounded-lg transition-colors"
-            >
-              Got it!
-            </button>
+          )}
+      </Panel>
+
+      <ProjectForm target={editing} onClose={() => setEditing(null)} existing={typeof editing === "number" ? all.find((p) => p.id === editing) ?? null : null} />
+
+      <Sheet
+        open={!!open}
+        onClose={() => setOpenId(null)}
+        title={open?.title ?? "Project"}
+        description={open ? [open.team, open.campaign].filter(Boolean).join(" · ") || undefined : undefined}
+        footer={canManage && open ? <Button variant="outline" onClick={() => { setOpenId(null); setEditing(open.id) }}>Edit project</Button> : undefined}
+      >
+        {open && (
+          <div className="space-y-8">
+            <Status value={open.status} />
+            <p className="whitespace-pre-line leading-relaxed text-muted-foreground">{open.description}</p>
+            <div>
+              <div className="flex items-end justify-between">
+                <p className="font-display text-3xl tabular-nums">{open.progress}%</p>
+                <p className="text-sm text-muted-foreground">done</p>
+              </div>
+              <div className="mt-3"><Progress value={open.progress} label={`${open.progress}% done`} /></div>
+            </div>
+            <Facts items={[
+              { label: "Starts", value: format(new Date(open.startDate), "d MMM yyyy") },
+              { label: "Ends", value: open.endDate ? format(new Date(open.endDate), "d MMM yyyy") : "Ongoing" },
+              { label: "Team", value: open.team ?? "No team" },
+              { label: "Campaign", value: open.campaign ?? "None" },
+              { label: "Volunteers", value: <span className="tabular-nums">{open.volunteersCount}</span> },
+              { label: "Hours logged", value: <span className="tabular-nums">{fmt(open.hoursLogged)}</span> },
+              ...(open.budget != null ? [{ label: "Budget", value: <span className="tabular-nums">{open.currency ?? ""} {fmt(open.budget)}</span> }] : []),
+            ]} />
           </div>
-        </div>
-      )}
+        )}
+      </Sheet>
     </div>
-  );
-};
+  )
+}
+
+type Project = inferRouterOutputs<AppRouter>["projects"]["list"][number]
+
+function ProjectForm({ target, onClose, existing }: { target: number | "new" | null; onClose: () => void; existing: Project | null }) {
+  const { has, hasAny } = useAuth()
+  const utils = trpc.useUtils()
+  const open = target !== null
+  const isNew = target === "new"
+  const seesBudget = hasAny(["teams:manage", "reports:view_financial"])
+  const { data: statuses = [] } = trpc.projects.getStatuses.useQuery(undefined, { enabled: open })
+  const { data: teams = [] } = trpc.projects.assignableTeams.useQuery(undefined, { enabled: open })
+  const { data: campaigns = [] } = trpc.campaigns.getAll.useQuery(undefined, { enabled: open })
+  const { data: currencies = [] } = trpc.donations.getCurrencies.useQuery(undefined, { enabled: open && seesBudget })
+  const [form, setForm] = useState<Form>(blank)
+  const [loadedFor, setLoadedFor] = useState<number | "new" | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+
+  if (open && loadedFor !== target) {
+    setForm(isNew || !existing ? blank() : {
+      title: existing.title, description: existing.description, statusId: String(existing.statusId),
+      startDate: ymd(existing.startDate), endDate: existing.endDate ? ymd(existing.endDate) : "",
+      teamId: existing.teamId ? String(existing.teamId) : "", campaignId: existing.campaignId ? String(existing.campaignId) : "",
+      budget: existing.budget != null ? String(existing.budget) : "", currencyId: existing.currencyId ? String(existing.currencyId) : "",
+      progress: String(existing.progress),
+    })
+    setLoadedFor(target)
+    setErr(null)
+  }
+
+  const close = () => { setLoadedFor(null); onClose() }
+  const done = () => { utils.projects.list.invalidate(); close() }
+  const create = trpc.projects.create.useMutation({ onSuccess: done, onError: (e) => setErr(e.message) })
+  const update = trpc.projects.update.useMutation({ onSuccess: done, onError: (e) => setErr(e.message) })
+  const pending = create.isPending || update.isPending
+  const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    setErr(null)
+    const body = {
+      title: form.title, description: form.description, statusId: Number(form.statusId),
+      startDate: new Date(form.startDate), endDate: form.endDate ? new Date(form.endDate) : null,
+      teamId: num(form.teamId), campaignId: num(form.campaignId), progress: Number(form.progress) || 0,
+      ...(seesBudget && { budget: num(form.budget), currencyId: num(form.currencyId) }),
+    }
+    if (isNew) create.mutate(body)
+    else if (typeof target === "number") update.mutate({ ...body, id: target })
+  }
+
+  const leaderOnly = !has("teams:manage")
+  return (
+    <Sheet
+      open={open}
+      onClose={close}
+      title={isNew ? "New project" : "Edit project"}
+      description={leaderOnly ? "Projects belong to one of the teams you lead." : undefined}
+      footer={<><Button variant="ghost" onClick={close}>Cancel</Button><Button type="submit" form="project-form" disabled={pending}>{pending ? "Saving…" : isNew ? "Create project" : "Save changes"}</Button></>}
+    >
+      <form id="project-form" onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
+        <Field className="sm:col-span-2" label="Title" name="title" required value={form.title} onChange={set("title")} placeholder="Water tank for Kabete home" />
+        <TextArea className="sm:col-span-2" label="Description" name="description" required value={form.description} onChange={set("description")} />
+        <Select label="Status" name="statusId" required value={form.statusId} onChange={set("statusId")} options={statuses.map((s) => ({ value: String(s.id), label: s.name.replace(/_/g, " ") }))} />
+        <Field label="Progress (%)" name="progress" type="number" min={0} max={100} required value={form.progress} onChange={set("progress")} />
+        <Field label="Starts" name="startDate" type="date" required value={form.startDate} onChange={set("startDate")} />
+        <Field label="Ends" name="endDate" type="date" min={form.startDate} value={form.endDate} onChange={set("endDate")} />
+        <Select label="Team" name="teamId" required={leaderOnly} value={form.teamId} onChange={set("teamId")} placeholder={leaderOnly ? "Choose a team" : "No team"} options={teams.map((t) => ({ value: String(t.id), label: t.name }))} />
+        <Select label="Campaign" name="campaignId" value={form.campaignId} onChange={set("campaignId")} placeholder="None" options={campaigns.map((c) => ({ value: String(c.id), label: c.title }))} />
+        {seesBudget && (
+          <>
+            <Field label="Budget" name="budget" type="number" min={0} value={form.budget} onChange={set("budget")} />
+            <Select label="Currency" name="currencyId" value={form.currencyId} onChange={set("currencyId")} placeholder="Choose one" options={currencies.map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))} />
+          </>
+        )}
+        {err && <p role="alert" className="text-sm text-destructive sm:col-span-2">{err}</p>}
+      </form>
+    </Sheet>
+  )
+}

@@ -2,7 +2,7 @@
 import { DashboardShell } from '@/components/dashboard/shell';
 import { ProjectsView } from '@/components/dashboard/views';
 
-// Staff only: this view still uses sample data.
+// Visible to staff; editing is for team managers and team leaders (their own teams).
 export default function Page() {
   return (
     <DashboardShell anyOf={['dashboard:view']}>
