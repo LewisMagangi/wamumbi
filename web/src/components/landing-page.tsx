@@ -8,7 +8,7 @@ import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { CountUp, Reveal } from "@/components/motion"
 import { trpc } from "@/app/_trpc/client"
-import { PAST_EVENTS } from "@/data/past-events"
+import { OUTREACH_EVENTS, PAST_EVENTS } from "@/data/past-events"
 import { allPhotos, coverFor, photosFor } from "@/data/gallery"
 import { useState, type FormEvent } from "react"
 
@@ -35,7 +35,7 @@ const impact = [
   { value: 500, suffix: "+", label: "Children supported" },
   { value: 200, suffix: "+", label: "Families assisted" },
   { value: 50, suffix: "+", label: "Community programmes" },
-  { value: PAST_EVENTS.length, suffix: "", label: "Outreach events documented" },
+  { value: OUTREACH_EVENTS.length, suffix: "", label: "Outreach events documented" },
 ]
 
 const testimonials = [

@@ -5,7 +5,7 @@ import { ArrowRight, Download } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { photosFor } from "@/data/gallery"
-import { PAST_EVENTS } from "@/data/past-events"
+import { OUTREACH_EVENTS } from "@/data/past-events"
 
 export const metadata: Metadata = {
   title: "About",
@@ -63,7 +63,7 @@ export default function AboutPage() {
             </p>
           </div>
           <Link href="/events" className="group mt-8 inline-flex items-center gap-1.5 text-sm font-medium">
-            {PAST_EVENTS.length} outreach events and counting
+            {OUTREACH_EVENTS.length} outreach events and counting
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

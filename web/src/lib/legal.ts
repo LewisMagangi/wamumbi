@@ -4,8 +4,8 @@
  * Bump LEGAL_VERSION whenever either page changes in a way people should agree to again.
  * Everyone signed in is then asked to accept the new version (see LegalConsentGate).
  */
-export const LEGAL_VERSION = "2026-11-11"
-export const LEGAL_UPDATED_LABEL = "11 November 2026"
+export const LEGAL_VERSION = "2026-11-12"
+export const LEGAL_UPDATED_LABEL = "12 November 2026"
 
 export const CONTACT_EMAIL = "wamumbifoundation@gmail.com"
 export const CONTACT_PHONE = "+254 114 010 696"

@@ -137,55 +137,125 @@ function Approvals() {
   )
 }
 
+function lastActiveLabel(d: Date | string | null) {
+  if (!d) return "Never"
+  const days = Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000)
+  if (days < 1) return "Today"
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`
+  if (days < 365) return `${Math.floor(days / 30)} month${days < 60 ? "" : "s"} ago`
+  return `${Math.floor(days / 365)} year${days < 730 ? "" : "s"} ago`
+}
+
 function UsersAndRoles() {
   const [search, setSearch] = useState("")
+  const [view, setView] = useState<"all" | "inactive" | "archived">("all")
+  const { user: me } = useAuth()
   const utils = trpc.useUtils()
   const { data, isLoading } = trpc.admin.listUsers.useQuery({ search: search || undefined })
   const assign = trpc.admin.assignRole.useMutation({ onSuccess: () => utils.admin.listUsers.invalidate() })
+  const setStatus = trpc.admin.setUserStatus.useMutation({ onSuccess: () => utils.admin.listUsers.invalidate() })
+
+  const counts = {
+    all: data?.length ?? 0,
+    inactive: data?.filter((u) => u.inactive && u.status !== "inactive").length ?? 0,
+    archived: data?.filter((u) => u.status === "inactive").length ?? 0,
+  }
+  const rows = (data ?? []).filter((u) =>
+    view === "all" ? true : view === "inactive" ? u.inactive && u.status !== "inactive" : u.status === "inactive"
+  )
+  const error = assign.error ?? setStatus.error
 
   return (
     <div className="space-y-4">
-      <div className="max-w-sm">
-        <label htmlFor="user-search" className="sr-only">Search users</label>
-        <Input id="user-search" placeholder="Search by name or email" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="w-full max-w-sm">
+          <label htmlFor="user-search" className="sr-only">Search users</label>
+          <Input id="user-search" placeholder="Search by name or email" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div role="group" aria-label="Show" className="flex gap-1 rounded-md border p-1 text-sm">
+          {([["all", "All"], ["inactive", "Inactive"], ["archived", "Archived"]] as const).map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => setView(k)}
+              aria-pressed={view === k}
+              className={cn("rounded px-3 py-1.5", view === k ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground")}
+            >
+              {label} <span className="tabular-nums text-muted-foreground">{counts[k]}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      {assign.error && <p role="alert" className="text-sm text-destructive">{assign.error.message}</p>}
+      {view === "inactive" && (
+        <p className="text-sm text-muted-foreground">No activity for a year or more. Archive accounts that are no longer needed; archived people can&apos;t open the dashboard, and you can restore them any time.</p>
+      )}
+      {error && <p role="alert" className="text-sm text-destructive">{error.message}</p>}
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : !data?.length ? (
-        <EmptyState title="No users found" body="People appear here after they sign in for the first time." />
+      ) : !rows.length ? (
+        <EmptyState
+          title={view === "all" ? "No users found" : view === "inactive" ? "No inactive accounts" : "No archived accounts"}
+          body={view === "all" ? "Everyone with an account appears here." : "Nothing to do here right now."}
+        />
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Person</th>
+                <th className="px-4 py-3 font-medium">Last active</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {data.map((u) => (
-                <tr key={u.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{u.name}</p>
-                    <p className="text-muted-foreground">{u.email}</p>
-                  </td>
-                  <td className="px-4 py-3 capitalize text-muted-foreground">{u.status}</td>
-                  <td className="px-4 py-3">
-                    <label htmlFor={`role-${u.id}`} className="sr-only">Role for {u.name}</label>
-                    <select
-                      id={`role-${u.id}`}
-                      className="h-9 rounded-md border bg-background px-2"
-                      value={u.role}
-                      disabled={assign.isPending}
-                      onChange={(e) => assign.mutate({ userId: u.id, role: e.target.value as Role })}
-                    >
-                      {ROLES.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((u) => {
+                const archived = u.status === "inactive"
+                const isMe = u.id === me?.id
+                return (
+                  <tr key={u.id} className={cn(archived && "text-muted-foreground")}>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{u.name}</p>
+                      <p className="text-muted-foreground">{u.email}</p>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{lastActiveLabel(u.lastLogin)}</td>
+                    <td className="px-4 py-3">
+                      {archived ? (
+                        <span className="text-muted-foreground">Archived</span>
+                      ) : u.inactive ? (
+                        <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-xs text-foreground">Inactive</span>
+                      ) : (
+                        <span className="capitalize text-muted-foreground">{u.status}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <label htmlFor={`role-${u.id}`} className="sr-only">Role for {u.name}</label>
+                      <select
+                        id={`role-${u.id}`}
+                        className="h-9 rounded-md border bg-background px-2"
+                        value={u.role}
+                        disabled={assign.isPending || archived}
+                        onChange={(e) => assign.mutate({ userId: u.id, role: e.target.value as Role })}
+                      >
+                        {ROLES.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {!isMe && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={setStatus.isPending}
+                          onClick={() => setStatus.mutate({ userId: u.id, status: archived ? "active" : "inactive" })}
+                        >
+                          {archived ? "Restore" : "Archive"}
+                          <span className="sr-only"> {u.name}</span>
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -413,7 +483,7 @@ export default function AdminPage() {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  role_change: "Changed a role", terms_accepted: "Accepted the terms", donation_record: "Recorded a donation", approve: "Approved", reject: "Sent back",
+  role_change: "Changed a role", terms_accepted: "Accepted the terms", user_archived: "Archived an account", user_restored: "Restored an account", donation_record: "Recorded a donation", approve: "Approved", reject: "Sent back",
   media_approve: "Approved a photo", media_reject: "Rejected a photo",
   project_create: "Created a project", project_update: "Updated a project", project_delete: "Deleted a project",
   inquiry_accepted: "Accepted an inquiry", inquiry_declined: "Declined an inquiry", inquiry_in_review: "Opened an inquiry", inquiry_archived: "Archived an inquiry", inquiry_new: "Reopened an inquiry",

@@ -16,6 +16,8 @@ export type PastEvent = {
   summary: string
   /** Where the photos came from, for the record */
   source: { label: string; href: string }
+  /** Team events (bonding, fundays) rather than community outreach; left out of outreach counts. */
+  inHouse?: boolean
 }
 
 export const PAST_EVENTS: PastEvent[] = [
@@ -64,6 +66,28 @@ export const PAST_EVENTS: PastEvent[] = [
     summary: "Outreach to the Murang'a Children's Rescue Center.",
     source: { label: "Telegram channel", href: "https://t.me/wamumbifoundation" },
   },
+  {
+    slug: "uloma-primary-school-2026",
+    title: "Uloma Primary School: feeding, pad drive and mentoring",
+    year: 2026,
+    dateLabel: "2026",
+    place: "Uloma Primary School, Bondo",
+    summary: "We cooked and served a meal for the pupils, donated sanitary pads, and spent time mentoring them in class.",
+    source: { label: "Wamumbi team photos", href: "https://t.me/wamumbifoundation" },
+  },
+  {
+    slug: "bliss-garden-funday-2026",
+    title: "Bliss Gardens funday",
+    year: 2026,
+    dateLabel: "2 November 2026",
+    place: "Bliss Gardens, Bondo",
+    summary: "A bonding day for the Wamumbi family: games, snacks and swimming. Asanteni sana to everyone who came and contributed.",
+    source: { label: "Wamumbi team photos", href: "https://t.me/wamumbifoundation" },
+    inHouse: true,
+  },
 ]
+
+/** Community outreach only (excludes in-house team events). */
+export const OUTREACH_EVENTS = PAST_EVENTS.filter((e) => !e.inHouse)
 
 export const pastEventBySlug = (slug: string) => PAST_EVENTS.find((e) => e.slug === slug)
