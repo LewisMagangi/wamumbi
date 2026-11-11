@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, Select, TextArea } from "@/components/forms/fields"
 import { trpc } from "@/app/_trpc/client"
+import { CategoryField } from "@/components/dashboard/category-field"
+import { PosterUpload } from "@/components/dashboard/poster-upload"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   Empty, ErrorText, Facts, Panel, Progress, Sheet, Skeleton, StatStrip, Status, Toolbar, fmt,
@@ -147,6 +149,7 @@ function EventForm({ target, onClose }: { target: number | "new" | null; onClose
   const utils = trpc.useUtils()
   const open = target !== null
   const { data: categories = [] } = trpc.events.getCategories.useQuery(undefined, { enabled: open })
+  const addCategory = trpc.events.addCategory.useMutation({ onSuccess: () => utils.events.getCategories.invalidate() })
   const { data: currencies = [] } = trpc.donations.getCurrencies.useQuery(undefined, { enabled: open })
   const { data: statuses = [] } = trpc.events.getStatuses.useQuery(undefined, { enabled: open && !isNew })
   const { data: existing } = trpc.events.getById.useQuery({ id: id ?? 0 }, { enabled: id !== null })
@@ -212,14 +215,15 @@ function EventForm({ target, onClose }: { target: number | "new" | null; onClose
           <Field label="Start time" name="time" type="time" required value={form.time} onChange={set("time")} />
           <Field label="Places" name="capacity" type="number" min={1} required value={form.capacity} onChange={set("capacity")} />
           <Field label="Registration closes" name="registrationDeadline" type="date" max={form.date || undefined} value={form.registrationDeadline} onChange={set("registrationDeadline")} />
-          <Select label="Category" name="categoryId" required value={form.categoryId} onChange={set("categoryId")} options={categories.map((c) => ({ value: String(c.id), label: c.name }))} />
+          <CategoryField value={form.categoryId} onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))} options={categories}
+            canAdd={has("events:create")} onAdd={(name) => addCategory.mutateAsync({ name })} adding={addCategory.isPending} />
           {isNew ? (
             <Select label="Currency" name="currencyId" required value={form.currencyId} onChange={set("currencyId")} options={currencies.map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))} />
           ) : (
             <Select label="Status" name="statusId" required value={form.statusId} onChange={set("statusId")} options={statuses.map((s) => ({ value: String(s.id), label: s.name.replace(/_/g, " ") }))} hint={canPublish ? undefined : "Making it live sends it for approval."} />
           )}
           <Field label="Ticket price" name="ticketPrice" type="number" min={0} value={form.ticketPrice} onChange={set("ticketPrice")} hint="0 for a free event." />
-          <Field label="Image URL" name="imageUrl" type="url" value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://…" />
+          <PosterUpload label="Event poster" value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} />
           {err && <p role="alert" className="text-sm text-destructive sm:col-span-2">{err}</p>}
         </form>
       )}
@@ -244,6 +248,10 @@ function EventDetail({ id, onClose, onEdit, showRegistrations }: { id: number | 
         : (
           <div className="space-y-8">
             <Status value={e.status} />
+            {e.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- poster from Blob storage
+              <img src={e.imageUrl} alt="" className="w-full rounded-lg object-cover" />
+            )}
             <p className="leading-relaxed text-muted-foreground">{e.description}</p>
 
             <div>

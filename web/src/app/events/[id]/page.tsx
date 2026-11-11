@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { trpc } from "@/app/_trpc/client"
+import { UploadedPhotos } from "@/components/gallery/uploaded-photos"
 
 /** Public event page with self-registration for signed-in visitors. */
 export default function EventPage() {
@@ -83,7 +84,20 @@ export default function EventPage() {
 
                 <div className="mt-6 border-t pt-6">
                   {done ? (
-                    <p role="status" className="text-sm"><span className="font-medium">You&apos;re registered.</span> <span className="text-muted-foreground">We&apos;ll see you there.</span></p>
+                    <div role="status" className="text-sm">
+                      <p><span className="font-medium">You&apos;re registered.</span> <span className="text-muted-foreground">We&apos;ll see you there.</span></p>
+                      {e.ticketPrice > 0 && (
+                        <div className="mt-4 rounded-md bg-muted/60 p-4">
+                          <p className="font-medium">Pay for your ticket with M-Pesa</p>
+                          <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
+                            <li>Lipa na M-Pesa → Buy Goods and Services</li>
+                            <li>Till number <span className="font-medium tabular-nums text-foreground">8392352</span></li>
+                            <li>Amount <span className="font-medium tabular-nums text-foreground">{e.currency} {e.ticketPrice.toLocaleString()}</span></li>
+                          </ol>
+                          <p className="mt-2 text-xs text-muted-foreground">Keep the M-Pesa message; the team confirms payment at the door.</p>
+                        </div>
+                      )}
+                    </div>
                   ) : closed ? (
                     <p className="text-sm text-muted-foreground">{past ? "This event has happened." : e.status === "cancelled" ? "This event was cancelled." : "Registration is closed."}</p>
                   ) : !isLoaded ? null : isSignedIn ? (
@@ -107,6 +121,7 @@ export default function EventPage() {
             </aside>
           </article>
         )}
+        {e && <UploadedPhotos eventId={e.id} title="Photos" className="mt-20 border-t pt-12" />}
       </main>
       <Footer />
     </>

@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { notifyPermission } from "@/server/in-app"
 import { TRPCError } from "@trpc/server"
 import { prisma } from "@/lib/prisma"
 import { can } from "@/lib/rbac/permissions"
@@ -62,6 +63,7 @@ export async function savePartnership(input: z.infer<typeof partnershipInquiry>)
       replyTo: input.email,
       link: `/dashboard/admin?tab=inbox&id=${row.id}`,
     })
+    await notifyPermission(["users:manage"], { title: "New partnership inquiry", message: `${input.organizationName} wants to partner with us. See Admin → Inbox.` })
   return ok
 }
 
@@ -79,6 +81,7 @@ export const inquiriesRouter = router({
       replyTo: input.email,
       link: `/dashboard/admin?tab=inbox&id=${row.id}`,
     })
+    await notifyPermission(["volunteers:manage"], { title: "New volunteer application", message: `${name} applied to volunteer. See Admin → Inbox.` })
     return ok
   }),
 

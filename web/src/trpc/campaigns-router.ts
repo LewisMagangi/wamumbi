@@ -9,6 +9,7 @@ const isCampaignStaff = (user: AuthedUser | null) =>
 const canSeeDonorNames = (user: AuthedUser | null) =>
   !!user && canAny(user.role, ["donations:view_all", "donations:view_aggregate"]);
 import { reviewStatus } from "@/server/review";
+import { notifyPermission } from "@/server/in-app";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -363,6 +364,10 @@ export const campaignsRouter = router({
         }
       });
 
+      if (campaign.status.name === "pending_review") {
+        await notifyPermission(["campaigns:publish"], { title: "Campaign waiting for approval", message: `"${campaign.title}" was submitted and needs approval before it goes live.`, campaignId: campaign.id }, ctx.user.id)
+      }
+
       return {
         id: campaign.id,
         title: campaign.title,
@@ -486,6 +491,19 @@ export const campaignsRouter = router({
       throw new Error('Failed to delete campaign');
     }
   }),
+
+  /** Add a campaign category (e.g. "Medical", "School fees"). Returns the existing one if the name is taken. */
+  addCategory: permissionProcedure("campaigns:create", "campaigns:update")
+    .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(500).optional() }))
+    .mutation(async ({ input }) => {
+      const existing = await prisma.category.findFirst({ where: { name: { equals: input.name, mode: "insensitive" } } })
+      if (existing) {
+        if (existing.type !== "campaign") throw new TRPCError({ code: "CONFLICT", message: `"${existing.name}" already exists as a ${existing.type} category. Try a different name.` })
+        return { id: existing.id, name: existing.name }
+      }
+      const created = await prisma.category.create({ data: { name: input.name, description: input.description, type: "campaign" } })
+      return { id: created.id, name: created.name }
+    }),
 
   getCategories: publicProcedure
     .meta({

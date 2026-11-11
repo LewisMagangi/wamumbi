@@ -1,6 +1,6 @@
 import type { ComponentType } from "react"
 import {
-  LayoutDashboard, Megaphone, HandHeart, UserCheck, FolderKanban, CalendarDays, BarChart3, Home, ImageUp, ShieldCheck, ClipboardCheck, Users, Inbox,
+  LayoutDashboard, Megaphone, HandHeart, UserCheck, FolderKanban, CalendarDays, BarChart3, Home, ImageUp, ShieldCheck, ClipboardCheck, Users, Inbox, History,
 } from "lucide-react"
 import type { Permission } from "@/lib/rbac/permissions"
 
@@ -22,4 +22,5 @@ export const navigationItems: NavItem[] = [
   { name: 'Inbox', href: '/dashboard/admin?tab=inbox', icon: Inbox, description: 'Volunteer and partner messages', anyOf: ['volunteers:manage', 'users:manage'] },
   { name: 'Approvals', href: '/dashboard/admin?tab=approvals', icon: ClipboardCheck, description: 'Approve content to go live', anyOf: ['campaigns:publish', 'events:publish', 'blog:publish'] },
   { name: 'Users & roles', href: '/dashboard/admin?tab=users', icon: Users, description: 'Assign roles', anyOf: ['users:manage'] },
+  { name: 'Activity log', href: '/dashboard/admin?tab=activity', icon: History, description: 'Who did what, and when', anyOf: ['users:manage'] },
 ];

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { can, canAny, RESTRICTED_UPLOAD } from "@/lib/rbac/permissions"
 import { audit } from "@/server/audit"
 import { permissionProcedure, protectedProcedure, publicProcedure, router } from "./trpc"
+import { notifyPermission, notifyUsers } from "@/server/in-app"
 
 const BLOB_HOST = /\.public\.blob\.vercel-storage\.com$/
 
@@ -25,10 +26,15 @@ const startOfToday = () => {
 export const mediaRouter = router({
   /** Approved photos for the public gallery (static past-event photos live in /public/media). */
   listApproved: publicProcedure
-    .input(z.object({ eventId: z.number().int().optional(), limit: z.number().int().min(1).max(100).default(48) }).optional())
+    .input(z.object({
+      eventId: z.number().int().optional(),
+      /** Slug of a past event (see data/past-events.ts). */
+      album: z.string().max(100).optional(),
+      limit: z.number().int().min(1).max(100).default(48),
+    }).optional())
     .query(async ({ input }) => {
       const rows = await prisma.mediaAsset.findMany({
-        where: { moderation_status: "approved", consent_confirmed: true, event_id: input?.eventId },
+        where: { moderation_status: "approved", consent_confirmed: true, kind: "image", event_id: input?.eventId, album: input?.album },
         orderBy: [{ taken_at: "desc" }, { created_at: "desc" }],
         take: input?.limit ?? 48,
         select: { id: true, url: true, kind: true, width: true, height: true, alt: true, caption: true, album: true, event_id: true, taken_at: true },
@@ -56,6 +62,8 @@ export const mediaRouter = router({
         alt: z.string().trim().max(300).optional(),
         caption: z.string().trim().max(2000).optional(),
         eventId: z.number().int().optional(),
+        /** Past-event slug, for photos from events held before the site tracked them. */
+        album: z.string().trim().max(100).optional(),
         consentConfirmed: z.boolean(),
       })
     )
@@ -82,6 +90,7 @@ export const mediaRouter = router({
           alt: input.alt,
           caption: input.caption,
           event_id: input.eventId,
+          album: input.album,
           uploaded_by: ctx.user.id,
           consent_confirmed: input.consentConfirmed,
           moderation_status: autoApprove ? "approved" : "pending",
@@ -89,6 +98,9 @@ export const mediaRouter = router({
           moderated_at: autoApprove ? new Date() : null,
         },
       })
+      if (row.moderation_status === "pending") {
+        await notifyPermission(["media:moderate"], { title: "Photo waiting for review", message: "A new photo was uploaded and needs review before it appears in the gallery.", eventId: input.eventId }, ctx.user.id)
+      }
       return { id: row.id, status: row.moderation_status }
     }),
 
@@ -144,6 +156,11 @@ export const mediaRouter = router({
         },
       })
       await audit({ userId: ctx.user.id, action: `media_${input.decision}`, entity: "media", entityId: input.id })
+      if (asset.uploaded_by && asset.uploaded_by !== ctx.user.id) {
+        await notifyUsers([asset.uploaded_by], input.decision === "approve"
+          ? { title: "Your photo is live", message: "A photo you uploaded was approved and now appears in the gallery." }
+          : { title: "Your photo wasn't approved", message: input.reason ? `Reason: ${input.reason}` : "A photo you uploaded wasn't approved for the gallery." })
+      }
       return { ok: true }
     }),
 
