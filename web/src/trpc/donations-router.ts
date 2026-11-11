@@ -1,4 +1,4 @@
-import { publicProcedure, protectedProcedure, permissionProcedure, redactOutput, router } from "./trpc";
+import { publicProcedure, permissionProcedure, redactOutput, router } from "./trpc";
 import { canAny } from "@/lib/rbac/permissions";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@/lib/prisma";
@@ -259,7 +259,8 @@ export const donationsRouter = router({
     }
   }),
 
-  create: protectedProcedure
+  // Recording a gift (e.g. an M-Pesa payment) is a finance task; it marks the gift completed.
+  create: permissionProcedure("donations:manage")
     .meta({
       openapi: {
         method: 'POST',
@@ -465,7 +466,7 @@ export const donationsRouter = router({
   }),
 
   // Create or find donor
-  createDonor: protectedProcedure
+  createDonor: permissionProcedure("donations:manage")
     .meta({
       openapi: {
         method: 'POST',
