@@ -413,7 +413,7 @@ export default function AdminPage() {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  role_change: "Changed a role", donation_record: "Recorded a donation", approve: "Approved", reject: "Sent back",
+  role_change: "Changed a role", terms_accepted: "Accepted the terms", donation_record: "Recorded a donation", approve: "Approved", reject: "Sent back",
   media_approve: "Approved a photo", media_reject: "Rejected a photo",
   project_create: "Created a project", project_update: "Updated a project", project_delete: "Deleted a project",
   inquiry_accepted: "Accepted an inquiry", inquiry_declined: "Declined an inquiry", inquiry_in_review: "Opened an inquiry", inquiry_archived: "Archived an inquiry", inquiry_new: "Reopened an inquiry",
