@@ -83,11 +83,11 @@ function Hero() {
         fill
         priority
         sizes="100vw"
-        className="-z-20 object-cover object-[60%_85%] motion-safe:animate-[hero-zoom_18s_ease-out_both]"
+        className="-z-20 object-cover motion-safe:animate-[hero-zoom_18s_ease-out_both]"
       />
-      {/* Scrim: strong on the left behind the text, light at the bottom so the whole family stays visible */}
-      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/4 bg-gradient-to-t from-background/90 to-transparent" />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/75 via-35% to-transparent to-60%" />
+      {/* Scrim: the bottom fade starts low so the whole family stays visible; the side fade keeps text readable */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
       <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-background/80 to-transparent" />
 
       <div className="mx-auto w-full max-w-screen-xl px-5 pb-16 pt-32 md:px-10 md:pb-24">
