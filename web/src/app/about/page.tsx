@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Download } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { photosFor } from "@/data/gallery"
@@ -80,6 +80,36 @@ export default function AboutPage() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section aria-labelledby="flyer-heading" className="grid items-center gap-12 border-t py-24 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+        <a href="/brand/wamumbi-flyer.jpg" target="_blank" rel="noopener" className="block overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md">
+          <Image
+            src="/brand/wamumbi-flyer.jpg"
+            alt="Wamumbi Foundation flyer: Touching Hearts. About us, our mission, and what we do: empowering students and youth, charity outreach, skill and talent development, wellness and awareness, and inspiring service and giving."
+            width={1280}
+            height={1073}
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            className="h-auto w-full"
+          />
+        </a>
+        <div>
+          <h2 id="flyer-heading" className="text-display-sm">Wamumbi at a glance</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            Who we are, what we stand for and what we do, on one page. Share it on WhatsApp, or print it for outreach days and school visits.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg" className="h-12 rounded-full px-7">
+              <a href="/brand/wamumbi-flyer.jpg" download="Wamumbi-Foundation-flyer.jpg">
+                <Download className="h-4 w-4" />
+                Download the flyer
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-7">
+              <a href="/brand/wamumbi-flyer.jpg" target="_blank" rel="noopener">View full size</a>
+            </Button>
+          </div>
+        </div>
       </section>
 
       <section className="border-t pt-20">
