@@ -48,9 +48,8 @@ next-env.d.ts
 /src/generated/prisma/
 *.prisma.new
 *.dll.node
-/prisma/migrations/*/
 prisma/*.new
-prisma/migrations/
+# prisma/migrations/ are versioned so every environment applies the same schema changes
 
 .env*.local
 .env.production
