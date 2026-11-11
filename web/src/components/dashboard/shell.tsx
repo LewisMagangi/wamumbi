@@ -9,7 +9,7 @@ import { useClerk, UserButton } from "@clerk/nextjs"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useAuth } from "@/contexts/AuthContext"
-import { navigationItems, type NavItem } from "@/components/dashboard/Sidebar"
+import { navigationItems, type NavItem } from "@/components/dashboard/nav"
 import type { Permission } from "@/lib/rbac/permissions"
 import { cn } from "@/lib/utils"
 

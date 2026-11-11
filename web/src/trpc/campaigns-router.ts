@@ -1,4 +1,13 @@
-import { publicProcedure, permissionProcedure, router } from "./trpc";
+import { publicProcedure, optionalAuthProcedure, permissionProcedure, router } from "./trpc";
+import { canAny } from "@/lib/rbac/permissions";
+import type { AuthedUser } from "./trpc";
+
+/** Statuses anyone can see. Drafts and campaigns awaiting review are staff-only. */
+const PUBLIC_STATUSES = ["active", "completed"];
+const isCampaignStaff = (user: AuthedUser | null) =>
+  !!user && canAny(user.role, ["campaigns:create", "campaigns:update", "campaigns:publish"]);
+const canSeeDonorNames = (user: AuthedUser | null) =>
+  !!user && canAny(user.role, ["donations:view_all", "donations:view_aggregate"]);
 import { reviewStatus } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -80,7 +89,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getAll: publicProcedure
+  getAll: optionalAuthProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -109,9 +118,10 @@ export const campaignsRouter = router({
       endDate: z.date().nullable(),
       createdAt: z.date()
     })))
-    .query(async () => {
+    .query(async ({ ctx }) => {
     try {
       const campaigns = await prisma.campaign.findMany({
+        where: isCampaignStaff(ctx.user) ? undefined : { status: { name: { in: PUBLIC_STATUSES } } },
         include: {
           category: true,
           status: true,
@@ -152,7 +162,7 @@ export const campaignsRouter = router({
     }
   }),
 
-  getById: publicProcedure
+  getById: optionalAuthProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -195,9 +205,8 @@ export const campaignsRouter = router({
       createdAt: z.date(),
       updatedAt: z.date()
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
     try {
-      console.log('getById called with id:', input.id);
       const campaign = await prisma.campaign.findUnique({
         where: { id: input.id },
         include: {
@@ -225,9 +234,7 @@ export const campaignsRouter = router({
         }
       });
 
-      console.log('Campaign found:', campaign ? 'yes' : 'no');
-
-      if (!campaign) {
+      if (!campaign || (!isCampaignStaff(ctx.user) && !PUBLIC_STATUSES.includes(campaign.status.name))) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: `Campaign with id ${input.id} not found`
@@ -259,9 +266,12 @@ export const campaignsRouter = router({
         recentDonations: campaign.donations.map(d => ({
           id: d.id,
           amount: Number(d.amount),
-          donorName: d.is_anonymous || d.donor.is_anonymous 
-            ? 'Anonymous' 
-            : `${d.donor.first_name || ''} ${d.donor.last_name || ''}`.trim(),
+          // Full names for finance roles; everyone else sees a first name and initial.
+          donorName: d.is_anonymous || d.donor.is_anonymous
+            ? 'Anonymous'
+            : canSeeDonorNames(ctx.user)
+              ? `${d.donor.first_name || ''} ${d.donor.last_name || ''}`.trim()
+              : [d.donor.first_name, d.donor.last_name ? `${d.donor.last_name[0]}.` : ''].filter(Boolean).join(' ') || 'A supporter',
           donationDate: d.donation_date,
           status: d.status.name
         })),
@@ -269,6 +279,7 @@ export const campaignsRouter = router({
         updatedAt: campaign.updated_at
       };
     } catch (error) {
+      if (error instanceof TRPCError) throw error;
       console.error('Error fetching campaign:', error);
       throw new Error('Failed to fetch campaign');
     }

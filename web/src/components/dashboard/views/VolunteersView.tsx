@@ -1,785 +1,272 @@
-'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Plus, Users, Eye, Edit, Trash2, Mail, Phone, Loader2 } from 'lucide-react';
-import { trpc } from '@/app/_trpc/client';
+"use client"
 
-interface VolunteerFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  availability: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-  emergencyContactEmail: string;
-  emergencyContactRelationship: string;
+import { useMemo, useState, type FormEvent } from "react"
+import Image from "next/image"
+import { format } from "date-fns"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, Select, TextArea } from "@/components/forms/fields"
+import { trpc } from "@/app/_trpc/client"
+import { useAuth } from "@/contexts/AuthContext"
+import {
+  Empty, ErrorText, Facts, Panel, Sheet, Skeleton, StatStrip, Status, Toolbar, fmt, selectClass,
+} from "@/components/dashboard/ui"
+
+const hours = (v: unknown) => Number(v) || 0
+
+function Avatar({ name, src }: { name: string; src: string | null }) {
+  const initials = name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()
+  return src ? (
+    <Image src={src} alt="" width={32} height={32} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+  ) : (
+    <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-muted text-xs text-muted-foreground">{initials || "?"}</span>
+  )
 }
 
-interface Volunteer {
-  id: number;
-  userId: number;
-  name: string;
-  email: string;
-  phone: string | null;
-  profileImage: string | null;
-  availability: string | null;
-  skills: string[];
-  status: string;
-  totalHours: number | unknown;
-  activitiesCount: number;
-  joinedAt: string; // Date comes back as string from API
-}
+/**
+ * Volunteers. The server scopes the list by role: team leads see their teams,
+ * some roles see anonymized records (no contact details).
+ */
+export function VolunteersView() {
+  const { has } = useAuth()
+  const canManage = has("volunteers:manage")
+  const { data, isLoading, error } = trpc.volunteers.getAll.useQuery()
+  const [q, setQ] = useState("")
+  const [status, setStatus] = useState("all")
+  const [adding, setAdding] = useState(false)
+  const [openId, setOpenId] = useState<number | null>(null)
 
-interface VolunteerFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  availability: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-  emergencyContactEmail: string;
-  emergencyContactRelationship: string;
-}
+  const rows = useMemo(() => (data ?? []).filter((v) =>
+    (status === "all" || v.status === status) &&
+    (!q || `${v.name} ${v.email} ${v.skills.join(" ")}`.toLowerCase().includes(q.toLowerCase()))
+  ), [data, q, status])
+  const statuses = useMemo(() => Array.from(new Set((data ?? []).map((v) => v.status))), [data])
 
-export const VolunteersView: React.FC = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedVolunteerId, setSelectedVolunteerId] = useState<number | null>(null);
-  const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<VolunteerFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    availability: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactEmail: '',
-    emergencyContactRelationship: 'Family'
-  });
-
-  // TanStack Query - Fetch all volunteers
-  const { data: volunteers, isLoading, error: fetchError } = trpc.volunteers.getAll.useQuery();
-  
-  // TanStack Query - Fetch single volunteer details
-  const { data: volunteerDetails, isLoading: isLoadingDetails } = trpc.volunteers.getById.useQuery(
-    { id: selectedVolunteerId! },
-    { enabled: !!selectedVolunteerId && showViewModal }
-  );
-
-  // TanStack Query utils for cache invalidation
-  const utils = trpc.useUtils();
-  const deleteVolunteerMutation = trpc.volunteers.delete.useMutation({
-    onSuccess: () => {
-      utils.volunteers.getAll.invalidate();
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err.message);
-    }
-  });
-
-  // TanStack Mutation - Update volunteer
-  const updateVolunteerMutation = trpc.volunteers.update.useMutation({
-    onSuccess: () => {
-      utils.volunteers.getAll.invalidate();
-      setShowEditModal(false);
-      setEditingVolunteer(null);
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err.message);
-    }
-  });
-
-  // TanStack Mutation - Create volunteer with user
-  const createVolunteerMutation = trpc.volunteers.createWithUser.useMutation({
-    onSuccess: () => {
-      utils.volunteers.getAll.invalidate();
-      setShowAddModal(false);
-      resetForm();
-      setError(null);
-    },
-    onError: (err) => {
-      setError(err.message);
-    }
-  });
-
-  const resetForm = () => {
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      availability: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      emergencyContactEmail: '',
-      emergencyContactRelationship: 'Family'
-    });
-  };
-
-  const handleAddVolunteer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    
-    // Validate required fields
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      setError('First name, last name, and email are required');
-      return;
-    }
-
-    createVolunteerMutation.mutate({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone || undefined,
-      availability: formData.availability || undefined,
-      emergencyContactName: formData.emergencyContactName || undefined,
-      emergencyContactPhone: formData.emergencyContactPhone || undefined,
-      emergencyContactEmail: formData.emergencyContactEmail || undefined,
-      emergencyContactRelationship: formData.emergencyContactRelationship || undefined
-    });
-  };
-
-  const handleViewVolunteer = (volunteerId: number) => {
-    setSelectedVolunteerId(volunteerId);
-    setShowViewModal(true);
-  };
-
-  const handleDeleteVolunteer = async (volunteerId: number, volunteerName: string) => {
-    if (window.confirm(`Are you sure you want to delete ${volunteerName}? This action cannot be undone.`)) {
-      setError(null);
-      deleteVolunteerMutation.mutate({ id: volunteerId });
-    }
-  };
-
-  const handleEditVolunteer = (volunteer: Volunteer) => {
-    setEditingVolunteer(volunteer);
-    setShowEditModal(true);
-  };
-
-  // Calculate stats from data
-  const totalVolunteers = volunteers?.length || 0;
-  const activeVolunteers = volunteers?.filter(v => v.status === 'active').length || 0;
-  const totalHours = volunteers?.reduce((sum, v) => sum + (Number(v.totalHours) || 0), 0) || 0;
-  const avgHours = totalVolunteers > 0 ? (totalHours / totalVolunteers).toFixed(1) : '0';
-
-  if (fetchError) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-destructive">Error loading volunteers: {fetchError.message}</p>
-      </div>
-    );
-  }
+  const all = data ?? []
+  const total = all.reduce((s, v) => s + hours(v.totalHours), 0)
+  const active = all.filter((v) => v.status === "active").length
+  const showContact = all.some((v) => v.email)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Volunteer Management</h2>
-          <p className="text-muted-foreground mt-1">Manage volunteers and their activities</p>
+          <h1 className="font-display text-3xl tracking-tight md:text-4xl">Volunteers</h1>
+          <p className="mt-2 text-muted-foreground">The people who show up, and the hours they give.</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Volunteer</span>
-        </button>
+        {canManage && <Button onClick={() => setAdding(true)}><Plus /> Add volunteer</Button>}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Total Volunteers</p>
-          <p className="text-2xl font-bold text-foreground">
-            {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalVolunteers}
-          </p>
-        </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Active Volunteers</p>
-          <p className="text-2xl font-bold text-success">
-            {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : activeVolunteers}
-          </p>
-        </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Total Hours</p>
-          <p className="text-2xl font-bold text-chart-4">
-            {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalHours.toFixed(1)}
-          </p>
-        </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Avg Hours/Volunteer</p>
-          <p className="text-2xl font-bold text-info">
-            {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : avgHours}
-          </p>
-        </div>
-      </div>
+      <StatStrip
+        loading={isLoading}
+        stats={[
+          { label: "Volunteers", value: fmt(all.length) },
+          { label: "Active", value: fmt(active) },
+          { label: "Hours given", value: fmt(total) },
+          { label: "Average per volunteer", value: all.length ? (total / all.length).toFixed(1) : "0" },
+        ]}
+      />
 
-      {/* Volunteers Table */}
-      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="font-bold text-lg">All Volunteers</h3>
-        </div>
-        <div className="overflow-x-auto">
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-chart-4" />
-              <span className="ml-2 text-muted-foreground">Loading volunteers...</span>
-            </div>
-          ) : volunteers && volunteers.length > 0 ? (
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Hours Logged</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Activities</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {volunteers.map((volunteer) => (
-                  <tr key={volunteer.id} className="hover:bg-accent">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-chart-4/15 rounded-full flex items-center justify-center mr-3 overflow-hidden">
-                          {volunteer.profileImage ? (
-                            <Image src={volunteer.profileImage} alt={`${volunteer.name} profile`} width={40} height={40} className="rounded-full object-cover" />
-                          ) : (
-                            <Users className="w-5 h-5 text-chart-4" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{volunteer.name}</div>
-                          <div className="text-sm text-muted-foreground">ID: {volunteer.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-foreground">{volunteer.email}</div>
-                      <div className="text-sm text-muted-foreground">{volunteer.phone || 'No phone'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-chart-4">
-                        {Number(volunteer.totalHours).toFixed(1)} hrs
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-foreground">{volunteer.activitiesCount}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        volunteer.status === 'active' 
-                          ? 'bg-success/15 text-success' 
-                          : 'bg-muted text-foreground/80'
-                      }`}>
-                        {volunteer.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleViewVolunteer(volunteer.id)}
-                          className="text-info hover:text-info"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleEditVolunteer(volunteer)}
-                          className="text-success hover:text-success" 
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteVolunteer(volunteer.id, volunteer.name)}
-                          disabled={deleteVolunteerMutation.isPending}
-                          className="text-destructive hover:text-destructive disabled:text-destructive" 
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+      <Panel>
+        <Toolbar count={rows.length}>
+          <label htmlFor="volunteer-search" className="sr-only">Search volunteers</label>
+          <Input id="volunteer-search" placeholder="Search name, email or skill" value={q} onChange={(e) => setQ(e.target.value)} className="sm:max-w-xs" />
+          <label htmlFor="volunteer-status" className="sr-only">Filter by status</label>
+          <select id="volunteer-status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
+            <option value="all">All statuses</option>
+            {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Toolbar>
+
+        {error ? <ErrorText>{error.message}</ErrorText>
+          : isLoading ? <Skeleton />
+          : !rows.length ? <Empty>{all.length ? "No volunteers match your filters." : "No volunteers yet. People who sign up on the website appear in the Inbox first."}</Empty>
+          : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground">
+                  <tr className="border-b">
+                    <th className="px-5 py-2.5 font-normal">Volunteer</th>
+                    {showContact && <th className="px-5 py-2.5 font-normal">Contact</th>}
+                    <th className="px-5 py-2.5 font-normal">Skills</th>
+                    <th className="px-5 py-2.5 font-normal">Status</th>
+                    <th className="px-5 py-2.5 text-right font-normal">Hours</th>
+                    <th className="px-5 py-2.5 text-right font-normal">Activities</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
-              <p className="text-muted-foreground">No volunteers found</p>
-              <p className="text-sm text-muted-foreground mt-1">Add your first volunteer to get started</p>
+                </thead>
+                <tbody className="divide-y">
+                  {rows.map((v) => (
+                    <tr key={v.id} className="cursor-pointer hover:bg-accent/40" onClick={() => setOpenId(v.id)}>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={v.name} src={v.profileImage} />
+                          <button className="text-left hover:underline" onClick={(e) => { e.stopPropagation(); setOpenId(v.id) }}>{v.name}</button>
+                        </div>
+                      </td>
+                      {showContact && (
+                        <td className="px-5 py-3">
+                          <p className="max-w-[14rem] truncate">{v.email}</p>
+                          {v.phone && <p className="text-xs text-muted-foreground">{v.phone}</p>}
+                        </td>
+                      )}
+                      <td className="max-w-[14rem] truncate px-5 py-3 text-muted-foreground">{v.skills.length ? v.skills.join(", ") : "None listed"}</td>
+                      <td className="px-5 py-3"><Status value={v.status} /></td>
+                      <td className="px-5 py-3 text-right tabular-nums">{hours(v.totalHours).toFixed(1)}</td>
+                      <td className="px-5 py-3 text-right tabular-nums">{v.activitiesCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
-      </div>
+      </Panel>
 
-      {/* Add Volunteer Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Add New Volunteer</h2>
+      <AddVolunteer open={adding} onClose={() => setAdding(false)} />
+      <VolunteerDetail id={openId} onClose={() => setOpenId(null)} canManage={canManage} />
+    </div>
+  )
+}
 
-            {error && (
-              <div className="mb-4 p-4 bg-warning/15 border border-warning/40 rounded-lg">
-                <p className="text-warning">{error}</p>
+const blank = { firstName: "", lastName: "", email: "", phone: "", availability: "", emergencyContactName: "", emergencyContactPhone: "", emergencyContactRelationship: "" }
+
+function AddVolunteer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const utils = trpc.useUtils()
+  const [form, setForm] = useState(blank)
+  const [err, setErr] = useState<string | null>(null)
+  const create = trpc.volunteers.createWithUser.useMutation({
+    onSuccess: () => { utils.volunteers.getAll.invalidate(); setForm(blank); onClose() },
+    onError: (e) => setErr(e.message),
+  })
+  const set = (k: keyof typeof blank) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const opt = (s: string) => s.trim() || undefined
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    setErr(null)
+    create.mutate({
+      firstName: form.firstName.trim(), lastName: form.lastName.trim(), email: form.email.trim(),
+      phone: opt(form.phone), availability: opt(form.availability),
+      emergencyContactName: opt(form.emergencyContactName), emergencyContactPhone: opt(form.emergencyContactPhone),
+      emergencyContactRelationship: opt(form.emergencyContactRelationship),
+    })
+  }
+
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title="Add volunteer"
+      description="Creates their account. They can sign in with this email."
+      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" form="volunteer-form" disabled={create.isPending}>{create.isPending ? "Saving…" : "Add volunteer"}</Button></>}
+    >
+      <form id="volunteer-form" onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
+        <Field label="First name" name="firstName" required autoComplete="off" value={form.firstName} onChange={set("firstName")} />
+        <Field label="Last name" name="lastName" required autoComplete="off" value={form.lastName} onChange={set("lastName")} />
+        <Field label="Email" name="email" type="email" required autoComplete="off" value={form.email} onChange={set("email")} />
+        <Field label="Phone" name="phone" type="tel" value={form.phone} onChange={set("phone")} placeholder="+254 7…" />
+        <TextArea className="sm:col-span-2" label="Availability" name="availability" rows={2} value={form.availability} onChange={set("availability")} placeholder="Weekends, school holidays" />
+        <p className="pt-2 text-sm font-medium sm:col-span-2">Emergency contact</p>
+        <Field label="Name" name="emergencyContactName" value={form.emergencyContactName} onChange={set("emergencyContactName")} />
+        <Field label="Phone" name="emergencyContactPhone" type="tel" value={form.emergencyContactPhone} onChange={set("emergencyContactPhone")} />
+        <Field label="Relationship" name="emergencyContactRelationship" value={form.emergencyContactRelationship} onChange={set("emergencyContactRelationship")} placeholder="Parent, spouse…" />
+        {err && <p role="alert" className="text-sm text-destructive sm:col-span-2">{err}</p>}
+      </form>
+    </Sheet>
+  )
+}
+
+function VolunteerDetail({ id, onClose, canManage }: { id: number | null; onClose: () => void; canManage: boolean }) {
+  const utils = trpc.useUtils()
+  const { data: v, isLoading, error } = trpc.volunteers.getById.useQuery({ id: id ?? 0 }, { enabled: id !== null })
+  const { data: statuses = [] } = trpc.volunteers.getStatuses.useQuery(undefined, { enabled: id !== null && canManage })
+  const [editing, setEditing] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const done = () => { utils.volunteers.getAll.invalidate(); utils.volunteers.getById.invalidate(); setEditing(false); setErr(null) }
+  const update = trpc.volunteers.update.useMutation({ onSuccess: done, onError: (e) => setErr(e.message) })
+  const remove = trpc.volunteers.delete.useMutation({ onSuccess: () => { done(); close() }, onError: (e) => setErr(e.message) })
+  const close = () => { setEditing(false); setConfirmDelete(false); setErr(null); onClose() }
+
+  const save = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const f = new FormData(e.currentTarget)
+    const statusId = Number(f.get("statusId"))
+    update.mutate({ id: id!, availability: String(f.get("availability") ?? ""), statusId: statusId || undefined })
+  }
+
+  const st = v?.statistics as { total_hours?: unknown; activities_count?: number; events_count?: number; projects_count?: number } | null | undefined
+
+  return (
+    <Sheet
+      open={id !== null}
+      onClose={close}
+      title={v?.name ?? "Volunteer"}
+      description={v ? `Joined ${format(new Date(v.joinedAt), "MMMM yyyy")}` : undefined}
+      footer={canManage && v ? (
+        editing ? (
+          <><Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button><Button type="submit" form="volunteer-edit" disabled={update.isPending}>{update.isPending ? "Saving…" : "Save"}</Button></>
+        ) : confirmDelete ? (
+          <>
+            <p className="mr-auto self-center text-sm text-muted-foreground">Remove {v.name}? Their logged hours go too.</p>
+            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button>
+            <Button variant="destructive" onClick={() => remove.mutate({ id: v.id })} disabled={remove.isPending}>{remove.isPending ? "Removing…" : "Remove"}</Button>
+          </>
+        ) : (
+          <><Button variant="ghost" className="mr-auto text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)}>Remove</Button><Button variant="outline" onClick={() => setEditing(true)}>Edit</Button></>
+        )
+      ) : undefined}
+    >
+      {error ? <p className="text-sm text-destructive">{error.message}</p>
+        : isLoading || !v ? <Skeleton rows={6} />
+        : editing ? (
+          <form id="volunteer-edit" onSubmit={save} className="grid gap-5">
+            <Select label="Status" name="statusId" required defaultValue={String(statuses.find((s) => s.name === v.status)?.id ?? "")} options={statuses.map((s) => ({ value: String(s.id), label: s.name }))} />
+            <TextArea label="Availability" name="availability" rows={3} defaultValue={v.availability ?? ""} />
+            {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
+          </form>
+        ) : (
+          <div className="space-y-8">
+            <div className="flex items-center gap-4">
+              <Avatar name={v.name} src={v.profileImage} />
+              <div className="min-w-0">
+                {v.email && <a href={`mailto:${v.email}`} className="block truncate text-sm hover:underline">{v.email}</a>}
+                {v.phone && <a href={`tel:${v.phone}`} className="block text-sm text-muted-foreground hover:text-foreground">{v.phone}</a>}
               </div>
-            )}
-
-            <form className="space-y-6" onSubmit={handleAddVolunteer}>
-              {/* Personal Information */}
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Personal Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-foreground/80 mb-2">
-                      First Name *
-                    </label>
-                    <input
-                      id="firstName"
-                      type="text"
-                      placeholder="Enter first name"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Last Name *
-                    </label>
-                    <input
-                      id="lastName"
-                      type="text"
-                      placeholder="Enter last name"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Phone *
-                    </label>
-                    <input
-                      id="phone"
-                      type="tel"
-                      placeholder="e.g., +1234567890"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Availability */}
-              <div>
-                <label htmlFor="availability" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Availability *
-                </label>
-                <textarea
-                  id="availability"
-                  value={formData.availability}
-                  onChange={(e) => setFormData({...formData, availability: e.target.value})}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                  placeholder="e.g., Weekends, weekday evenings..."
-                  required
-                />
-              </div>
-
-              {/* Emergency Contact */}
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Emergency Contact</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="emergencyContactName" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Name *
-                    </label>
-                    <input
-                      id="emergencyContactName"
-                      type="text"
-                      placeholder="Full name"
-                      value={formData.emergencyContactName}
-                      onChange={(e) => setFormData({...formData, emergencyContactName: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="emergencyContactPhone" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Phone *
-                    </label>
-                    <input
-                      id="emergencyContactPhone"
-                      type="tel"
-                      placeholder="e.g., +1234567890"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) => setFormData({...formData, emergencyContactPhone: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="emergencyContactEmail" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Email
-                    </label>
-                    <input
-                      id="emergencyContactEmail"
-                      type="email"
-                      placeholder="email@example.com"
-                      value={formData.emergencyContactEmail}
-                      onChange={(e) => setFormData({...formData, emergencyContactEmail: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="emergencyContactRelationship" className="block text-sm font-medium text-foreground/80 mb-2">
-                      Relationship *
-                    </label>
-                    <select
-                      id="emergencyContactRelationship"
-                      value={formData.emergencyContactRelationship}
-                      onChange={(e) => setFormData({...formData, emergencyContactRelationship: e.target.value})}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                      required
-                    >
-                      <option value="Family">Family</option>
-                      <option value="Friend">Friend</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Parent">Parent</option>
-                      <option value="Sibling">Sibling</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-4">
-                <button
-                  type="submit"
-                  disabled={createVolunteerMutation.isPending}
-                  className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
-                >
-                  {createVolunteerMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Adding...
-                    </>
-                  ) : (
-                    'Add Volunteer'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setError(null);
-                    resetForm();
-                  }}
-                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* View Volunteer Modal */}
-      {showViewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Volunteer Details</h2>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setSelectedVolunteerId(null);
-                }}
-                className="text-muted-foreground/70 hover:text-foreground"
-              >
-                ✕
-              </button>
+              <div className="ml-auto"><Status value={v.status} /></div>
             </div>
 
-            {isLoadingDetails ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-chart-4" />
-                <span className="ml-2 text-muted-foreground">Loading details...</span>
-              </div>
-            ) : volunteerDetails ? (
-              <>
-                {/* Profile Header */}
-                <div className="flex items-center mb-8 pb-6 border-b border-border">
-                  <div className="w-20 h-20 bg-chart-4/15 rounded-full flex items-center justify-center mr-6 overflow-hidden">
-                    {volunteerDetails.profileImage ? (
-                      <Image src={volunteerDetails.profileImage} alt={`${volunteerDetails.name} profile`} width={80} height={80} className="rounded-full object-cover" />
-                    ) : (
-                      <Users className="w-10 h-10 text-chart-4" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground">{volunteerDetails.name}</h3>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="flex items-center text-muted-foreground">
-                        <Mail className="w-4 h-4 mr-2" />
-                        {volunteerDetails.email}
-                      </span>
-                      {volunteerDetails.phone && (
-                        <span className="flex items-center text-muted-foreground">
-                          <Phone className="w-4 h-4 mr-2" />
-                          {volunteerDetails.phone}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+            <StatStrip stats={[
+              { label: "Hours", value: hours(st?.total_hours).toFixed(1) },
+              { label: "Activities", value: fmt(st?.activities_count ?? 0) },
+              { label: "Events", value: fmt(st?.events_count ?? 0) },
+            ]} />
 
-                {/* Statistics */}
-                <div className="grid grid-cols-4 gap-4 mb-8">
-                  <div className="bg-chart-4/15 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground">Total Hours</p>
-                    <p className="text-2xl font-bold text-chart-4">
-                      {volunteerDetails.statistics?.total_hours?.toString() ?? '0'}
-                    </p>
-                  </div>
-                  <div className="bg-info/15 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground">Activities</p>
-                    <p className="text-2xl font-bold text-info">
-                      {volunteerDetails.statistics?.activities_count ?? 0}
-                    </p>
-                  </div>
-                  <div className="bg-success/15 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground">Projects</p>
-                    <p className="text-2xl font-bold text-success">
-                      {volunteerDetails.statistics?.projects_count ?? 0}
-                    </p>
-                  </div>
-                  <div className="bg-brand/10 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground">Events</p>
-                    <p className="text-2xl font-bold text-brand">
-                      {volunteerDetails.statistics?.events_count ?? 0}
-                    </p>
-                  </div>
-                </div>
+            <Facts items={[
+              { label: "Availability", value: v.availability || "Not given" },
+              { label: "Skills", value: v.skills.length ? v.skills.join(", ") : "None listed" },
+              ...(v.emergencyContact ? [{ label: "Emergency contact", value: <>{v.emergencyContact.name} <span className="text-muted-foreground">({v.emergencyContact.relationship})</span><br />{v.emergencyContact.phone}</> }] : []),
+            ]} />
 
-                {/* Skills */}
-                {volunteerDetails.skills && volunteerDetails.skills.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {volunteerDetails.skills.map((skill, index) => (
-                        <span key={index} className="px-3 py-1 bg-chart-4/15 text-chart-4 rounded-full text-sm">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Additional Info */}
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Availability</h4>
-                    <p className="text-foreground">{volunteerDetails.availability || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Status</h4>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      volunteerDetails.status === 'active' 
-                        ? 'bg-success/15 text-success' 
-                        : 'bg-muted text-foreground/80'
-                    }`}>
-                      {volunteerDetails.status}
-                    </span>
-                  </div>
-                  {volunteerDetails.emergencyContact && (
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground/80 mb-2">Emergency Contact</h4>
-                      <p className="text-foreground">
-                        {volunteerDetails.emergencyContact.name} ({volunteerDetails.emergencyContact.relationship})
-                      </p>
-                      <p className="text-sm text-muted-foreground">{volunteerDetails.emergencyContact.phone}</p>
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground/80 mb-2">Joined Date</h4>
-                    <p className="text-foreground">
-                      {new Date(volunteerDetails.joinedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Recent Activities */}
-                {volunteerDetails.recentActivities && volunteerDetails.recentActivities.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-medium text-foreground/80 mb-3">Recent Activities</h4>
-                    <div className="space-y-2">
-                      {volunteerDetails.recentActivities.slice(0, 5).map((activity) => (
-                        <div key={activity.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{activity.description}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {activity.projectTitle || activity.eventTitle || activity.activityType}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-chart-4">{activity.hoursLogged} hrs</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(activity.activityDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-center text-muted-foreground">Volunteer not found</p>
-            )}
-
-            <button
-              onClick={() => {
-                setShowViewModal(false);
-                setSelectedVolunteerId(null);
-              }}
-              className="w-full mt-8 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-            >
-              Close
-            </button>
+            <div>
+              <h3 className="font-sans text-sm font-medium">Recent activity</h3>
+              {v.recentActivities.length ? (
+                <ul className="mt-3 divide-y rounded-lg border">
+                  {v.recentActivities.slice(0, 6).map((a) => (
+                    <li key={a.id} className="flex items-start justify-between gap-4 px-4 py-2.5 text-sm">
+                      <div className="min-w-0">
+                        <p className="truncate">{a.description}</p>
+                        <p className="text-xs text-muted-foreground">{a.eventTitle || a.projectTitle || a.activityType} · {format(new Date(a.activityDate), "d MMM yyyy")}</p>
+                      </div>
+                      <span className="whitespace-nowrap tabular-nums">{a.hoursLogged} h</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="mt-2 text-sm text-muted-foreground">Nothing logged yet.</p>}
+            </div>
+            {err && <p role="alert" className="text-sm text-destructive">{err}</p>}
           </div>
-        </div>
-      )}
-
-      {/* Edit Volunteer Modal */}
-      {showEditModal && editingVolunteer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Edit Volunteer</h2>
-
-            {error && (
-              <div className="mb-4 p-4 bg-warning/15 border border-warning/40 rounded-lg">
-                <p className="text-warning">{error}</p>
-              </div>
-            )}
-
-            <form className="space-y-6" onSubmit={(e) => {
-              e.preventDefault();
-              const availability = (e.target as HTMLFormElement).availability.value || undefined;
-              const statusValue = (e.target as HTMLFormElement).status.value;
-              
-              updateVolunteerMutation.mutate({
-                id: editingVolunteer.id,
-                availability: availability,
-                statusId: statusValue ? parseInt(statusValue) : undefined
-              });
-            }}>
-              {/* Volunteer Info Display */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-foreground mb-2">{editingVolunteer.name}</h3>
-                <p className="text-muted-foreground">{editingVolunteer.email}</p>
-                <p className="text-muted-foreground">{editingVolunteer.phone || 'No phone'}</p>
-              </div>
-
-              {/* Availability */}
-              <div>
-                <label htmlFor="edit-availability" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Availability
-                </label>
-                <textarea
-                  id="edit-availability"
-                  name="availability"
-                  defaultValue={editingVolunteer.availability || ''}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                  placeholder="e.g., Weekends, weekday evenings..."
-                />
-              </div>
-
-              {/* Status */}
-              <div>
-                <label htmlFor="edit-status" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Status
-                </label>
-                <select
-                  id="edit-status"
-                  name="status"
-                  defaultValue={editingVolunteer.status === 'active' ? '1' : '2'}
-                  className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
-                >
-                  <option value="1">Active</option>
-                  <option value="2">Inactive</option>
-                </select>
-              </div>
-
-              <div className="flex gap-4 mt-4">
-                <button
-                  type="submit"
-                  disabled={updateVolunteerMutation.isPending}
-                  className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-bold py-3 px-6 rounded-lg flex items-center justify-center"
-                >
-                  {updateVolunteerMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Volunteer'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingVolunteer(null);
-                    setError(null);
-                  }}
-                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  ); 
-};
+        )}
+    </Sheet>
+  )
+}

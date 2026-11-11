@@ -1,4 +1,12 @@
-import { publicProcedure, protectedProcedure, permissionProcedure, router } from "./trpc";
+import { publicProcedure, protectedProcedure, optionalAuthProcedure, permissionProcedure, router } from "./trpc";
+import { TRPCError } from "@trpc/server";
+import { canAny } from "@/lib/rbac/permissions";
+import type { AuthedUser } from "./trpc";
+
+/** Statuses anyone can see. Drafts and events awaiting review are staff-only. */
+const PUBLIC_EVENT_STATUSES = ["scheduled", "ongoing", "completed", "cancelled"];
+const isEventStaff = (user: AuthedUser | null) =>
+  !!user && canAny(user.role, ["events:create", "events:update", "events:publish", "registrations:manage", "registrations:manage_team"]);
 import { reviewStatus } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -75,7 +83,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getAll: publicProcedure
+  getAll: optionalAuthProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -105,9 +113,10 @@ export const eventsRouter = router({
       location: z.string(),
       createdAt: z.date()
     })))
-    .query(async () => {
+    .query(async ({ ctx }) => {
     try {
       const events = await prisma.event.findMany({
+        where: isEventStaff(ctx.user) ? undefined : { status: { name: { in: PUBLIC_EVENT_STATUSES } } },
         include: {
           category: true,
           status: true,
@@ -149,7 +158,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getById: publicProcedure
+  getById: optionalAuthProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -200,7 +209,7 @@ export const eventsRouter = router({
       createdAt: z.date(),
       updatedAt: z.date()
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
     try {
       const event = await prisma.event.findUnique({
         where: { id: input.id },
@@ -233,12 +242,14 @@ export const eventsRouter = router({
               registration_date: 'desc'
             },
             take: 20
-          }
+          },
+          _count: { select: { registrations: true } }
         }
       });
 
-      if (!event) {
-        throw new Error('Event not found');
+      const staff = isEventStaff(ctx.user);
+      if (!event || (!staff && !PUBLIC_EVENT_STATUSES.includes(event.status.name))) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       }
 
       return {
@@ -247,8 +258,8 @@ export const eventsRouter = router({
         description: event.description,
         eventDate: event.event_date,
         capacity: event.capacity,
-        registrationsCount: event.registrations.length,
-        availableSpots: event.capacity - event.registrations.length,
+        registrationsCount: event._count.registrations,
+        availableSpots: event.capacity - event._count.registrations,
         ticketPrice: Number(event.ticket_price),
         currency: event.currency.code,
         currencyId: event.currency_id,
@@ -268,9 +279,10 @@ export const eventsRouter = router({
         creator: event.creator ? {
           id: event.creator.id,
           name: `${event.creator.first_name || ''} ${event.creator.last_name || ''}`.trim(),
-          email: event.creator.email
+          email: staff ? event.creator.email : ''
         } : null,
-        registrations: event.registrations.map(reg => ({
+        // Who registered is staff-only; the public sees counts.
+        registrations: (staff ? event.registrations : []).map(reg => ({
           id: reg.id,
           userId: reg.user.id,
           userName: `${reg.user.first_name || ''} ${reg.user.last_name || ''}`.trim(),
@@ -282,6 +294,7 @@ export const eventsRouter = router({
         updatedAt: event.updated_at
       };
     } catch (error) {
+      if (error instanceof TRPCError) throw error;
       console.error('Error fetching event:', error);
       throw new Error('Failed to fetch event');
     }
@@ -492,7 +505,8 @@ export const eventsRouter = router({
     })
     .input(z.object({
     eventId: z.number(),
-    userId: z.number(),
+    /** Ignored: you can only register yourself. Kept so older clients don't break. */
+    userId: z.number().optional(),
     specialRequirements: z.string().optional()
   }))
     .output(z.object({
@@ -502,20 +516,28 @@ export const eventsRouter = router({
       status: z.string(),
       registrationDate: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       // Check if event exists and has capacity
       const event = await prisma.event.findUnique({
         where: { id: input.eventId },
         include: {
+          status: true,
           _count: {
             select: { registrations: true }
           }
         }
       });
 
-      if (!event) {
-        throw new Error('Event not found');
+      if (!event || !["scheduled", "ongoing"].includes(event.status.name)) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'This event is not open for registration' });
+      }
+
+      const already = await prisma.eventRegistration.findUnique({
+        where: { event_id_user_id: { event_id: event.id, user_id: ctx.user.id } },
+      });
+      if (already) {
+        throw new TRPCError({ code: 'CONFLICT', message: "You're already registered for this event" });
       }
 
       if (event._count.registrations >= event.capacity) {
@@ -540,7 +562,7 @@ export const eventsRouter = router({
       const registration = await prisma.eventRegistration.create({
         data: {
           event_id: input.eventId,
-          user_id: input.userId,
+          user_id: ctx.user.id,
           status_id: confirmedStatus?.id || 1,
           payment_status_id: pendingPaymentStatus?.id || 1,
           special_requirements: input.specialRequirements,
@@ -587,7 +609,13 @@ export const eventsRouter = router({
     registrationId: z.number()
   }))
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Your own registration, or anyone's if you manage registrations.
+      const registration = await prisma.eventRegistration.findUnique({ where: { id: input.registrationId } });
+      if (!registration) throw new TRPCError({ code: 'NOT_FOUND', message: 'Registration not found' });
+      if (registration.user_id !== ctx.user.id && !canAny(ctx.user.role, ["registrations:manage", "registrations:manage_team"])) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only cancel your own registration' });
+      }
     try {
       const cancelledStatus = await prisma.registrationStatus.findFirst({
         where: { name: 'cancelled' }
