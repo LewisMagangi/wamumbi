@@ -1,4 +1,6 @@
 import { publicProcedure, permissionProcedure, router } from "./trpc";
+import { TRPCError } from "@trpc/server";
+import { can } from "@/lib/rbac/permissions";
 import { assertTeamAccess } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -370,7 +372,7 @@ export const teamsRouter = router({
     categoryId: z.number().optional(),
     teamLeaderId: z.number().optional(),
     maxMembers: z.number().positive().optional(),
-    status: z.enum(['active', 'inactive', 'archived']).optional()
+    status: z.enum(['active', 'inactive']).optional()
   }))
     .output(z.object({
       id: z.number(),
@@ -610,6 +612,31 @@ export const teamsRouter = router({
       throw new Error('Failed to update team member');
     }
   }),
+
+  /** People who can be picked as a leader or member. Team leaders only see volunteers. */
+  people: permissionProcedure("teams:manage", "teams:manage_own")
+    .query(async ({ ctx }) => {
+      const all = can(ctx.user.role, "teams:manage")
+      const users = await prisma.user.findMany({
+        where: { status: { name: "active" }, ...(all ? {} : { volunteers: { some: {} } }) },
+        select: { id: true, first_name: true, last_name: true, email: true },
+        orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
+        take: 500,
+      })
+      return users.map((u) => ({ id: u.id, name: `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || u.email, email: u.email }))
+    }),
+
+  addCategory: permissionProcedure("teams:manage")
+    .input(z.object({ name: z.string().trim().min(2).max(100) }))
+    .mutation(async ({ input }) => {
+      const existing = await prisma.category.findFirst({ where: { name: { equals: input.name, mode: "insensitive" } } })
+      if (existing) {
+        if (existing.type !== "team") throw new TRPCError({ code: "CONFLICT", message: `"${existing.name}" already exists as a ${existing.type} category. Try a different name.` })
+        return { id: existing.id, name: existing.name }
+      }
+      const created = await prisma.category.create({ data: { name: input.name, type: "team" } })
+      return { id: created.id, name: created.name }
+    }),
 
   getCategories: publicProcedure
     .meta({

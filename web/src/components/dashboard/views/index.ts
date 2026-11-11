@@ -5,3 +5,4 @@ export { VolunteersView } from './VolunteersView';
 export { ProjectsView } from './ProjectsView';
 export { EventsView } from './EventsView';
 export { ReportsView } from './ReportsView';
+export { TeamsView } from './TeamsView';
