@@ -27,9 +27,9 @@ const GUIDES: Guide[] = [
   {
     role: "campaign_manager", title: "Campaign Manager", where: "Campaigns",
     steps: [
-      <>{b("New campaign")}: title, what it's for, goal and currency, category (or {b("Add a category")}), dates, people it helps.</>,
+      <>{b("New campaign")}: title, what it’s for, goal and currency, category (or {b("Add a category")}), dates, people it helps.</>,
       <>Add a poster with {b("Choose an image")} (JPG, PNG or WebP, up to 10 MB).</>,
-      <>{b("Submit for review")}. The bell tells you when it's approved and live.</>,
+      <>{b("Submit for review")}. The bell tells you when it’s approved and live.</>,
       <>Open a campaign to see progress and gifts; {b("Edit campaign")} to change it or mark it completed.</>,
     ],
   },
@@ -64,7 +64,7 @@ const GUIDES: Guide[] = [
     role: "content_manager", title: "Content Manager", where: "Moderation",
     steps: [
       <>The bell tells you when photos are waiting in {b("Moderation")}.</>,
-      <>Check consent (children need a guardian's permission) and that the photo suits a public site.</>,
+      <>Check consent (children need a guardian’s permission) and that the photo suits a public site.</>,
       <>Write the {b("alt text")}: one sentence describing the photo. Then {b("Approve")}, or {b("Reject")} with a reason.</>,
     ],
   },
@@ -72,7 +72,7 @@ const GUIDES: Guide[] = [
     role: "team_leader", title: "Team Leader", where: "Teams · Projects",
     steps: [
       <>Open {b("Teams")}, click your team, and add or remove members from registered volunteers.</>,
-      <>Under {b("Projects")}, update progress and status on your team's projects.</>,
+      <>Under {b("Projects")}, update progress and status on your team’s projects.</>,
     ],
   },
   {
@@ -102,7 +102,7 @@ function GuideCard({ g, open }: { g: Guide; open?: boolean }) {
   )
 }
 
-/** Officials' quick reference: the full manual in short, the reader's own role first. */
+/** Officials' quick reference: the full manual in short, the reader’s own role first. */
 export function HelpView() {
   const { role } = useAuth()
   const mine = GUIDES.find((g) => g.role === role)
@@ -138,7 +138,7 @@ export function HelpView() {
           <ul className="list-disc space-y-2 px-5 py-5 pl-10 text-sm leading-relaxed text-muted-foreground">
             <li>Donations and paid tickets: Lipa na M-Pesa → Buy Goods → till {b("8392352")}.</li>
             <li>New campaigns and events from managers go live only after the Super Admin approves them.</li>
-            <li>Approved photos appear on their event's page and in the Gallery.</li>
+            <li>Approved photos appear on their event’s page and in the Gallery.</li>
             <li>Every action is recorded in the activity log.</li>
           </ul>
         </Panel>
@@ -150,9 +150,9 @@ export function HelpView() {
 
       <Panel title="Good practice">
         <ul className="list-disc space-y-2 px-5 py-5 pl-10 text-sm leading-relaxed text-muted-foreground">
-          <li>Don't share sign-ins; ask the Super Admin for your own account.</li>
-          <li>Keep donor and volunteer contact details inside the dashboard, and delete exported CSVs when you're done.</li>
-          <li>Children's photos need guardian consent. When in doubt, don't upload.</li>
+          <li>Don’t share sign-ins; ask the Super Admin for your own account.</li>
+          <li>Keep donor and volunteer contact details inside the dashboard, and delete exported CSVs when you’re done.</li>
+          <li>Children’s photos need guardian consent. When in doubt, don’t upload.</li>
           <li>Something wrong? Tell the Super Admin the page, what you clicked, and send a screenshot.</li>
         </ul>
       </Panel>
