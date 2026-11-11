@@ -88,11 +88,17 @@ export const inquiriesRouter = router({
     .input(z.object({ kind: z.enum(["volunteer", "partnership"]), status: z.enum(["new", "in_review", "accepted", "declined", "archived"]).optional() }))
     .query(async ({ input, ctx }) => {
       if (!canRead(ctx.user.role, input.kind)) throw new TRPCError({ code: "FORBIDDEN" })
-      return prisma.inquiry.findMany({
+      const rows = await prisma.inquiry.findMany({
         where: { kind: input.kind, status: input.status ?? { not: "archived" } },
         orderBy: { created_at: "desc" },
         take: 200,
       })
+      // Flatten Prisma's recursive JSON type: the form answers are plain strings.
+      return rows.map((r) => ({
+        id: r.id, kind: r.kind, name: r.name, email: r.email, phone: r.phone,
+        status: r.status, created_at: r.created_at,
+        payload: (r.payload ?? {}) as Record<string, string | undefined>,
+      }))
     }),
 
   setStatus: protectedProcedure

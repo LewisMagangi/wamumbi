@@ -10,7 +10,15 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Generated and build output: not ours to lint (replaces the old .eslintignore).
+  { ignores: ["src/generated/**", ".next/**", "node_modules/**", "next-env.d.ts"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      // A leading underscore marks a value we drop on purpose (e.g. honeypot fields).
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }],
+    },
+  },
 ];
 
 export default eslintConfig;

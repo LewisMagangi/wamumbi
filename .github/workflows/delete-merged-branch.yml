@@ -1,0 +1,30 @@
+# Deletes a pull request's branch once it is merged into master.
+# Deleting the git branch also lets the Neon integration remove that branch's
+# preview database ("Automatically delete obsolete Neon branches"), so the free
+# plan's 10-branch limit doesn't fill up again.
+name: Delete merged branch
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  delete-branch:
+    # Only merged PRs from this repository; never master itself.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref != 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete ${{ github.event.pull_request.head.ref }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${BRANCH}" \
+            || echo "Branch ${BRANCH} was already deleted."

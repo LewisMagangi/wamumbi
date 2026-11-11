@@ -1,5 +1,7 @@
 # Wamumbi Charity Management System
 
+> **New here? Start with [docs/HANDOVER.md](docs/HANDOVER.md)**: how the site fits together, how to run and deploy it, and what's still open.
+
 A comprehensive digital platform for the Wamumbi Foundation to manage charitable activities, donations, volunteer coordination, and community impact initiatives.
 
 ## Table of Contents

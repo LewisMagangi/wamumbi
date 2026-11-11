@@ -7,12 +7,12 @@ Source of truth: `web/src/lib/rbac/permissions.ts`. Tests: `web/src/lib/rbac/__t
 - **Server first.** Every tRPC procedure is `publicProcedure`, `protectedProcedure` (signed in) or `permissionProcedure(...)` (signed in and holding one of the listed permissions). UI gates (`<PermissionGate>`) only hide controls; the API enforces the same rules.
 - **Response shaping.** `redactOutput("donor")` strips donor email/phone/address unless the caller has `donors:view_contact`, and hides donor names without `donors:view_profile`. `redactOutput("people")` gives volunteers an anonymised view (first name + last initial, no contact data).
 - **Scope.** Team leaders only see and change their own teams (`scopeToLedTeams`, `assertTeamAccess`). Donors only see their own donations.
-- **Approval workflow.** Content created by non-admins is saved as `pending_review`. A Super Admin approves it in **Dashboard → Manage → Approvals**.
+- **Approval workflow.** Content created by non-admins is saved as `pending_review`. A Super Admin approves it in **Dashboard → Admin → Approvals**.
 - **Audit.** Role changes, approvals and photo moderation write to `audit_logs`.
 
 ## First Super Admin
 
-Set `SUPER_ADMIN_EMAILS=you@example.com` (comma separated) in Vercel and `.env.local`. That account becomes Super Admin on its next sign-in. Assign everyone else in **Dashboard → Manage → Users & roles**. New sign-ups start as **Donor**.
+Set `SUPER_ADMIN_EMAILS=you@example.com` (comma separated) in Vercel and `.env.local`. That account becomes Super Admin on its next sign-in. Assign everyone else in **Dashboard → Admin → Users & roles**. New sign-ups start as **Donor**.
 
 ## Matrix
 
