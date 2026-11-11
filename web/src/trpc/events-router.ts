@@ -8,6 +8,7 @@ const PUBLIC_EVENT_STATUSES = ["scheduled", "ongoing", "completed", "cancelled"]
 const isEventStaff = (user: AuthedUser | null) =>
   !!user && canAny(user.role, ["events:create", "events:update", "events:publish", "registrations:manage", "registrations:manage_team"]);
 import { reviewStatus } from "@/server/review";
+import { notifyPermission, notifyUsers } from "@/server/in-app";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -376,6 +377,10 @@ export const eventsRouter = router({
         }
       });
 
+      if (event.status.name === "pending_review") {
+        await notifyPermission(["events:publish"], { title: "Event waiting for approval", message: `"${event.title}" was submitted and needs approval before registrations open.`, eventId: event.id }, ctx.user.id)
+      }
+
       return {
         id: event.id,
         title: event.title,
@@ -581,6 +586,19 @@ export const eventsRouter = router({
         }
       });
 
+      const when = registration.event.event_date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+      const price = Number(registration.event.ticket_price)
+      await notifyUsers([ctx.user.id], {
+        title: `You're registered: ${registration.event.title}`,
+        message: price > 0
+          ? `See you on ${when}. Pay for your ticket with M-Pesa: Buy Goods till 8392352. Use your name as the account reference.`
+          : `See you on ${when}.`,
+        eventId: registration.event.id,
+      })
+      if (registration.event.created_by && registration.event.created_by !== ctx.user.id) {
+        await notifyUsers([registration.event.created_by], { title: "New registration", message: `${`${registration.user.first_name || ''} ${registration.user.last_name || ''}`.trim() || registration.user.email} registered for "${registration.event.title}".`, eventId: registration.event.id })
+      }
+
       return {
         id: registration.id,
         eventTitle: registration.event.title,
@@ -634,6 +652,19 @@ export const eventsRouter = router({
       throw new Error('Failed to cancel registration');
     }
   }),
+
+  /** Add an event category (e.g. "Children's home visit"). Returns the existing one if the name is taken. */
+  addCategory: permissionProcedure("events:create", "events:update")
+    .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(500).optional() }))
+    .mutation(async ({ input }) => {
+      const existing = await prisma.category.findFirst({ where: { name: { equals: input.name, mode: "insensitive" } } })
+      if (existing) {
+        if (existing.type !== "event") throw new TRPCError({ code: "CONFLICT", message: `"${existing.name}" already exists as a ${existing.type} category. Try a different name.` })
+        return { id: existing.id, name: existing.name }
+      }
+      const created = await prisma.category.create({ data: { name: input.name, description: input.description, type: "event" } })
+      return { id: created.id, name: created.name }
+    }),
 
   getCategories: publicProcedure
     .meta({

@@ -7,17 +7,23 @@ import { PhotoGrid } from "@/components/gallery/lightbox"
 import { PAST_EVENTS } from "@/data/past-events"
 import { allPhotos } from "@/data/gallery"
 import { cn } from "@/lib/utils"
+import { trpc } from "@/app/_trpc/client"
+import { toPhoto } from "@/components/gallery/uploaded-photos"
 
 export default function GalleryPage() {
   const photos = allPhotos()
   const [filter, setFilter] = useState<string>("all")
   const events = PAST_EVENTS.filter((e) => photos.some((p) => p.eventSlug === e.slug))
 
+  // Photos uploaded through the dashboard and approved by a moderator.
+  const { data: uploads } = trpc.media.listApproved.useQuery({ limit: 100 })
+
   const shown = useMemo(() => {
-    const list = filter === "all" ? photos : photos.filter((p) => p.eventSlug === filter)
     const titles = Object.fromEntries(PAST_EVENTS.map((e) => [e.slug, `${e.title}, ${e.year}`]))
-    return list.map((p) => ({ ...p, caption: titles[p.eventSlug] }))
-  }, [filter, photos])
+    const fromUploads = (uploads ?? []).map((m) => ({ ...toPhoto(m), eventSlug: m.album ?? "", caption: m.caption ?? (m.album ? titles[m.album] : undefined) }))
+    const all = [...fromUploads, ...photos.map((p) => ({ ...p, caption: titles[p.eventSlug] }))]
+    return filter === "all" ? all : all.filter((p) => p.eventSlug === filter)
+  }, [filter, photos, uploads])
 
   return (
     <>

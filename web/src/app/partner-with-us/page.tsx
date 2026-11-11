@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import Link from "next/link"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { Field, FormSection, FormStatus, Honeypot, Select, TextArea } from "@/components/forms/fields"
@@ -60,6 +61,18 @@ export default function PartnerWithUsPage() {
       setState("error")
       setMessage("Something didn't go through. Check the highlighted fields, or email us at wamumbifoundation@gmail.com.")
     }
+  }
+
+  if (state === "success") {
+    return (
+      <PageShell title="Thank you. We'll be in touch." width="narrow"
+        intro="Your partnership inquiry reached the team. Someone will contact you within a few days, usually by email.">
+        <div className="flex flex-wrap gap-3">
+          <Button asChild className="rounded-full px-6"><Link href="/">Back to the home page</Link></Button>
+          <Button asChild variant="outline" className="rounded-full px-6"><Link href="/about">Read about our work</Link></Button>
+        </div>
+      </PageShell>
+    )
   }
 
   return (

@@ -13,6 +13,7 @@ import { adminRouter } from "./admin-router"
 import { mediaRouter } from "./media-router"
 import { inquiriesRouter } from "./inquiries-router"
 import { projectsRouter } from "./projects-router"
+import { notificationsRouter } from "./notifications-router"
 
 export const appRouter = router({
   auth: authRouter,
@@ -28,6 +29,7 @@ export const appRouter = router({
   media: mediaRouter,
   inquiries: inquiriesRouter,
   projects: projectsRouter,
+  notifications: notificationsRouter,
 })
 
 export type AppRouter = typeof appRouter

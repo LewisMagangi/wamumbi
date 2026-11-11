@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useAuth } from "@/contexts/AuthContext"
 import { navigationItems, type NavItem } from "@/components/dashboard/nav"
 import { useClerkAppearance } from "@/components/auth/clerk-appearance"
+import { NotificationsBell } from "@/components/dashboard/notifications-bell"
 import type { Permission } from "@/lib/rbac/permissions"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +19,7 @@ import { cn } from "@/lib/utils"
 const GROUPS: { label: string; names: string[] }[] = [
   { label: "Workspace", names: ["Overview", "Campaigns", "Donations", "Volunteers", "Manage events", "Projects", "Reports"] },
   { label: "Content", names: ["Photos", "Moderation", "Inbox", "Approvals"] },
-  { label: "Admin", names: ["Users & roles"] },
+  { label: "Admin", names: ["Users & roles", "Activity log"] },
 ]
 
 function isActive(item: NavItem, pathname: string | null, tab: string | null) {
@@ -150,6 +151,7 @@ export function DashboardShell({
           </button>
           <div className="flex-1" />
           <Link href="/" className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline">View website</Link>
+          <NotificationsBell />
           <ThemeToggle />
         </header>
 

@@ -60,8 +60,8 @@ export function PhotoGrid({ photos, className }: { photos: Item[]; className?: s
                 width={p.width}
                 height={p.height}
                 sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
-                placeholder="blur"
-                blurDataURL={p.blurDataURL}
+                placeholder={p.blurDataURL ? "blur" : "empty"}
+                blurDataURL={p.blurDataURL || undefined}
                 className="h-auto w-full transition-transform duration-slow ease-out group-hover:scale-[1.02]"
               />
             </button>

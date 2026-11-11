@@ -32,7 +32,7 @@ export const ROLE_META: Record<Role, { label: string; description: string }> = {
 }
 
 /** Roles that existed before this RBAC; mapped so existing users keep working. */
-const LEGACY: Record<string, Role> = {
+export const LEGACY: Record<string, Role> = {
   admin: "super_admin",
   staff: "volunteer_coordinator",
   Volunteer: "volunteer",

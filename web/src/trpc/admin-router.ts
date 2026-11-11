@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { notifyUsers } from "@/server/in-app"
 import { TRPCError } from "@trpc/server"
 import { prisma } from "@/lib/prisma"
 import { ROLES, ROLE_META, normalizeRole, type Role } from "@/lib/rbac/roles"
@@ -94,6 +95,32 @@ export const adminRouter = router({
     }),
 
   /** Content waiting for Super Admin approval. */
+  /** System activity log: who did what, newest first (role changes, approvals, photo reviews, projects…). */
+  activity: permissionProcedure("users:manage")
+    .input(z.object({ action: z.string().max(60).optional(), limit: z.number().int().min(1).max(500).default(200) }).optional())
+    .query(async ({ input }) => {
+      const rows = await prisma.auditLog.findMany({
+        where: input?.action ? { action: { name: input.action } } : undefined,
+        orderBy: { created_at: "desc" },
+        take: input?.limit ?? 200,
+        select: {
+          id: true, entity_id: true, created_at: true, new_values: true,
+          action: { select: { name: true } },
+          entity_type: { select: { name: true } },
+          user: { select: { email: true, first_name: true, last_name: true } },
+        },
+      })
+      return rows.map((r) => ({
+        id: r.id,
+        at: r.created_at,
+        action: r.action.name,
+        entity: r.entity_type.name,
+        entityId: r.entity_id,
+        by: r.user ? [r.user.first_name, r.user.last_name].filter(Boolean).join(" ") || r.user.email : "System",
+        details: r.new_values ? JSON.stringify(r.new_values) : null,
+      }))
+    }),
+
   pendingContent: permissionProcedure("campaigns:publish", "events:publish", "blog:publish")
     .input(z.void())
     .query(async () => {
@@ -128,12 +155,15 @@ export const adminRouter = router({
     .mutation(async ({ input, ctx }) => {
       const target = input.decision === "approve" ? LIVE_STATUS[input.kind] : "draft"
       const args = { where: { name: target }, update: {}, create: { name: target, description: target } }
+      const verdict = input.decision === "approve" ? "approved and is now live" : "sent back to draft"
       if (input.kind === "campaign") {
         const s = await prisma.campaignStatus.upsert(args)
-        await prisma.campaign.update({ where: { id: input.id }, data: { status_id: s.id } })
+        const c = await prisma.campaign.update({ where: { id: input.id }, data: { status_id: s.id }, select: { title: true, created_by: true } })
+        if (c.created_by) await notifyUsers([c.created_by], { title: `Campaign ${input.decision === "approve" ? "approved" : "not approved"}`, message: `"${c.title}" was ${verdict}.`, campaignId: input.id })
       } else if (input.kind === "event") {
         const s = await prisma.eventStatus.upsert(args)
-        await prisma.event.update({ where: { id: input.id }, data: { status_id: s.id } })
+        const e = await prisma.event.update({ where: { id: input.id }, data: { status_id: s.id }, select: { title: true, created_by: true } })
+        if (e.created_by) await notifyUsers([e.created_by], { title: `Event ${input.decision === "approve" ? "approved" : "not approved"}`, message: `"${e.title}" was ${verdict}.`, eventId: input.id })
       } else {
         const s = await prisma.blogPostStatus.upsert({ ...args, create: { ...args.create, is_published: input.decision === "approve" } })
         await prisma.blogPost.update({

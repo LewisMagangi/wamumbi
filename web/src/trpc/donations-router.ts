@@ -1,4 +1,5 @@
 import { publicProcedure, permissionProcedure, redactOutput, router } from "./trpc";
+import { audit } from "@/server/audit";
 import { canAny } from "@/lib/rbac/permissions";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@/lib/prisma";
@@ -91,6 +92,7 @@ export const donationsRouter = router({
       campaignId: z.number(),
       campaignTitle: z.string(),
       paymentMethod: z.string(),
+      paymentReference: z.string().nullable(),
       status: z.string(),
       statusId: z.number(),
       currency: z.string(),
@@ -140,6 +142,7 @@ export const donationsRouter = router({
         campaignId: donation.campaign?.id,
         campaignTitle: donation.campaign?.title || 'General Donation',
         paymentMethod: donation.payment_method.name,
+        paymentReference: donation.payment_reference,
         status: donation.status.name,
         statusId: donation.status_id,
         currency: donation.currency.code,
@@ -291,7 +294,7 @@ export const donationsRouter = router({
       currency: z.string(),
       createdAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       // Get completed status
       const completedStatus = await prisma.donationStatus.findFirst({
@@ -335,6 +338,8 @@ export const donationsRouter = router({
           status: true
         }
       });
+
+      await audit({ userId: ctx.user.id, action: "donation_record", entity: "donation", entityId: donation.id, newValues: { amount: input.amount, reference: input.paymentReference ?? null } });
 
       // Update campaign statistics
       await prisma.campaignStatistics.upsert({

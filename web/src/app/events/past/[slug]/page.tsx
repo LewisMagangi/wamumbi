@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { UploadedPhotos } from "@/components/gallery/uploaded-photos"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -66,6 +67,7 @@ export default async function PastEventPage({ params }: { params: Promise<Params
             ) : (
               <p className="rounded-lg border border-dashed px-6 py-16 text-center text-muted-foreground">Photos from this event are being added.</p>
             )}
+            <UploadedPhotos album={event.slug} title={photos.length ? "More from this day" : undefined} className="mt-16" />
           </div>
 
           <div className="mt-20 flex flex-col items-start justify-between gap-8 border-t pt-10 md:flex-row md:items-center">

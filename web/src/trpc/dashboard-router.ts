@@ -455,10 +455,12 @@ export const dashboardRouter = router({
       isRead: z.boolean(),
       createdAt: z.date()
     })))
-    .query(async () => {
+    .query(async ({ ctx }) => {
     try {
+      // Only the caller's own notifications (this returned everyone's before).
       const notifications = await prisma.notification.findMany({
         where: {
+          user_id: ctx.user.id,
           is_read: false
         },
         include: {

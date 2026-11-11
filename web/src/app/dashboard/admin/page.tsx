@@ -1,6 +1,8 @@
 "use client"
 
 import { Suspense, useState } from "react"
+import { fieldClass } from "@/components/forms/fields"
+import { PAST_EVENTS } from "@/data/past-events"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import { upload } from "@vercel/blob/client"
@@ -13,7 +15,7 @@ import { ROLES, ROLE_META, type Role } from "@/lib/rbac/roles"
 import type { Permission } from "@/lib/rbac/permissions"
 import { cn } from "@/lib/utils"
 
-type Tab = "approvals" | "users" | "moderation" | "uploads" | "inbox"
+type Tab = "approvals" | "users" | "moderation" | "uploads" | "inbox" | "activity"
 
 const TABS: { key: Tab; label: string; anyOf: Permission[] }[] = [
   { key: "inbox", label: "Inbox", anyOf: ["volunteers:manage", "users:manage"] },
@@ -21,6 +23,7 @@ const TABS: { key: Tab; label: string; anyOf: Permission[] }[] = [
   { key: "moderation", label: "Photo moderation", anyOf: ["media:moderate"] },
   { key: "uploads", label: "Upload photos", anyOf: ["media:upload", "media:upload_restricted"] },
   { key: "users", label: "Users & roles", anyOf: ["users:manage"] },
+  { key: "activity", label: "Activity log", anyOf: ["users:manage"] },
 ]
 
 function EmptyState({ title, body }: { title: string; body: string }) {
@@ -259,12 +262,17 @@ function Uploads() {
   const allowance = trpc.media.uploadAllowance.useQuery()
   const mine = trpc.media.myUploads.useQuery()
   const register = trpc.media.register.useMutation()
+  const events = trpc.events.getAll.useQuery()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [consent, setConsent] = useState(false)
+  // "e:<id>" for an event on the site, "p:<slug>" for a past event album.
+  const [target, setTarget] = useState("")
+  const [caption, setCaption] = useState("")
 
   async function onFiles(files: FileList | null) {
     if (!files?.length) return
+    if (!target) return setError("Choose which event these photos are from first.")
     setBusy(true)
     setError(null)
     try {
@@ -275,6 +283,8 @@ function Uploads() {
           kind: file.type.startsWith("video") ? "video" : "image",
           bytes: file.size,
           consentConfirmed: consent,
+          caption: caption.trim() || undefined,
+          ...(target.startsWith("e:") ? { eventId: Number(target.slice(2)) } : { album: target.slice(2) }),
         })
       }
       await Promise.all([utils.media.myUploads.invalidate(), utils.media.uploadAllowance.invalidate()])
@@ -296,6 +306,28 @@ function Uploads() {
           Photos are reviewed before they appear in the gallery.
           {allowance.data?.limited && remaining != null ? ` You can upload ${remaining} more today.` : ""}
         </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="photo-event" className="mb-1.5 block text-sm font-medium">Which event are these from?</label>
+            <select id="photo-event" value={target} onChange={(e) => setTarget(e.target.value)} className={fieldClass}>
+              <option value="">Choose an event</option>
+              {!!events.data?.length && (
+                <optgroup label="Events on the site">
+                  {[...events.data].sort((a, b) => +new Date(b.eventDate) - +new Date(a.eventDate)).map((ev) => (
+                    <option key={ev.id} value={`e:${ev.id}`}>{ev.title} · {new Date(ev.eventDate).getFullYear()}</option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label="Past events (photo albums)">
+                {PAST_EVENTS.map((p) => <option key={p.slug} value={`p:${p.slug}`}>{p.title} · {p.year}</option>)}
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="photo-caption" className="mb-1.5 block text-sm font-medium">Caption <span className="font-normal text-muted-foreground">(optional)</span></label>
+            <input id="photo-caption" value={caption} onChange={(e) => setCaption(e.target.value)} className={fieldClass} placeholder="Serving lunch at Kabete" />
+          </div>
+        </div>
         <label className="mt-4 flex items-start gap-2 text-sm">
           <input type="checkbox" className="mt-0.5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
           <span>Everyone identifiable in these photos agreed to be photographed (guardian consent for children).</span>
@@ -364,6 +396,7 @@ function AdminInner() {
         {active === "users" && <UsersAndRoles />}
         {active === "moderation" && <Moderation />}
         {active === "uploads" && <Uploads />}
+        {active === "activity" && <ActivityLog />}
       </div>
     </div>
   )
@@ -376,5 +409,72 @@ export default function AdminPage() {
         <AdminInner />
       </Suspense>
     </DashboardShell>
+  )
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  role_change: "Changed a role", donation_record: "Recorded a donation", approve: "Approved", reject: "Sent back",
+  media_approve: "Approved a photo", media_reject: "Rejected a photo",
+  project_create: "Created a project", project_update: "Updated a project", project_delete: "Deleted a project",
+  inquiry_accepted: "Accepted an inquiry", inquiry_declined: "Declined an inquiry", inquiry_in_review: "Opened an inquiry", inquiry_archived: "Archived an inquiry", inquiry_new: "Reopened an inquiry",
+}
+const label = (a: string) => ACTION_LABELS[a] ?? a.replace(/_/g, " ")
+
+/** System activity: who did what and when. Super Admin only. */
+function ActivityLog() {
+  const [action, setAction] = useState("")
+  const { data, isLoading, error } = trpc.admin.activity.useQuery(action ? { action } : undefined)
+  const actions = Array.from(new Set((data ?? []).map((r) => r.action)))
+
+  function exportCsv() {
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`
+    const lines = (data ?? []).map((r) => [new Date(r.at).toISOString(), r.by, label(r.action), r.entity, r.entityId, r.details ?? ""].map(esc).join(","))
+    const blob = new Blob([["When,Who,Action,Item,Item ID,Details", ...lines].join("\n")], { type: "text/csv;charset=utf-8" })
+    const a = document.createElement("a")
+    a.href = URL.createObjectURL(blob)
+    a.download = `wamumbi-activity-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <label htmlFor="activity-action" className="sr-only">Filter by action</label>
+        <select id="activity-action" value={action} onChange={(e) => setAction(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-sm">
+          <option value="">All activity</option>
+          {actions.map((a) => <option key={a} value={a}>{label(a)}</option>)}
+        </select>
+        <p className="text-sm text-muted-foreground">Latest 200 entries</p>
+        <Button variant="outline" size="sm" className="ml-auto" onClick={exportCsv} disabled={!data?.length}>Export CSV</Button>
+      </div>
+      {error ? <p className="text-sm text-destructive">{error.message}</p>
+        : isLoading ? <p className="text-sm text-muted-foreground">Loading…</p>
+        : !data?.length ? <EmptyState title="No activity yet" body="Role changes, approvals, photo reviews and project changes are recorded here." />
+        : (
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="text-left text-muted-foreground">
+                <tr className="border-b">
+                  <th className="px-4 py-2.5 font-normal">When</th>
+                  <th className="px-4 py-2.5 font-normal">Who</th>
+                  <th className="px-4 py-2.5 font-normal">What</th>
+                  <th className="px-4 py-2.5 font-normal">Item</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {data.map((r) => (
+                  <tr key={r.id}>
+                    <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-muted-foreground">{new Date(r.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                    <td className="px-4 py-2.5">{r.by}</td>
+                    <td className="px-4 py-2.5">{label(r.action)}</td>
+                    <td className="px-4 py-2.5 capitalize text-muted-foreground">{r.entity} #{r.entityId}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+    </div>
   )
 }

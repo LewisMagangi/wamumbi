@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, Select, TextArea } from "@/components/forms/fields"
 import { trpc } from "@/app/_trpc/client"
+import { CategoryField } from "@/components/dashboard/category-field"
+import { PosterUpload } from "@/components/dashboard/poster-upload"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   Empty, ErrorText, Facts, Panel, Progress, Sheet, Skeleton, StatStrip, Status, Toolbar, fmt, selectClass,
@@ -131,7 +133,10 @@ export function CampaignsView() {
 function CreateCampaign({ open, onClose, onCreated, canPublish }: { open: boolean; onClose: () => void; onCreated: () => void; canPublish: boolean }) {
   const [form, setForm] = useState<FormState>(empty)
   const [err, setErr] = useState<string | null>(null)
+  const { has } = useAuth()
+  const utils = trpc.useUtils()
   const { data: categories = [] } = trpc.campaigns.getCategories.useQuery(undefined, { enabled: open })
+  const addCategory = trpc.campaigns.addCategory.useMutation({ onSuccess: () => utils.campaigns.getCategories.invalidate() })
   const { data: urgency = [] } = trpc.campaigns.getUrgencyLevels.useQuery(undefined, { enabled: open })
   const { data: currencies = [] } = trpc.donations.getCurrencies.useQuery(undefined, { enabled: open })
   const create = trpc.campaigns.create.useMutation({
@@ -175,12 +180,13 @@ function CreateCampaign({ open, onClose, onCreated, canPublish }: { open: boolea
         <TextArea className="sm:col-span-2" label="What it's for" name="description" required value={form.description} onChange={set("description")} hint="Shown to donors on the campaign page." />
         <Field label="Goal" name="goalAmount" type="number" min={1} inputMode="numeric" required value={form.goalAmount} onChange={set("goalAmount")} />
         <Select label="Currency" name="currencyId" required value={form.currencyId} onChange={set("currencyId")} options={currencies.map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))} />
-        <Select label="Category" name="categoryId" required value={form.categoryId} onChange={set("categoryId")} options={categories.map((c) => ({ value: String(c.id), label: c.name }))} />
+        <CategoryField value={form.categoryId} onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))} options={categories}
+          canAdd={has("campaigns:create")} onAdd={(name) => addCategory.mutateAsync({ name })} adding={addCategory.isPending} />
         <Select label="Urgency" name="urgencyLevelId" required value={form.urgencyLevelId} onChange={set("urgencyLevelId")} options={urgency.map((u) => ({ value: String(u.id), label: u.name }))} />
         <Field label="Starts" name="startDate" type="date" required value={form.startDate} onChange={set("startDate")} />
         <Field label="Ends" name="endDate" type="date" min={form.startDate} value={form.endDate} onChange={set("endDate")} />
         <Field label="People it will help" name="targetBeneficiaries" type="number" min={1} value={form.targetBeneficiaries} onChange={set("targetBeneficiaries")} />
-        <Field label="Image URL" name="imageUrl" type="url" value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://…" />
+        <PosterUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} />
         {err && <p role="alert" className="text-sm text-destructive sm:col-span-2">{err}</p>}
       </form>
     </Sheet>
@@ -196,6 +202,10 @@ function CampaignDetail({ id, onClose }: { id: number | null; onClose: () => voi
         : (
           <div className="space-y-8">
             <div className="flex items-center gap-3"><Status value={c.status} /></div>
+            {c.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- poster from Blob storage
+              <img src={c.imageUrl} alt="" className="aspect-[16/9] w-full rounded-lg object-cover" />
+            )}
             <p className="leading-relaxed text-muted-foreground">{c.description}</p>
 
             <div>
