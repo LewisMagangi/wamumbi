@@ -81,6 +81,9 @@ export async function getOrCreateDbUser(clerkUser: ClerkLikeUser) {
     })
   }
 
-  if (user.status && ["suspended", "inactive"].includes(user.status.name)) return null
+  if (user.status && ["suspended", "inactive"].includes(user.status.name)) {
+    console.warn(`[auth] user ${user.id} is ${user.status.name}; access denied`)
+    return null
+  }
   return user
 }

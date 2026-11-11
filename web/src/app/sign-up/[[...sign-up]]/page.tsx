@@ -8,7 +8,7 @@ export default function SignUpPage() {
   const appearance = useClerkAppearance()
   return (
     <AuthShell>
-      <SignUp appearance={appearance} path="/sign-up" routing="path" signInUrl="/sign-in" />
+      <SignUp appearance={appearance} path="/sign-up" routing="path" signInUrl="/sign-in" fallbackRedirectUrl="/dashboard" />
     </AuthShell>
   )
 }
