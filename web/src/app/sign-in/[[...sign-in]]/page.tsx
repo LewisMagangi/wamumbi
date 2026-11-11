@@ -7,7 +7,7 @@ import { useClerkAppearance } from "@/components/auth/clerk-appearance"
 export default function SignInPage() {
   const appearance = useClerkAppearance()
   return (
-    <AuthShell title="Welcome back." intro="Sign in to register for events, see your giving, or manage the foundation's work.">
+    <AuthShell>
       <SignIn appearance={appearance} path="/sign-in" routing="path" signUpUrl="/sign-up" />
     </AuthShell>
   )

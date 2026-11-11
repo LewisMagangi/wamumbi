@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
  * Frame for sign-in and sign-up: a photo from our outreach on large screens,
  * the form on the right. No public navbar, so the form gets full attention.
  */
-export function AuthShell({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
+export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-svh lg:grid-cols-[1fr_minmax(28rem,36rem)]">
       <div className="relative hidden lg:block">
@@ -36,9 +36,7 @@ export function AuthShell({ title, intro, children }: { title: string; intro: st
           </Link>
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
-          <h1 className="font-display text-4xl tracking-tight">{title}</h1>
-          <p className="mt-3 text-muted-foreground">{intro}</p>
-          <div className="mt-8">{children}</div>
+          {children}
         </div>
       </main>
     </div>

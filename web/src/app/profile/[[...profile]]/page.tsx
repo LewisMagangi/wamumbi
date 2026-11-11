@@ -12,7 +12,7 @@ export default function ProfilePage() {
       <UserProfile
         path="/profile"
         routing="path"
-        appearance={{ ...appearance, elements: { ...appearance.elements, rootBox: "w-full", cardBox: "w-full max-w-none shadow-none border border-border rounded-xl" } }}
+        appearance={{ ...appearance, elements: { ...appearance.elements, rootBox: "w-full", cardBox: "w-full max-w-none shadow-none border border-border rounded-xl", card: "shadow-none", footer: "bg-none bg-card" } }}
       />
     </DashboardShell>
   )
