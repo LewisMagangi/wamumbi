@@ -6,6 +6,7 @@ import { ROLES, ROLE_META, normalizeRole, type Role } from "@/lib/rbac/roles"
 import { ROLE_PERMISSIONS, matrix, permissionsJson } from "@/lib/rbac/permissions"
 import { PENDING_REVIEW } from "@/server/review"
 import { audit } from "@/server/audit"
+import { syncClerkUsers } from "@/server/current-user"
 import { optionalAuthProcedure, permissionProcedure, router } from "./trpc"
 
 const roleEnum = z.enum(ROLES)
@@ -44,6 +45,7 @@ export const adminRouter = router({
   listUsers: permissionProcedure("users:manage")
     .input(z.object({ search: z.string().trim().max(100).optional() }).optional())
     .query(async ({ input }) => {
+      await syncClerkUsers()
       const q = input?.search
       const users = await prisma.user.findMany({
         where: q
