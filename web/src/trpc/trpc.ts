@@ -56,7 +56,10 @@ const maybeAuth = middleware(async (opts) => {
         }
       }
     }
-  } catch {
+  } catch (error) {
+    // Never block a public request, but leave a trace: a signed-in user whose
+    // account can't be loaded otherwise just looks signed out.
+    console.error("[auth] could not load the signed-in user:", error instanceof Error ? error.message : error)
     user = null
   }
   return opts.next({ ctx: { user } })
