@@ -10,6 +10,7 @@ import { CountUp, Reveal } from "@/components/motion"
 import { trpc } from "@/app/_trpc/client"
 import { OUTREACH_EVENTS, PAST_EVENTS } from "@/data/past-events"
 import { allPhotos, coverFor, photosFor } from "@/data/gallery"
+import { PhotoStrip, type PhotoPick } from "@/components/photo-strip"
 import { useState, type FormEvent } from "react"
 
 const programmes = [
@@ -57,6 +58,21 @@ const testimonials = [
     name: "John K.",
     role: "Community leader",
   },
+]
+
+/** Real photos from our events, shown with the event name and year. */
+const fieldPhotos: PhotoPick[] = [
+  { slug: "uloma-primary-school-2026", index: 0, alt: "A Wamumbi volunteer with pupils at Uloma Primary School" },
+  { slug: "familia-moja-2024", index: 5, alt: "A volunteer cooking a meal for the children at Familia Moja" },
+  { slug: "kabete-childrens-home-2021", index: 7, alt: "Volunteers playing with children on the swings at the Kabete children's home" },
+  { slug: "uloma-primary-school-2026", index: 1, alt: "A mentoring session in a classroom at Uloma Primary School" },
+]
+
+const volunteerPhotos: PhotoPick[] = [
+  { slug: "uloma-primary-school-2026", index: 5, alt: "Volunteers preparing food for pupils at Uloma Primary School" },
+  { slug: "bishop-luigi-locati-2022", index: 2, alt: "Volunteers sharing a meal with children at Bishop Opera Luigi Locati" },
+  { slug: "githurai-street-charity-2021", index: 1, alt: "The volunteer team at the Githurai street outreach" },
+  { slug: "bliss-garden-funday-2026", index: 0, alt: "Team games at the Bliss Gardens funday" },
 ]
 
 const ways = [
@@ -160,6 +176,10 @@ function WhatWeDo() {
           We believe every child deserves love, care, and the opportunity to reach their full potential, regardless of their circumstances.
         </p>
       </Reveal>
+      <Reveal className="mt-16">
+        <h3 className="text-sm text-muted-foreground">From the field</h3>
+        <PhotoStrip picks={fieldPhotos} className="mt-4" />
+      </Reveal>
     </section>
   )
 }
@@ -212,8 +232,9 @@ function GalleryTeaser() {
   const photos = allPhotos()
   if (photos.length < 5) return null
   // Spread picks across events so the teaser tells the whole story
-  const picks = PAST_EVENTS.flatMap((e) => photos.filter((p) => p.eventSlug === e.slug).slice(1, 3)).slice(0, 7)
-  const spans = ["col-span-2 row-span-2", "", "", "row-span-2", "", "col-span-2", ""]
+  const newestFirst = [...PAST_EVENTS].sort((a, b) => b.year - a.year)
+  const picks = newestFirst.flatMap((e) => photos.filter((p) => p.eventSlug === e.slug).slice(1, 3)).slice(0, 10)
+  const spans = ["col-span-2 row-span-2", "", "", "row-span-2", "", "", "col-span-2", "", "", ""]
   return (
     <section className="mx-auto max-w-screen-xl px-5 py-24 md:px-10 md:py-32">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -224,7 +245,7 @@ function GalleryTeaser() {
           </Button>
         </Reveal>
       </div>
-      <div className="mt-12 grid auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[200px] md:grid-cols-4">
+      <div className="mt-12 grid grid-flow-dense auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[200px] md:grid-cols-4">
         {picks.map((p, i) => (
           <Reveal key={p.id} delay={i * 0.04} className={`relative overflow-hidden rounded-lg bg-muted ${spans[i] ?? ""}`}>
             <Image src={p.src} alt="Wamumbi Foundation outreach" fill sizes="(min-width: 768px) 25vw, 50vw"
@@ -302,6 +323,9 @@ function GetInvolved() {
   return (
     <section className="mx-auto max-w-screen-xl px-5 py-24 md:px-10 md:py-32">
       <SectionHeader eyebrow="Get involved" title="There's a place for you here." />
+      <Reveal className="mt-10">
+        <PhotoStrip picks={volunteerPhotos} aspect="aspect-square" />
+      </Reveal>
       <ul className="mt-12 divide-y border-y">
         {ways.map((w, i) => (
           <Reveal key={w.title} delay={i * 0.05}>

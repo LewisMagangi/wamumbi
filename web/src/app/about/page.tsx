@@ -5,6 +5,7 @@ import { ArrowRight, Download } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { photosFor } from "@/data/gallery"
+import { PhotoStrip } from "@/components/photo-strip"
 import { OUTREACH_EVENTS } from "@/data/past-events"
 
 export const metadata: Metadata = {
@@ -67,6 +68,20 @@ export default function AboutPage() {
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
+      </section>
+
+      <section aria-labelledby="field-heading" className="border-t py-24">
+        <h2 id="field-heading" className="text-display-sm">Where we&apos;ve been</h2>
+        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">Every photo here is from one of our own outreach days. Tap one to see the full album.</p>
+        <PhotoStrip
+          className="mt-10"
+          picks={[
+            { slug: "familia-moja-2024", index: 9, alt: "Children sharing a meal in the dining hall at Familia Moja" },
+            { slug: "uloma-primary-school-2026", index: 2, alt: "Serving plates of food to pupils at Uloma Primary School" },
+            { slug: "kabete-childrens-home-2021", index: 12, alt: "Volunteers sitting with children at the Kabete children's home playground" },
+            { slug: "childrens-home-outreach-2023", index: 8, alt: "Volunteers spending time with children at a children's home" },
+          ]}
+        />
       </section>
 
       <section className="border-t py-24">
