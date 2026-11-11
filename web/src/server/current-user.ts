@@ -1,5 +1,6 @@
 import "server-only"
 import { prisma } from "@/lib/prisma"
+import type { Prisma } from "@/generated/prisma"
 import { DEFAULT_ROLE, type Role } from "@/lib/rbac/roles"
 import { permissionsJson } from "@/lib/rbac/permissions"
 
@@ -24,6 +25,11 @@ function bootstrapAdmins(): Set<string> {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean)
   )
+}
+
+/** users.profile_image is VARCHAR(255); Clerk image URLs can be longer, so skip those rather than fail sign-in. */
+function storableImage(url: string | null | undefined) {
+  return url && url.length <= 255 ? url : null
 }
 
 async function roleId(name: Role) {
@@ -66,19 +72,27 @@ export async function getOrCreateDbUser(clerkUser: ClerkLikeUser) {
         password_hash: "clerk", // authentication is handled by Clerk
         first_name: clerkUser.firstName,
         last_name: clerkUser.lastName,
-        profile_image: clerkUser.imageUrl ?? null,
+        profile_image: storableImage(clerkUser.imageUrl),
         email_verified: true,
         role_id: await roleId(shouldBeAdmin ? "super_admin" : DEFAULT_ROLE),
         status_id: await activeStatusId(),
       },
       include: { role: true, status: true },
     })
-  } else if (shouldBeAdmin && user.role?.name !== "super_admin") {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { role_id: await roleId("super_admin") },
-      include: { role: true, status: true },
-    })
+  } else {
+    // Keep name and photo in step with Clerk, where people edit them (/profile).
+    const data: Prisma.UserUpdateInput = {}
+    if (clerkUser.firstName !== user.first_name) data.first_name = clerkUser.firstName
+    if (clerkUser.lastName !== user.last_name) data.last_name = clerkUser.lastName
+    if (clerkUser.imageUrl !== undefined && storableImage(clerkUser.imageUrl) !== user.profile_image) data.profile_image = storableImage(clerkUser.imageUrl)
+    if (shouldBeAdmin && user.role?.name !== "super_admin") data.role = { connect: { id: await roleId("super_admin") } }
+    if (Object.keys(data).length) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data,
+        include: { role: true, status: true },
+      })
+    }
   }
 
   if (user.status && ["suspended", "inactive"].includes(user.status.name)) {

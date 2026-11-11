@@ -20,7 +20,7 @@ const GROUPS: { label: string; names: string[] }[] = [
   { label: "Workspace", names: ["Overview", "Campaigns", "Donations", "Volunteers", "Teams", "Manage events", "Projects", "Reports"] },
   { label: "Content", names: ["Photos", "Moderation", "Inbox", "Approvals"] },
   { label: "Admin", names: ["Users & roles", "Activity log"] },
-  { label: "Help", names: ["Help"] },
+  { label: "You", names: ["Your account", "Help"] },
 ]
 
 function isActive(item: NavItem, pathname: string | null, tab: string | null) {

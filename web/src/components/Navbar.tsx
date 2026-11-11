@@ -88,7 +88,7 @@ export default function Navbar() {
                 <Button variant="ghost" asChild className="hidden sm:inline-flex">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <UserButton appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
+                <UserButton userProfileMode="navigation" userProfileUrl="/profile" appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
               </SignedIn>
             </>
           )}

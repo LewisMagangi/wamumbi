@@ -151,6 +151,7 @@ export function HelpView() {
       <Panel title="Good practice">
         <ul className="list-disc space-y-2 px-5 py-5 pl-10 text-sm leading-relaxed text-muted-foreground">
           <li>Don’t share sign-ins; ask the Super Admin for your own account.</li>
+          <li>To change your photo, name, email or password, open {b("Your account")} at the bottom of the sidebar.</li>
           <li>Keep donor and volunteer contact details inside the dashboard, and delete exported CSVs when you’re done.</li>
           <li>Children’s photos need guardian consent. When in doubt, don’t upload.</li>
           <li>Something wrong? Tell the Super Admin the page, what you clicked, and send a screenshot.</li>
