@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useAuth } from "@/contexts/AuthContext"
 import { navigationItems, type NavItem } from "@/components/dashboard/nav"
+import { useClerkAppearance } from "@/components/auth/clerk-appearance"
 import type { Permission } from "@/lib/rbac/permissions"
 import { cn } from "@/lib/utils"
 
@@ -73,6 +74,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth()
   const { signOut } = useClerk()
+  const appearance = useClerkAppearance()
   return (
     <div className="flex h-full flex-col">
       <Link href="/" className="flex items-center gap-2.5 px-3" onClick={onNavigate}>
@@ -86,7 +88,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       <div className="border-t pt-4">
         <div className="flex items-center gap-3 px-3">
-          <UserButton appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
+          <UserButton userProfileMode="navigation" userProfileUrl="/profile" appearance={{ variables: appearance.variables, elements: { avatarBox: "h-8 w-8" } }} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm">{user?.name ?? "…"}</p>
             <p className="truncate text-xs text-muted-foreground">{user?.roleLabel}</p>
