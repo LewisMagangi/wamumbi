@@ -17,9 +17,10 @@ import { cn } from "@/lib/utils"
 
 /** Groups for the sidebar; items are filtered by the signed-in user's role. */
 const GROUPS: { label: string; names: string[] }[] = [
-  { label: "Workspace", names: ["Overview", "Campaigns", "Donations", "Volunteers", "Manage events", "Projects", "Reports"] },
+  { label: "Workspace", names: ["Overview", "Campaigns", "Donations", "Volunteers", "Teams", "Manage events", "Projects", "Reports"] },
   { label: "Content", names: ["Photos", "Moderation", "Inbox", "Approvals"] },
   { label: "Admin", names: ["Users & roles", "Activity log"] },
+  { label: "Help", names: ["Help"] },
 ]
 
 function isActive(item: NavItem, pathname: string | null, tab: string | null) {
