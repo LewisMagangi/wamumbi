@@ -1,338 +1,96 @@
-'use client';
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
-import { Calendar, Phone, Mail, User, MapPin } from 'lucide-react';
+"use client"
+
+import { useState, type FormEvent } from "react"
+import Link from "next/link"
+import { PageShell } from "@/components/page-shell"
+import { Button } from "@/components/ui/button"
+import { Field, FormSection, FormStatus, Honeypot, TextArea } from "@/components/forms/fields"
+import { trpc } from "@/app/_trpc/client"
 
 export default function VolunteerSignupPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    availability: '',
-    skills: '',
-    experience: '',
-    motivation: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactRelationship: '',
-  });
+  const [state, setState] = useState<"idle" | "success" | "error">("idle")
+  const [message, setMessage] = useState<string>()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const submit = trpc.inquiries.submitVolunteer.useMutation()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const f = Object.fromEntries(new FormData(form)) as Record<string, string>
+    setErrors({})
+    try {
+      const res = await submit.mutateAsync({
+        firstName: f.firstName, lastName: f.lastName, email: f.email, phone: f.phone || undefined,
+        location: f.location || undefined, availability: f.availability || undefined, skills: f.skills || undefined,
+        experience: f.experience || undefined, motivation: f.motivation,
+        emergencyContactName: f.emergencyContactName || undefined, emergencyContactPhone: f.emergencyContactPhone || undefined,
+        emergencyContactRelationship: f.emergencyContactRelationship || undefined,
+        consent: f.consent === "on" ? true : (false as unknown as true),
+        company_website: f.company_website || undefined,
+      })
+      setState("success")
+      setMessage(res.message)
+      form.reset()
+    } catch (err) {
+      const zodIssues = (err as { data?: { zodError?: { fieldErrors?: Record<string, string[]> } } }).data?.zodError?.fieldErrors
+      if (zodIssues) setErrors(Object.fromEntries(Object.entries(zodIssues).map(([k, v]) => [k, v?.[0] ?? ""])))
+      setState("error")
+      setMessage("Something didn't go through. Check the highlighted fields, or email us at wamumbifoundation@gmail.com.")
+    }
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Volunteer application submitted:', formData);
-    alert('Thank you for your interest! We will review your application and contact you soon.');
-    // Here you would send data to your API
-  };
+  if (state === "success") {
+    return (
+      <PageShell title="Thank you for stepping up." width="narrow"
+        intro="We've received your application. Someone from the team will get in touch soon, usually by phone or email.">
+        <div className="flex flex-wrap gap-3">
+          <Button asChild className="rounded-full px-6"><Link href="/events">See upcoming events</Link></Button>
+          <Button asChild variant="outline" className="rounded-full px-6"><Link href="/gallery">Browse the gallery</Link></Button>
+        </div>
+      </PageShell>
+    )
+  }
 
   return (
-    <>
-      <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-muted/50 pt-16">
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Become a Volunteer</h1>
-            <p className="text-xl text-muted-foreground">
-              Join our team and make a difference in the lives of orphaned children
-            </p>
-          </div>
+    <PageShell
+      title="Become a volunteer"
+      intro="Join our team and make a difference in the lives of orphaned children. It takes about five minutes."
+    >
+      <form onSubmit={onSubmit} noValidate className="relative max-w-4xl">
+        <Honeypot />
+        <FormSection title="About you" description="So we know who to welcome.">
+          <Field label="First name" name="firstName" required autoComplete="given-name" error={errors.firstName} />
+          <Field label="Last name" name="lastName" required autoComplete="family-name" error={errors.lastName} />
+          <Field label="Email" name="email" type="email" required autoComplete="email" error={errors.email} />
+          <Field label="Phone" name="phone" type="tel" autoComplete="tel" placeholder="+254 7…" />
+          <Field label="Where are you based?" name="location" className="sm:col-span-2" placeholder="e.g. Ruiru, Nairobi" autoComplete="address-level2" />
+        </FormSection>
 
-          {/* Form */}
-          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Personal Information */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <User className="w-6 h-6 mr-2 text-brand" />
-                  Personal Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      required
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      required
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-              </div>
+        <FormSection title="How you'd help" description="There's no wrong answer here.">
+          <TextArea label="When are you usually free?" name="availability" className="sm:col-span-2" rows={2} placeholder="e.g. Weekends, some weekday evenings" />
+          <TextArea label="Skills you'd like to share" name="skills" className="sm:col-span-2" rows={2} placeholder="e.g. Teaching, cooking, first aid, photography" />
+          <TextArea label="Any volunteering experience?" name="experience" className="sm:col-span-2" rows={3} />
+          <TextArea label="Why do you want to volunteer with us?" name="motivation" required className="sm:col-span-2" error={errors.motivation} />
+        </FormSection>
 
-              {/* Contact Information */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Mail className="w-6 h-6 mr-2 text-brand" />
-                  Contact Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="john.doe@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="+254 123 456 789"
-                    />
-                  </div>
-                </div>
-              </div>
+        <FormSection title="Emergency contact" description="Only used if something happens during an event.">
+          <Field label="Name" name="emergencyContactName" />
+          <Field label="Phone" name="emergencyContactPhone" type="tel" />
+          <Field label="Relationship" name="emergencyContactRelationship" className="sm:col-span-2" placeholder="e.g. Parent, sibling, friend" />
+        </FormSection>
 
-              {/* Address */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <MapPin className="w-6 h-6 mr-2 text-brand" />
-                  Address
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Street Address
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="123 Main Street"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="Nairobi"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        State/County
-                      </label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="Nairobi"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        Postal Code
-                      </label>
-                      <input
-                        type="text"
-                        name="postalCode"
-                        value={formData.postalCode}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="00100"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Availability & Skills */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Calendar className="w-6 h-6 mr-2 text-brand" />
-                  Availability & Skills
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Availability *
-                    </label>
-                    <textarea
-                      name="availability"
-                      required
-                      value={formData.availability}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="e.g., Weekends, weekday evenings, specific days..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Skills & Expertise *
-                    </label>
-                    <textarea
-                      name="skills"
-                      required
-                      value={formData.skills}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="e.g., Teaching, healthcare, fundraising, event planning..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Relevant Experience
-                    </label>
-                    <textarea
-                      name="experience"
-                      value={formData.experience}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Tell us about your relevant volunteer or professional experience..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Why do you want to volunteer with us? *
-                    </label>
-                    <textarea
-                      name="motivation"
-                      required
-                      value={formData.motivation}
-                      onChange={handleChange}
-                      rows={4}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Share your motivation..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Emergency Contact */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Phone className="w-6 h-6 mr-2 text-brand" />
-                  Emergency Contact
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="emergencyContactName"
-                      required
-                      value={formData.emergencyContactName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Jane Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Phone *
-                    </label>
-                    <input
-                      type="tel"
-                      name="emergencyContactPhone"
-                      required
-                      value={formData.emergencyContactPhone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="+254 987 654 321"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Relationship *
-                    </label>
-                    <input
-                      type="text"
-                      name="emergencyContactRelationship"
-                      required
-                      value={formData.emergencyContactRelationship}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Spouse, Parent, Sibling..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-6 border-t border-border">
-                <button
-                  type="submit"
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg transition duration-300"
-                >
-                  Submit Application
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.history.back()}
-                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg transition duration-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
-      </div>
-      <Footer />
-    </>
-  );
+        <div className="space-y-5 border-t pt-10 md:ml-[calc(14rem+3rem)]">
+          <label className="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="consent" required className="mt-0.5 h-4 w-4 accent-[hsl(var(--primary))]" />
+            <span>I agree that Wamumbi Foundation may contact me about volunteering and keep these details for that purpose.</span>
+          </label>
+          {errors.consent && <p className="text-sm text-destructive">{errors.consent}</p>}
+          <FormStatus state={state} message={message} />
+          <Button type="submit" size="lg" className="h-12 rounded-full px-8" disabled={submit.isPending}>
+            {submit.isPending ? "Sending…" : "Send application"}
+          </Button>
+        </div>
+      </form>
+    </PageShell>
+  )
 }

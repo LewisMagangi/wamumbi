@@ -15,9 +15,10 @@ import { ROLES, ROLE_META, type Role } from "@/lib/rbac/roles"
 import type { Permission } from "@/lib/rbac/permissions"
 import { cn } from "@/lib/utils"
 
-type Tab = "approvals" | "users" | "moderation" | "uploads"
+type Tab = "approvals" | "users" | "moderation" | "uploads" | "inbox"
 
 const TABS: { key: Tab; label: string; anyOf: Permission[] }[] = [
+  { key: "inbox", label: "Inbox", anyOf: ["volunteers:manage", "users:manage"] },
   { key: "approvals", label: "Approvals", anyOf: ["campaigns:publish", "events:publish", "blog:publish"] },
   { key: "moderation", label: "Photo moderation", anyOf: ["media:moderate"] },
   { key: "uploads", label: "Upload photos", anyOf: ["media:upload", "media:upload_restricted"] },
@@ -29,6 +30,74 @@ function EmptyState({ title, body }: { title: string; body: string }) {
     <div className="rounded-lg border border-dashed px-6 py-14 text-center">
       <p className="font-medium">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+    </div>
+  )
+}
+
+const STATUS_LABEL: Record<string, string> = { new: "New", in_review: "In review", accepted: "Accepted", declined: "Declined", archived: "Archived" }
+
+function Inbox() {
+  const { has } = useAuth()
+  const kinds = ([
+    has("volunteers:manage") && { key: "volunteer", label: "Volunteer applications" },
+    has("users:manage") && { key: "partnership", label: "Partnership inquiries" },
+  ].filter(Boolean)) as { key: "volunteer" | "partnership"; label: string }[]
+  const [kind, setKind] = useState<"volunteer" | "partnership">(kinds[0]?.key ?? "volunteer")
+  const utils = trpc.useUtils()
+  const { data, isLoading } = trpc.inquiries.list.useQuery({ kind }, { enabled: kinds.length > 0 })
+  const setStatus = trpc.inquiries.setStatus.useMutation({ onSuccess: () => utils.inquiries.list.invalidate() })
+
+  return (
+    <div className="space-y-6">
+      {kinds.length > 1 && (
+        <div className="flex gap-2">
+          {kinds.map((k) => (
+            <button key={k.key} onClick={() => setKind(k.key)} aria-pressed={kind === k.key}
+              className={cn("rounded-full border px-4 py-2 text-sm", kind === k.key ? "border-foreground bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : !data?.length ? (
+        <EmptyState title="Nothing here yet" body="Submissions from the website forms land here, so nothing gets lost." />
+      ) : (
+        <ul className="divide-y rounded-lg border">
+          {data.map((q) => {
+            const p = q.payload as Record<string, string | undefined>
+            return (
+              <li key={q.id} className="p-5">
+                <details>
+                  <summary className="flex cursor-pointer list-none flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span>
+                      <span className="font-medium">{q.name}</span>
+                      <span className="text-muted-foreground"> · {new Date(q.created_at).toLocaleDateString()}</span>
+                    </span>
+                    <span className={cn("text-sm", q.status === "new" ? "text-foreground" : "text-muted-foreground")}>{STATUS_LABEL[q.status]}</span>
+                  </summary>
+                  <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                    <div><dt className="text-muted-foreground">Email</dt><dd><a className="underline underline-offset-4" href={`mailto:${q.email}`}>{q.email}</a></dd></div>
+                    {q.phone && <div><dt className="text-muted-foreground">Phone</dt><dd><a className="underline underline-offset-4" href={`tel:${q.phone}`}>{q.phone}</a></dd></div>}
+                    {Object.entries(p).filter(([k, v]) => v && !["email", "phone", "firstName", "lastName", "organizationName", "contactPerson"].includes(k)).map(([k, v]) => (
+                      <div key={k} className="sm:col-span-2"><dt className="text-muted-foreground">{k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}</dt><dd className="whitespace-pre-wrap">{v}</dd></div>
+                    ))}
+                  </dl>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {(["in_review", "accepted", "declined", "archived"] as const).filter((s) => s !== q.status).map((s) => (
+                      <Button key={s} size="sm" variant={s === "accepted" ? "default" : "outline"} disabled={setStatus.isPending}
+                        onClick={() => setStatus.mutate({ id: q.id, status: s })}>
+                        {s === "archived" ? "Archive" : `Mark ${STATUS_LABEL[s].toLowerCase()}`}
+                      </Button>
+                    ))}
+                  </div>
+                </details>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }
@@ -296,6 +365,7 @@ function AdminInner() {
         ))}
       </div>
       <div role="tabpanel" className="pt-8">
+        {active === "inbox" && <Inbox />}
         {active === "approvals" && <Approvals />}
         {active === "users" && <UsersAndRoles />}
         {active === "moderation" && <Moderation />}

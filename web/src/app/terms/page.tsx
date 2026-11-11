@@ -5,17 +5,12 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
 
 export default function TermsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <>
       <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
       <div className="min-h-screen bg-muted/50 pt-16">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
           {/* Back Button */}

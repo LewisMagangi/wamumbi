@@ -11,6 +11,7 @@ import { blogPostsRouter } from "./blog-posts-router"
 import { partnershipRouter } from "./partnership-router"
 import { adminRouter } from "./admin-router"
 import { mediaRouter } from "./media-router"
+import { inquiriesRouter } from "./inquiries-router"
 
 export const appRouter = router({
   auth: authRouter,
@@ -24,6 +25,7 @@ export const appRouter = router({
   partnership: partnershipRouter,
   admin: adminRouter,
   media: mediaRouter,
+  inquiries: inquiriesRouter,
 })
 
 export type AppRouter = typeof appRouter

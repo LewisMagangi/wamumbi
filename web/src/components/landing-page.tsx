@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { CountUp, Reveal } from "@/components/motion"
 import { trpc } from "@/app/_trpc/client"
 import { PAST_EVENTS } from "@/data/past-events"
-import { allPhotos, coverFor, heroPhoto, photosFor } from "@/data/gallery"
+import { allPhotos, coverFor, photosFor } from "@/data/gallery"
 import { useState, type FormEvent } from "react"
 
 const programmes = [
@@ -75,22 +75,19 @@ function SectionHeader({ eyebrow, title, children }: { eyebrow: string; title: s
 }
 
 function Hero() {
-  const photo = heroPhoto()
   return (
     <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden">
       <Image
-        src={photo?.src ?? "/hero.png"}
-        alt="Children and volunteers at a Wamumbi Foundation outreach day"
+        src="/hero.png"
+        alt="Illustration of a grandmother, a mother and two children smiling together"
         fill
         priority
         sizes="100vw"
-        placeholder={photo ? "blur" : "empty"}
-        blurDataURL={photo?.blurDataURL}
-        className="-z-20 object-cover motion-safe:animate-[hero-zoom_18s_ease-out_both]"
+        className="-z-20 object-cover object-[60%_85%] motion-safe:animate-[hero-zoom_18s_ease-out_both]"
       />
-      {/* Scrim: keeps the photo visible while guaranteeing text contrast in both themes */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/70 to-background/5" />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
+      {/* Scrim: strong on the left behind the text, light at the bottom so the whole family stays visible */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/4 bg-gradient-to-t from-background/90 to-transparent" />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/75 via-35% to-transparent to-60%" />
       <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-background/80 to-transparent" />
 
       <div className="mx-auto w-full max-w-screen-xl px-5 pb-16 pt-32 md:px-10 md:pb-24">

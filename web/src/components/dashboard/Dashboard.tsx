@@ -852,7 +852,7 @@ export default function Dashboard() {
                 className={`flex-1 text-primary-foreground py-3 rounded-lg font-medium transition-colors ${
                   type === 'campaign' ? 'bg-primary hover:bg-primary/90' :
                   type === 'donation' ? 'bg-primary hover:bg-primary/90' :
-                  type === 'volunteer' ? 'bg-secondary hover:bg-accent' :
+                  type === 'volunteer' ? 'bg-primary hover:bg-accent' :
                   'bg-primary hover:bg-primary/90'
                 }`}
               >

@@ -19,10 +19,13 @@ export const ProjectsView: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Project Management</h2>
           <p className="text-muted-foreground mt-1">Track and manage ongoing projects</p>
+          <p role="note" className="mt-3 inline-block rounded-md border border-warning/40 bg-warning/10 px-3 py-1.5 text-sm">
+            Sample data: the projects module isn&apos;t connected to the database yet.
+          </p>
         </div>
         <button
           onClick={() => setShowComingSoonModal(true)}
-          className="flex items-center space-x-2 bg-secondary text-primary-foreground px-4 py-2 rounded-lg hover:bg-accent transition-colors"
+          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-accent transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Project</span>
@@ -127,7 +130,7 @@ export const ProjectsView: React.FC = () => {
             
             <button
               onClick={() => setShowComingSoonModal(false)}
-              className="w-full bg-secondary hover:bg-accent text-primary-foreground font-bold py-3 px-6 rounded-lg transition-colors"
+              className="w-full bg-primary hover:bg-accent text-primary-foreground font-bold py-3 px-6 rounded-lg transition-colors"
             >
               Got it!
             </button>

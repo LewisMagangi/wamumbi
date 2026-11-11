@@ -237,6 +237,7 @@ model User {
   audit_logs          AuditLog[]
   media_uploads       MediaAsset[]        @relation("MediaUploader")
   media_moderated     MediaAsset[]        @relation("MediaModerator")
+  inquiries_handled   Inquiry[]           @relation("InquiryHandler")
 
   @@map("users")
 }
@@ -1077,4 +1078,39 @@ model MediaAsset {
   @@index([event_id])
   @@index([uploaded_by, created_at])
   @@map("media_assets")
+}
+
+// =============================================================================
+// WEBSITE FORM SUBMISSIONS (volunteer applications, partnership inquiries)
+// =============================================================================
+
+enum InquiryKind {
+  volunteer
+  partnership
+}
+
+enum InquiryStatus {
+  new
+  in_review
+  accepted
+  declined
+  archived
+}
+
+model Inquiry {
+  id          Int           @id @default(autoincrement())
+  kind        InquiryKind
+  name        String        @db.VarChar(200)
+  email       String        @db.VarChar(255)
+  phone       String?       @db.VarChar(40)
+  payload     Json
+  status      InquiryStatus @default(new)
+  handled_by  Int?
+  handled_at  DateTime?
+  created_at  DateTime      @default(now())
+
+  handler User? @relation("InquiryHandler", fields: [handled_by], references: [id], onDelete: SetNull)
+
+  @@index([kind, status, created_at])
+  @@map("inquiries")
 }

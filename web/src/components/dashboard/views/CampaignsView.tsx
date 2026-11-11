@@ -1,5 +1,6 @@
 'use client';
 
+import { PermissionGate } from '@/components/auth/PermissionGate';
 import React, { useState } from 'react';
 import { Plus, FileText, X, Loader2, Eye, AlertCircle } from 'lucide-react';
 import { trpc } from '@/app/_trpc/client';
@@ -131,9 +132,10 @@ export const CampaignsView: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Campaign Management</h2>
-          <p className="text-muted-foreground mt-1">Create and manage your fundraising campaigns</p>
+          <h2 className="text-2xl font-bold text-foreground">Campaigns</h2>
+          <p className="text-muted-foreground mt-1">Where your gift goes right now</p>
         </div>
+        <PermissionGate permission="campaigns:create">
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
@@ -141,6 +143,7 @@ export const CampaignsView: React.FC = () => {
           <Plus className="w-4 h-4" />
           <span>New Campaign</span>
         </button>
+        </PermissionGate>
       </div>
 
       {/* Filters and Search */}

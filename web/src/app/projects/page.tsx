@@ -5,6 +5,7 @@ import Footer from '@/components/footer';
 import Sidebar from '@/components/dashboard/Sidebar';
 import MenuButton from '@/components/dashboard/MenuButton';
 import { ProjectsView } from '@/components/dashboard/views';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 export default function ProjectsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,9 +15,12 @@ export default function ProjectsPage() {
       <Navbar />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-muted/50 pt-16">
+      <div className="min-h-screen bg-background pt-16">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <ProjectsView />
+          {/* Staff only: this view still uses sample data */}
+          <ProtectedRoute anyOf={['dashboard:view']}>
+            <ProjectsView />
+          </ProtectedRoute>
         </main>
       </div>
       <Footer />

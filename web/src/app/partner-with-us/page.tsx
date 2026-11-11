@@ -1,321 +1,103 @@
-'use client';
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
-import { Building2, Mail, Phone, Users } from 'lucide-react';
-import { trpc } from '@/app/_trpc/client';
+"use client"
+
+import { useState, type FormEvent } from "react"
+import { PageShell } from "@/components/page-shell"
+import { Button } from "@/components/ui/button"
+import { Field, FormSection, FormStatus, Honeypot, Select, TextArea } from "@/components/forms/fields"
+import { trpc } from "@/app/_trpc/client"
+
+const reasons = [
+  { title: "Community impact", body: "Make a direct impact on the lives of orphaned children." },
+  { title: "Brand visibility", body: "Showcase your commitment to social responsibility." },
+  { title: "Collaborative projects", body: "Work together on meaningful initiatives." },
+  { title: "Ongoing support", body: "Dedicated partnership management and reporting." },
+]
+
+const orgTypes = [
+  { value: "corporate", label: "Corporate" },
+  { value: "foundation", label: "Foundation" },
+  { value: "nonprofit", label: "Non-profit" },
+  { value: "government", label: "Government agency" },
+  { value: "religious", label: "Religious organisation" },
+  { value: "educational", label: "Educational institution" },
+  { value: "other", label: "Other" },
+]
+
+const interests = [
+  { value: "financial", label: "Financial sponsorship" },
+  { value: "inkind", label: "In-kind donations" },
+  { value: "volunteer", label: "Corporate volunteering" },
+  { value: "event", label: "Event collaboration" },
+  { value: "advocacy", label: "Advocacy partnership" },
+  { value: "skills", label: "Skills-based partnership" },
+  { value: "other", label: "Other" },
+]
 
 export default function PartnerWithUsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    organizationName: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    organizationType: '',
-    partnershipInterest: '',
-    message: '',
-    website: '',
-  });
+  const [state, setState] = useState<"idle" | "success" | "error">("idle")
+  const [message, setMessage] = useState<string>()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const submit = trpc.inquiries.submitPartnership.useMutation()
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const submitInquiryMutation = trpc.partnership.submitInquiry.useMutation({
-    onSuccess: (data: { success: boolean; message: string }) => {
-      setSubmitMessage(data.message);
-      // Reset form
-      setFormData({
-        organizationName: '',
-        contactPerson: '',
-        email: '',
-        phone: '',
-        organizationType: '',
-        partnershipInterest: '',
-        message: '',
-        website: '',
-      });
-    },
-    onError: (error: { message: string }) => {
-      setSubmitMessage(error.message || 'Failed to submit partnership inquiry. Please try again.');
-    },
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitMessage(null);
-
-    submitInquiryMutation.mutate(formData);
-    setIsSubmitting(false);
-  };
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const f = Object.fromEntries(new FormData(form)) as Record<string, string>
+    setErrors({})
+    try {
+      const res = await submit.mutateAsync({
+        organizationName: f.organizationName, contactPerson: f.contactPerson, email: f.email,
+        phone: f.phone || undefined, organizationType: f.organizationType || undefined,
+        partnershipInterest: f.partnershipInterest || undefined, message: f.message || undefined,
+        website: f.website || undefined, company_website: f.company_website || undefined,
+      })
+      setState("success")
+      setMessage(res.message)
+      form.reset()
+    } catch (err) {
+      const fe = (err as { data?: { zodError?: { fieldErrors?: Record<string, string[]> } } }).data?.zodError?.fieldErrors
+      if (fe) setErrors(Object.fromEntries(Object.entries(fe).map(([k, v]) => [k, v?.[0] ?? ""])))
+      setState("error")
+      setMessage("Something didn't go through. Check the highlighted fields, or email us at wamumbifoundation@gmail.com.")
+    }
+  }
 
   return (
-    <>
-      <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-muted/50 pt-16">
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mb-16">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Partner With Us</h1>
-            <p className="text-xl text-muted-foreground">
-              Join us in creating lasting change for orphaned children
-            </p>
+    <PageShell title="Partner with us" intro="Join us in creating lasting change for orphaned children.">
+      <div className="grid gap-16 lg:grid-cols-[1fr_2fr]">
+        <ul className="space-y-8 lg:sticky lg:top-28 lg:self-start">
+          {reasons.map((r) => (
+            <li key={r.title}>
+              <h2 className="font-display text-xl">{r.title}</h2>
+              <p className="mt-1.5 text-muted-foreground">{r.body}</p>
+            </li>
+          ))}
+        </ul>
+
+        <form onSubmit={onSubmit} noValidate className="relative">
+          <Honeypot />
+          <FormSection title="Organisation">
+            <Field label="Organisation name" name="organizationName" required className="sm:col-span-2" autoComplete="organization" error={errors.organizationName} />
+            <Select label="Type" name="organizationType" options={orgTypes} />
+            <Field label="Website" name="website" type="url" placeholder="https://" />
+          </FormSection>
+          <FormSection title="Contact person">
+            <Field label="Full name" name="contactPerson" required className="sm:col-span-2" autoComplete="name" error={errors.contactPerson} />
+            <Field label="Email" name="email" type="email" required autoComplete="email" error={errors.email} />
+            <Field label="Phone" name="phone" type="tel" autoComplete="tel" />
+          </FormSection>
+          <FormSection title="The partnership">
+            <Select label="What kind of partnership?" name="partnershipInterest" options={interests} className="sm:col-span-2" />
+            <TextArea label="Tell us about your goals" name="message" className="sm:col-span-2" rows={5} />
+          </FormSection>
+          <div className="space-y-5 border-t pt-10">
+            <FormStatus state={state} message={message} />
+            <Button type="submit" size="lg" className="h-12 rounded-full px-8" disabled={submit.isPending}>
+              {submit.isPending ? "Sending…" : "Send inquiry"}
+            </Button>
           </div>
-
-          {/* Partnership Benefits */}
-          <div className="bg-card rounded-xl shadow-sm border border-border p-8 mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Why Partner With Wamumbi?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start">
-                <div className="bg-brand/10 rounded-lg p-3 mr-4">
-                  <Users className="w-6 h-6 text-brand" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-2">Community Impact</h3>
-                  <p className="text-muted-foreground">Make a direct impact on the lives of orphaned children</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-brand/10 rounded-lg p-3 mr-4">
-                  <Building2 className="w-6 h-6 text-brand" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-2">Brand Visibility</h3>
-                  <p className="text-muted-foreground">Showcase your commitment to social responsibility</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-brand/10 rounded-lg p-3 mr-4">
-                  <Mail className="w-6 h-6 text-brand" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-2">Collaborative Projects</h3>
-                  <p className="text-muted-foreground">Work together on meaningful initiatives</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-brand/10 rounded-lg p-3 mr-4">
-                  <Phone className="w-6 h-6 text-brand" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-2">Ongoing Support</h3>
-                  <p className="text-muted-foreground">Dedicated partnership management and reporting</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Form */}
-          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Organization Information */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Building2 className="w-6 h-6 mr-2 text-brand" />
-                  Organization Information
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Organization Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="organizationName"
-                      required
-                      value={formData.organizationName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="ABC Corporation"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        Organization Type *
-                      </label>
-                      <select
-                        name="organizationType"
-                        required
-                        value={formData.organizationType}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                        aria-label="Select organization type"
-                      >
-                        <option value="">Select type...</option>
-                        <option value="corporate">Corporate</option>
-                        <option value="foundation">Foundation</option>
-                        <option value="nonprofit">Non-Profit</option>
-                        <option value="government">Government Agency</option>
-                        <option value="religious">Religious Organization</option>
-                        <option value="educational">Educational Institution</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-2">
-                        Website
-                      </label>
-                      <input
-                        type="url"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Person */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Users className="w-6 h-6 mr-2 text-brand" />
-                  Contact Person
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="contactPerson"
-                      required
-                      value={formData.contactPerson}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="john.doe@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="+254 123 456 789"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Partnership Interest */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                  <Mail className="w-6 h-6 mr-2 text-brand" />
-                  Partnership Interest
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Type of Partnership *
-                    </label>
-                    <select
-                      name="partnershipInterest"
-                      required
-                      value={formData.partnershipInterest}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      aria-label="Select type of partnership"
-                    >
-                      <option value="">Select partnership type...</option>
-                      <option value="financial">Financial Sponsorship</option>
-                      <option value="inkind">In-Kind Donations</option>
-                      <option value="volunteer">Corporate Volunteering</option>
-                      <option value="event">Event Collaboration</option>
-                      <option value="advocacy">Advocacy Partnership</option>
-                      <option value="skills">Skills-Based Partnership</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground/80 mb-2">
-                      Tell us about your partnership goals *
-                    </label>
-                    <textarea
-                      name="message"
-                      required
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={6}
-                      className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                      placeholder="Share your ideas, goals, and how you envision partnering with us..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Message */}
-              {submitMessage && (
-                <div className={`p-4 rounded-lg mb-4 ${
-                  submitMessage.includes('Thank you')
-                    ? 'bg-success/15 border border-success/40 text-success'
-                    : 'bg-destructive/15 border border-destructive/40 text-destructive'
-                }`}>
-                  {submitMessage}
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-6 border-t border-border">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || submitInquiryMutation.isPending}
-                  className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center"
-                >
-                  {(isSubmitting || submitInquiryMutation.isPending) ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Partnership Inquiry'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.history.back()}
-                  className="flex-1 bg-muted hover:bg-accent text-foreground/80 font-bold py-3 px-6 rounded-lg transition duration-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
+        </form>
       </div>
-      <Footer />
-    </>
-  );
+    </PageShell>
+  )
 }

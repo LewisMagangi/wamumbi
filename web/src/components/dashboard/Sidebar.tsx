@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { 
   X, ChevronRight, LayoutDashboard, Megaphone, HandHeart, 
   UserCheck, FolderKanban, CalendarDays, BarChart3, Home,
-  ImageUp, ShieldCheck, ClipboardCheck, Users
+  ImageUp, ShieldCheck, ClipboardCheck, Users, Inbox
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Permission } from '@/lib/rbac/permissions';
@@ -30,6 +30,7 @@ const navigationItems: NavItem[] = [
   { name: 'Reports', href: '/reports', icon: BarChart3, description: 'Financial reports', anyOf: ['reports:view_financial'] },
   { name: 'Photos', href: '/dashboard/admin?tab=uploads', icon: ImageUp, description: 'Upload event photos', anyOf: ['media:upload', 'media:upload_restricted'] },
   { name: 'Moderation', href: '/dashboard/admin?tab=moderation', icon: ShieldCheck, description: 'Review uploaded photos', anyOf: ['media:moderate'] },
+  { name: 'Inbox', href: '/dashboard/admin?tab=inbox', icon: Inbox, description: 'Volunteer and partner messages', anyOf: ['volunteers:manage', 'users:manage'] },
   { name: 'Approvals', href: '/dashboard/admin?tab=approvals', icon: ClipboardCheck, description: 'Approve content to go live', anyOf: ['campaigns:publish', 'events:publish', 'blog:publish'] },
   { name: 'Users & roles', href: '/dashboard/admin?tab=users', icon: Users, description: 'Assign roles', anyOf: ['users:manage'] },
 ];
