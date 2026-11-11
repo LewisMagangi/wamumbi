@@ -2,15 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    // TODO: re-enable once existing lint errors are cleared
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Kept from the previous next.config.js so existing builds don't break.
-    // TODO: set to false after the remaining type errors are fixed.
-    ignoreBuildErrors: true,
-  },
+  // Builds fail on lint and type errors, so mistakes are caught before they ship.
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.public.blob.vercel-storage.com" },
