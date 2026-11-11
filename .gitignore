@@ -1,6 +1,5 @@
-# Ignore VSCode AI rules
-.github/instructions/codacy.instructions.md
-.github/
+# Ignore editor AI rules (workflows in .github/workflows are tracked)
+.github/instructions/
 
 # Node.js
 node_modules/
