@@ -5,6 +5,7 @@ import "./globals.css"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 import TrpcProvider from "@/components/trpc-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { LegalConsentGate } from "@/components/legal-consent-gate"
 
 // Fonts are self-hosted (no runtime call to Google Fonts): faster and more private
 // Body: Hanken Grotesk, a warm humanist grotesque (OFL)
@@ -70,6 +71,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             <TrpcProvider>
               {children}
+              <LegalConsentGate />
             </TrpcProvider>
           </ThemeProvider>
         </body>

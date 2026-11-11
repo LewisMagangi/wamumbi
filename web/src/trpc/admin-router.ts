@@ -7,7 +7,8 @@ import { ROLE_PERMISSIONS, matrix, permissionsJson } from "@/lib/rbac/permission
 import { PENDING_REVIEW } from "@/server/review"
 import { audit } from "@/server/audit"
 import { syncClerkUsers } from "@/server/current-user"
-import { optionalAuthProcedure, permissionProcedure, router } from "./trpc"
+import { optionalAuthProcedure, permissionProcedure, protectedProcedure, router } from "./trpc"
+import { LEGAL_VERSION } from "@/lib/legal"
 
 const roleEnum = z.enum(ROLES)
 const kindEnum = z.enum(["campaign", "event", "blog"])
@@ -32,6 +33,32 @@ export const adminRouter = router({
         roleLabel: ROLE_META[ctx.user.role].label,
         permissions: [...ROLE_PERMISSIONS[ctx.user.role]],
       }
+    }),
+
+  /**
+   * Record that the signed-in user accepted the current Terms of use and Privacy policy.
+   * Stored on the Clerk user (public metadata) so the client can check it without a query,
+   * and written to the activity log as a consent record.
+   */
+  acceptTerms: protectedProcedure
+    .input(z.object({ version: z.literal(LEGAL_VERSION) }))
+    .mutation(async ({ ctx }) => {
+      const { auth, clerkClient } = await import("@clerk/nextjs/server")
+      const { userId } = await auth()
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" })
+      const acceptedAt = new Date().toISOString()
+      const client = await clerkClient()
+      await client.users.updateUserMetadata(userId, {
+        publicMetadata: { termsVersion: LEGAL_VERSION, termsAcceptedAt: acceptedAt },
+      })
+      await audit({
+        userId: ctx.user.id,
+        action: "terms_accepted",
+        entity: "user",
+        entityId: ctx.user.id,
+        newValues: { version: LEGAL_VERSION, acceptedAt },
+      })
+      return { ok: true }
     }),
 
   /** Role definitions and the permission matrix (read-only reference). */

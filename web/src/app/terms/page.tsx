@@ -1,100 +1,115 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { PageShell } from "@/components/page-shell"
+import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF, LEGAL_UPDATED_LABEL, MPESA_TILL, legalProse } from "@/lib/legal"
 
-export const metadata: Metadata = { title: "Terms of use", description: "The terms for using Wamumbi Foundation's website and services." }
-
-// Prose styles for headings, paragraphs and lists, without a typography plugin.
-const prose =
-  "max-w-none text-foreground/85 leading-relaxed [&_h2]:mt-12 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:text-foreground [&_h3]:mt-8 [&_h3]:font-sans [&_h3]:text-base [&_h3]:font-medium [&_h3]:text-foreground [&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-6 [&_a]:underline [&_a]:underline-offset-4 [&_strong]:text-foreground"
+export const metadata: Metadata = {
+  title: "Terms of use",
+  description: "The rules for using the Wamumbi Foundation website and dashboard: accounts, donations by M-Pesa, volunteering, events, photos and conduct.",
+}
 
 export default function TermsPage() {
   return (
-    <PageShell title="Terms of use" intro="Last updated 11 November 2026" width="narrow">
-      <div className={prose}>
-        <h2>1. Introduction</h2>
+    <PageShell title="Terms of use" intro={`Last updated ${LEGAL_UPDATED_LABEL}`} width="narrow">
+      <div className={legalProse}>
         <p>
-          Welcome to Wamumbi. These Terms and Conditions govern your use of our website and services. By accessing or using our website, you agree to be bound by these Terms.
+          These terms apply to the Wamumbi Foundation website, including the signed-in dashboard (together, &ldquo;the website&rdquo;). By creating an account, signing in, or submitting a form, you agree to these terms and to our <Link href="/privacy">Privacy policy</Link>. If you do not agree, please do not use the website.
         </p>
 
-        <h2>2. Definitions</h2>
+        <h2 id="about">1. About us</h2>
         <p>
-          <strong>&ldquo;Organization,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;</strong> and <strong>&ldquo;our&rdquo;</strong> refer to Wamumbi.<br />
-          <strong>&ldquo;User,&rdquo; &ldquo;you,&rdquo;</strong> and <strong>&ldquo;your&rdquo;</strong> refer to individuals accessing or using our services.<br />
-          <strong>&ldquo;Services&rdquo;</strong> refers to all features, content, and services provided through our website.
+          The website is run by Wamumbi Foundation (&ldquo;Wamumbi&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;), a community charity in Nairobi, Kenya, that supports orphaned and vulnerable children and their guardians through outreach, education and care.
         </p>
 
-        <h2>3. Use of Services</h2>
-        <p>
-          You may use our services only for lawful purposes and in accordance with these Terms. You agree not to use our services:
-        </p>
+        <h2 id="accounts">2. Your account</h2>
         <ul>
-          <li>In any way that violates any applicable national or international law or regulation</li>
-          <li>To transmit any unsolicited or unauthorized advertising or promotional material</li>
-          <li>To impersonate or attempt to impersonate the Organization or another user</li>
-          <li>In any way that could disable, overburden, or impair the website</li>
+          <li>You must be <strong>18 or older</strong> to create an account.</li>
+          <li>Give accurate details and keep them up to date at <Link href="/profile">Your account</Link>.</li>
+          <li>Keep your password private and do not share your account. You are responsible for what happens under it. Tell us straight away if you think someone else has used it.</li>
+          <li>New accounts start with the <strong>Donor</strong> role. Other roles (such as Volunteer, Finance Manager or Event Coordinator) are given by the Super Admin and can be changed or removed at any time.</li>
+          <li>We may suspend or close an account that breaks these terms or puts children, donors or the foundation at risk.</li>
+          <li>You can ask us to close your account at any time by emailing <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</li>
         </ul>
 
-        <h2>4. Donations</h2>
+        <h2 id="donations">3. Donations</h2>
+        <ul>
+          <li>Donations are made with M-Pesa to Buy Goods till <strong>{MPESA_TILL}</strong>. You do not need an account to give.</li>
+          <li>Always check that the till name shown on your phone is Wamumbi Foundation before you confirm. We will never ask for your M-Pesa PIN, and only ever ask you to pay to till {MPESA_TILL}.</li>
+          <li>Gifts are voluntary and generally cannot be refunded. If you made a mistake (for example the wrong amount), contact us within 14 days with your M-Pesa code and we will do our best to help.</li>
+          <li>Gifts given to a campaign go to that campaign. If a campaign is fully funded or cannot go ahead, we may use the gift where the need is greatest.</li>
+          <li>Our finance team records each gift with its M-Pesa code. If you ask, we will record it as anonymous.</li>
+        </ul>
+
+        <h2 id="volunteering">4. Volunteering and events</h2>
+        <ul>
+          <li>Applying to volunteer does not guarantee a place. We may ask for references or, for roles working with children, a certificate of good conduct.</li>
+          <li>Volunteers must follow our safeguarding rules and the instructions of the team leader on the day.</li>
+          <li>Event places may be limited. For paid events, your place is confirmed once your M-Pesa payment is recorded. If we cancel a paid event, we will refund you or offer a place at another event.</li>
+          <li>Taking part in outreach and events is at your own risk to the extent the law allows. Tell us in advance about any special requirements.</li>
+        </ul>
+
+        <h2 id="children">5. Protecting children</h2>
         <p>
-          All donations made through our website are voluntary and non-refundable except as required by law. We reserve the right to refuse or return any donation at our discretion. Donors will receive acknowledgment of their donations for tax purposes where applicable.
+          The safety and dignity of the children we serve comes first. Anyone using the website, and especially anyone with dashboard access, must:
+        </p>
+        <ul>
+          <li>upload photos of children only where a parent or guardian has given consent, and confirm this when uploading;</li>
+          <li>never share children&rsquo;s names, locations, schools or photos outside the website or the foundation&rsquo;s official channels;</li>
+          <li>never contact a child through the website or use information from it to contact a child privately.</li>
+        </ul>
+        <p>Breaking these rules will lead to your access being removed and may be reported to the authorities.</p>
+
+        <h2 id="dashboard">6. Using the dashboard</h2>
+        <p>If you have a role that gives you dashboard access, you also agree to:</p>
+        <ul>
+          <li>use donor, volunteer and partner information only for the foundation&rsquo;s work, and keep it inside the dashboard;</li>
+          <li>delete exported files (such as donation CSVs) once you are done with them;</li>
+          <li>record donations and other information accurately and honestly;</li>
+          <li>not try to access areas or information your role does not allow.</li>
+        </ul>
+        <p>Important actions in the dashboard are recorded in an activity log.</p>
+
+        <h2 id="content">7. What you post</h2>
+        <p>
+          When you upload photos or submit content (such as campaign or event details), you confirm you have the right to share it, and you give Wamumbi permission to publish it on the website and our official channels for the foundation&rsquo;s work. Content is reviewed before it goes live, and we may edit, decline or remove anything at our discretion. You must not upload anything unlawful, offensive, misleading or that invades someone&rsquo;s privacy.
         </p>
 
-        <h2>5. Volunteer Services</h2>
+        <h2 id="acceptable-use">8. Acceptable use</h2>
+        <p>Do not:</p>
+        <ul>
+          <li>use the website for fraud, including pretending to collect donations for Wamumbi through any other till, account or link;</li>
+          <li>try to break, overload or get around the website&rsquo;s security, or access other people&rsquo;s accounts;</li>
+          <li>submit spam or automated form entries;</li>
+          <li>copy our name, logo or content to suggest you represent Wamumbi without our written permission.</li>
+        </ul>
+
+        <h2 id="ip">9. Our content</h2>
         <p>
-          Volunteers must comply with all organization policies and procedures. We reserve the right to reject any volunteer application or terminate volunteer services at any time. Background checks may be required for certain volunteer positions.
+          The Wamumbi name, logo, text and photos on the website belong to Wamumbi Foundation or the people who allowed us to use them. You may share links and our flyer to support the foundation, but please do not use our content for anything else without permission.
         </p>
 
-        <h2>6. Intellectual Property</h2>
+        <h2 id="liability">10. Our responsibility</h2>
         <p>
-          The website and its entire contents, features, and functionality are owned by Wamumbi and are protected by international copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works without our express written permission.
+          We work hard to keep the website accurate and available, but it is provided &ldquo;as is&rdquo; and may sometimes be unavailable or contain mistakes. To the extent the law allows, Wamumbi is not liable for indirect losses, or for losses caused by events outside our control, by third-party services (such as M-Pesa), or by misuse of your account. Nothing in these terms limits rights you have under Kenyan law that cannot be limited.
         </p>
 
-        <h2>7. User Accounts</h2>
+        <h2 id="changes">11. Changes to these terms</h2>
         <p>
-          You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. You must notify us immediately of any unauthorized use of your account.
+          We may update these terms. If we make significant changes, we will update the date at the top and ask signed-in users to review and accept the new version before continuing.
         </p>
 
-        <h2>8. Privacy</h2>
+        <h2 id="law">12. Governing law</h2>
         <p>
-          Your use of our services is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding the collection and use of your information.
+          These terms are governed by the laws of Kenya. We will always try to resolve concerns with you directly first; any dispute that cannot be resolved will be handled by the courts of Kenya.
         </p>
 
-        <h2>9. Disclaimer of Warranties</h2>
+        <h2 id="contact">13. Contact us</h2>
         <p>
-          Our services are provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties of any kind, either express or implied. We do not warrant that our services will be uninterrupted, secure, or error-free.
-        </p>
-
-        <h2>10. Limitation of Liability</h2>
-        <p>
-          To the fullest extent permitted by law, Wamumbi shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of our services.
-        </p>
-
-        <h2>11. Changes to Terms</h2>
-        <p>
-          We reserve the right to modify these Terms at any time. We will notify users of any material changes by posting the new Terms on this page with a new &ldquo;Last updated&rdquo; date. Your continued use of our services after such changes constitutes acceptance of the modified Terms.
-        </p>
-
-        <h2>12. Governing Law</h2>
-        <p>
-          These Terms shall be governed by and construed in accordance with the laws of Kenya, without regard to its conflict of law provisions.
-        </p>
-
-        <h2>13. Contact Information</h2>
-        <p>
-          If you have any questions about these Terms, please contact us at:
-        </p>
-        <div>
-          <p>
-            <strong>Wamumbi</strong><br />
-            Email: legal@wamumbi.org<br />
-            Phone: +254 123 456 789<br />
-            Address: Nairobi, Kenya
-          </p>
-        </div>
-
-        <h2>14. Acceptance of Terms</h2>
-        <p>
-          By using our services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.
+          Wamumbi Foundation, Nairobi, Kenya
+          <br />
+          Email: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          <br />
+          Phone: <a href={CONTACT_PHONE_HREF}>{CONTACT_PHONE}</a>
         </p>
       </div>
     </PageShell>
