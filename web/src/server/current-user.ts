@@ -101,3 +101,38 @@ export async function getOrCreateDbUser(clerkUser: ClerkLikeUser) {
   }
   return user
 }
+
+let lastSync = 0
+
+/**
+ * Add a `users` row for every Clerk account that doesn't have one yet (as Donor, or
+ * Super Admin if listed in SUPER_ADMIN_EMAILS). Rows are otherwise only created the
+ * first time someone opens the site signed in, so without this, people who signed up
+ * earlier (or on the old deployment) never appear in Users & roles.
+ * Runs at most once a minute per server instance; failures are logged, never thrown.
+ */
+export async function syncClerkUsers() {
+  if (Date.now() - lastSync < 60_000) return
+  lastSync = Date.now()
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server")
+    const client = await clerkClient()
+    const existing = new Set(
+      (await prisma.user.findMany({ select: { email: true } })).map((u) => u.email.toLowerCase())
+    )
+    for (let offset = 0; ; offset += 100) {
+      const page = await client.users.getUserList({ limit: 100, offset, orderBy: "created_at" })
+      for (const u of page.data) {
+        const email = (u.primaryEmailAddress?.emailAddress ?? u.emailAddresses[0]?.emailAddress ?? "").toLowerCase()
+        if (email && !existing.has(email)) {
+          await getOrCreateDbUser(u)
+          existing.add(email)
+        }
+      }
+      if (page.data.length < 100) break
+    }
+  } catch (error) {
+    lastSync = 0
+    console.error("[auth] could not sync Clerk users:", error instanceof Error ? error.message : error)
+  }
+}
