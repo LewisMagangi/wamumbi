@@ -1,21 +1,18 @@
 'use client';
-import React, { useState } from 'react';
-import Dashboard from '@/components/dashboard/Dashboard';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
+import { DashboardShell } from '@/components/dashboard/shell';
+import { Overview, QuickActions } from '@/components/dashboard/overview';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const { user } = useAuth();
+  const first = user?.name?.split(' ')[0];
   return (
-    <>
-      <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
-      <Dashboard />
-      <Footer />
-    </>
+    <DashboardShell
+      title={first ? `Welcome back, ${first}` : 'Dashboard'}
+      description={user ? `Signed in as ${user.roleLabel}` : undefined}
+      actions={<QuickActions />}
+    >
+      <Overview />
+    </DashboardShell>
   );
 }

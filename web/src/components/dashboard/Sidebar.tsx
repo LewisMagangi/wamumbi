@@ -15,10 +15,10 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-type NavItem = { name: string; href: string; icon: React.ComponentType<{ className?: string }>; description: string; anyOf?: Permission[] };
+export type NavItem = { name: string; href: string; icon: React.ComponentType<{ className?: string }>; description: string; anyOf?: Permission[] };
 
 // Items without `anyOf` are visible to everyone signed in; the server enforces the same rules.
-const navigationItems: NavItem[] = [
+export const navigationItems: NavItem[] = [
   { name: 'Home', href: '/', icon: Home, description: 'Back to the website' },
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, description: 'Your dashboard', anyOf: ['dashboard:view'] },
   { name: 'Campaigns', href: '/campaigns', icon: Megaphone, description: 'Manage campaigns', anyOf: ['campaigns:create', 'campaigns:update'] },

@@ -1,93 +1,109 @@
-import React from 'react';
-import { Plus } from 'lucide-react';
-import { mockDashboardSummary, formatAmount, getDonorName, getCategoryName } from '../../../lib/mockData';
-import { formatDate } from '../../../lib/dateUtils';
+"use client"
 
-interface DonationsViewProps {
-  openModal?: (type: string) => void;
-}
+import { useMemo, useState } from "react"
+import { format } from "date-fns"
+import { Input } from "@/components/ui/input"
+import { trpc } from "@/app/_trpc/client"
+import { useAuth } from "@/contexts/AuthContext"
+import { cn } from "@/lib/utils"
 
-export const DonationsView: React.FC<DonationsViewProps> = ({ openModal }) => {
-  const donations = mockDashboardSummary.recentDonations;
+const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 0 })
+
+/**
+ * Donations, from the database. The server decides what each role sees:
+ * finance sees everything, campaign managers see names without contact details,
+ * everyone else sees only their own donations.
+ */
+export function DonationsView() {
+  const { has, hasAny } = useAuth()
+  const { data, isLoading, error } = trpc.donations.getAll.useQuery()
+  const [q, setQ] = useState("")
+  const [status, setStatus] = useState("all")
+
+  const rows = useMemo(() => {
+    const list = data ?? []
+    return list.filter((d) =>
+      (status === "all" || d.status === status) &&
+      (!q || `${d.donorName} ${d.campaignTitle}`.toLowerCase().includes(q.toLowerCase()))
+    )
+  }, [data, q, status])
+
+  const statuses = useMemo(() => Array.from(new Set((data ?? []).map((d) => d.status))), [data])
+  const completed = (data ?? []).filter((d) => d.status === "completed")
+  const total = completed.reduce((s, d) => s + d.amount, 0)
+  const donors = new Set(completed.map((d) => d.donorName)).size
+  const own = !hasAny(["donations:view_all", "donations:view_aggregate"])
+  const showEmail = has("donors:view_contact")
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Donation Management</h2>
-          <p className="text-muted-foreground mt-1">Track and manage all donations</p>
-        </div>
-        <button
-          onClick={() => openModal?.('donation')}
-          className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Record Donation</span>
-        </button>
-      </div>
+      <dl className="grid overflow-hidden rounded-lg border bg-card sm:grid-cols-3">
+        {[
+          { label: own ? "You've given" : "Completed donations", value: fmt(total) },
+          { label: own ? "Donations" : "Donors", value: fmt(own ? completed.length : donors) },
+          { label: "Average gift", value: fmt(completed.length ? total / completed.length : 0) },
+        ].map((s, i) => (
+          <div key={s.label} className={cn("px-5 py-5", i > 0 && "border-t sm:border-l sm:border-t-0")}>
+            <dt className="text-sm text-muted-foreground">{s.label}</dt>
+            <dd className="mt-2 font-display text-3xl tabular-nums tracking-tight">{isLoading ? "…" : s.value}</dd>
+          </div>
+        ))}
+      </dl>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Total Donations</p>
-          <p className="text-2xl font-bold text-foreground">{formatAmount(mockDashboardSummary.totalDonations)}</p>
+      <section className="rounded-lg border bg-card">
+        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
+          <label htmlFor="donation-search" className="sr-only">Search donations</label>
+          <Input id="donation-search" placeholder="Search donor or campaign" value={q} onChange={(e) => setQ(e.target.value)} className="sm:max-w-xs" />
+          <label htmlFor="donation-status" className="sr-only">Filter by status</label>
+          <select id="donation-status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-sm">
+            <option value="all">All statuses</option>
+            {statuses.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
+          </select>
+          <p className="text-sm text-muted-foreground sm:ml-auto">{rows.length} shown</p>
         </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Total Donors</p>
-          <p className="text-2xl font-bold text-foreground">{mockDashboardSummary.totalDonors}</p>
-        </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">Average Donation</p>
-          <p className="text-2xl font-bold text-foreground">{formatAmount(mockDashboardSummary.avgDonation)}</p>
-        </div>
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-          <p className="text-sm text-muted-foreground">This Month</p>
-          <p className="text-2xl font-bold text-success">+12.5%</p>
-        </div>
-      </div>
 
-      {/* Donations Table */}
-      <div className="bg-card rounded-xl shadow-sm border border-border">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="font-bold text-lg">Recent Donations</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Donor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Campaign</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {donations.map((donation) => (
-                <tr key={donation.id} className="hover:bg-accent">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-foreground">{getDonorName(donation.donor_id)}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-foreground">{getCategoryName(donation.campaign_id)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-bold text-success">{formatAmount(donation.amount)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-muted-foreground">{formatDate(donation.donation_date)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 bg-success/15 text-success rounded-full text-xs font-medium">
-                      Completed
-                    </span>
-                  </td>
+        {error ? (
+          <p className="px-5 py-10 text-center text-sm text-destructive">{error.message}</p>
+        ) : isLoading ? (
+          <div className="space-y-3 p-5" aria-hidden>{[0, 1, 2, 3].map((i) => <div key={i} className="h-4 animate-pulse rounded bg-muted" />)}</div>
+        ) : !rows.length ? (
+          <p className="px-5 py-12 text-center text-sm text-muted-foreground">{data?.length ? "No donations match your filters." : "No donations recorded yet."}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-muted-foreground">
+                <tr className="border-b">
+                  <th className="px-5 py-2.5 font-normal">Date</th>
+                  {!own && <th className="px-5 py-2.5 font-normal">Donor</th>}
+                  <th className="px-5 py-2.5 font-normal">Campaign</th>
+                  <th className="px-5 py-2.5 font-normal">Method</th>
+                  <th className="px-5 py-2.5 font-normal">Status</th>
+                  <th className="px-5 py-2.5 text-right font-normal">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </thead>
+              <tbody className="divide-y">
+                {rows.map((d) => (
+                  <tr key={d.id} className="hover:bg-accent/40">
+                    <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{format(new Date(d.donationDate), "d MMM yyyy")}</td>
+                    {!own && (
+                      <td className="px-5 py-3">
+                        <p>{d.donorName}</p>
+                        {showEmail && d.donorEmail && <p className="text-xs text-muted-foreground">{d.donorEmail}</p>}
+                      </td>
+                    )}
+                    <td className="max-w-[14rem] truncate px-5 py-3">{d.campaignTitle}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{d.paymentMethod}{d.isRecurring ? " · recurring" : ""}</td>
+                    <td className="px-5 py-3">
+                      <span className={cn("capitalize", d.status === "completed" ? "text-success" : d.status === "failed" ? "text-destructive" : "text-muted-foreground")}>{d.status}</span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-right tabular-nums">{d.currency} {fmt(d.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
-  );
-};
+  )
+}

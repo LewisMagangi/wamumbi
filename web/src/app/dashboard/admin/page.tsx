@@ -4,11 +4,9 @@ import { Suspense, useState } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import { upload } from "@vercel/blob/client"
-import Navbar from "@/components/Navbar"
-import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { DashboardShell } from "@/components/dashboard/shell"
 import { useAuth } from "@/contexts/AuthContext"
 import { trpc } from "@/app/_trpc/client"
 import { ROLES, ROLE_META, type Role } from "@/lib/rbac/roles"
@@ -339,7 +337,7 @@ function Uploads() {
 function AdminInner() {
   const params = useSearchParams()
   const router = useRouter()
-  const { hasAny, user } = useAuth()
+  const { hasAny } = useAuth()
   const tabs = TABS.filter((t) => hasAny(t.anyOf))
   const requested = params?.get("tab") as Tab | null
   const active = tabs.find((t) => t.key === requested)?.key ?? tabs[0]?.key
@@ -350,11 +348,7 @@ function AdminInner() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-baseline gap-x-3">
-        <h1 className="font-display text-display-sm">Manage</h1>
-        <p className="text-sm text-muted-foreground">Signed in as {user?.roleLabel}</p>
-      </div>
-      <div role="tablist" aria-label="Admin sections" className="mt-8 flex gap-1 overflow-x-auto border-b">
+      <div role="tablist" aria-label="Admin sections" className="flex gap-1 overflow-x-auto border-b">
         {tabs.map((t) => (
           <button key={t.key} role="tab" aria-selected={active === t.key}
             onClick={() => router.replace(`/dashboard/admin?tab=${t.key}`)}
@@ -377,16 +371,10 @@ function AdminInner() {
 
 export default function AdminPage() {
   return (
-    <>
-      <Navbar />
-      <main className="mx-auto min-h-[70vh] max-w-screen-xl px-5 pb-24 pt-28 md:px-10">
-        <ProtectedRoute>
-          <Suspense fallback={null}>
-            <AdminInner />
-          </Suspense>
-        </ProtectedRoute>
-      </main>
-      <Footer />
-    </>
+    <DashboardShell title="Manage" description="Approvals, people, photos and messages.">
+      <Suspense fallback={null}>
+        <AdminInner />
+      </Suspense>
+    </DashboardShell>
   )
 }

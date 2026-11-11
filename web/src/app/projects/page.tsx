@@ -1,29 +1,12 @@
 'use client';
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
+import { DashboardShell } from '@/components/dashboard/shell';
 import { ProjectsView } from '@/components/dashboard/views';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function ProjectsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+// Staff only: this view still uses sample data.
+export default function Page() {
   return (
-    <>
-      <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-background pt-16">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Staff only: this view still uses sample data */}
-          <ProtectedRoute anyOf={['dashboard:view']}>
-            <ProjectsView />
-          </ProtectedRoute>
-        </main>
-      </div>
-      <Footer />
-    </>
+    <DashboardShell anyOf={['dashboard:view']}>
+      <ProjectsView />
+    </DashboardShell>
   );
 }
