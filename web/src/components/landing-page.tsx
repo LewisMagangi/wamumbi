@@ -76,19 +76,20 @@ function SectionHeader({ eyebrow, title, children }: { eyebrow: string; title: s
 
 function Hero() {
   return (
-    <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden">
+    <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden lg:aspect-[3/2] lg:min-h-0">
       <Image
         src="/hero.png"
         alt="Illustration of a grandmother, a mother and two children smiling together"
         fill
         priority
         sizes="100vw"
-        className="-z-20 object-cover motion-safe:animate-[hero-zoom_18s_ease-out_both]"
+        className="-z-20 object-cover object-[78%_center] lg:object-center motion-safe:animate-[hero-zoom_18s_ease-out_both]"
       />
-      {/* Scrim: the bottom fade starts low so the whole family stays visible; the side fade keeps text readable */}
-      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      {/* On wide screens the hero takes the photo's 3:2 shape so nobody is cropped.
+          Short bottom fade keeps the youngest child's face clear; side fade keeps text readable. */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/4 bg-gradient-to-t from-background/90 to-transparent" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
-      <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-background/80 to-transparent" />
+      <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-24 bg-gradient-to-b from-background/80 to-transparent" />
 
       <div className="mx-auto w-full max-w-screen-xl px-5 pb-16 pt-32 md:px-10 md:pb-24">
         <Reveal>
