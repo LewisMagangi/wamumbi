@@ -45,12 +45,20 @@ export function useClerkAppearance() {
     },
     elements: {
       rootBox: "w-full",
-      cardBox: "w-full shadow-none border border-border rounded-xl",
-      card: "shadow-none",
-      headerTitle: "font-display text-2xl font-normal tracking-tight",
+      // The form sits directly on the page: Clerk's header is the page heading,
+      // so later steps ("Check your email") keep their titles.
+      cardBox: "w-full shadow-none border-0 rounded-none bg-transparent",
+      card: "shadow-none bg-transparent p-0 gap-7",
+      headerTitle: "font-display text-4xl font-normal tracking-tight text-left",
+      headerSubtitle: "text-left text-base",
+      header: "items-start text-left",
       formButtonPrimary: "rounded-full normal-case text-sm font-medium shadow-none",
       socialButtonsBlockButton: "border-border",
-      footer: "bg-none bg-card",
+      // GitHub and Apple ship black logos; flip them in the dark theme.
+      socialButtonsProviderIcon__github: mode === "dark" ? "invert" : "",
+      socialButtonsProviderIcon__apple: mode === "dark" ? "invert" : "",
+      footer: "bg-none bg-transparent px-0",
+      footerAction: "justify-start",
     },
     layout: { socialButtonsPlacement: "top" as const, logoPlacement: "none" as const },
   }
