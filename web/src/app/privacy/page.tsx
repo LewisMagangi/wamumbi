@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
 
         <h3>Photos from our events</h3>
         <p>
-          Our team uploads photos from outreach days and events. Every photo is reviewed before it is published on the website. <strong>We publish photos of children only where a parent or guardian has given consent</strong>, and we may blur faces where consent is not clear. If you, or a child in your care, appear in a photo you want removed, email us and we will take it down.
+          Our team, and photographers we appoint, take photos and videos at our events. By attending an event you agree to being photographed and to us publishing those photos on this website, our social media and printed materials; if you prefer not to be photographed, tell the event lead on the day. Photos taken by our team belong to Wamumbi Foundation (see our <Link href="/terms#photos">Terms of use</Link>). Every photo is reviewed before it is published on the website. <strong>We publish photos of children only where a parent or guardian has given consent</strong>, and we may blur faces where consent is not clear. If you, or a child in your care, appear in a photo you want removed, email us and we will take it down.
         </p>
 
         <h3>Technical information</h3>
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
 
         <h2 id="retention">7. How long we keep it</h2>
         <ul>
-          <li><strong>Accounts</strong>: until you ask us to delete your account.</li>
+          <li><strong>Accounts</strong>: until you ask us to delete your account. Accounts with no activity for 12 months are flagged as inactive and may be archived (archived accounts cannot open the dashboard, and we will restore yours if you ask). We may delete an account that has been archived for a further 12 months, after emailing you first. Donation records linked to a deleted account are kept as described below.</li>
           <li><strong>Donation records</strong>: for as long as Kenyan law requires us to keep financial records (generally seven years), then deleted or anonymised.</li>
           <li><strong>Volunteer applications and partnership enquiries</strong>: up to two years after we last hear from you, unless you become an active volunteer or partner.</li>
           <li><strong>Event photos</strong>: until you ask for removal or we no longer use them.</li>

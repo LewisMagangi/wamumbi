@@ -572,6 +572,190 @@
     "srcSet": "/media/muranga-rescue-centre-2025/tg-2025-10-21-165-011-640.webp 640w",
     "date": "2025-10-21T12:08:42+00:00"
    }
+  ],
+  "uloma-primary-school-2026": [
+   {
+    "id": "wa-uloma-01",
+    "width": 1280,
+    "height": 960,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAACQAgCdASoQAAwAA4BaJbACdAfwIvAvvcnLWWQdAAD+kakOc8VtBsSqpDaR8ZSI1seiHWrhVO9IGxUKMf9nengf4ndB9hxt1zSu6FbZwhM2vIvCrtp1pGBzgk36IrU+b0sXqIpmgU540oAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-01-1280.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-01-640.webp 640w, /media/uloma-primary-school-2026/wa-uloma-01-1280.webp 1280w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-02",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAABwAgCdASoQABAAA4BaJbACsAYt9Woh6Et6AWQAAP6wiKrnPCtKb03lh46v4Xz5BlHeo5MmqtBWLW4Tn9s6vWgNSjbkoTxoQ/vCSjKaSeiybO/LIpG+pq8uoM1yQMBWwkJReCBd2teJ23GWN3La4cHDp4lEM+amoCNLxtmMyPTogAAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-02-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-02-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-03",
+    "width": 1280,
+    "height": 960,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAABwAgCdASoQAAwAA4BaJbACdAYwnv7uori+pDtAAPyypVQ1hPG86RzULb9Jg5/n7sR9g3eg9S2++DSEc9O2pcnWM3KLOyErnsptdHtWP0o6fi/Fp6MondaztoVO1LI5skxXxxHI4d5LaZQh4AA=",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-03-1280.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-03-640.webp 640w, /media/uloma-primary-school-2026/wa-uloma-03-1280.webp 1280w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-04",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAAAQAgCdASoQABAAA4BaJagCdAYsFgWRy78gAPJR2APm9yNnbADTzijOlBbspZ4F8+J7Kkw1mgXbcsDQlgkG/Kj0y1yHPIiHcP8z5Y1vJBaIM0NlSRnfJ/pnjgtNTiCkXvxKNUNJw4Tr3UL2S8PRgxacImMjquetCdoIcAJnEwJFQAAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-04-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-04-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-05",
+    "width": 1280,
+    "height": 960,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAAAwAgCdASoQAAwAA4BaJagCdAYvXMEQ/M7YAAD+CiD0CrSteuEbOqgwa9hp19ebeSM7AxoyxK1wI5wQMyN5Ozb7tMKabVsvulbQkhMtMvpHwi4OvSBhRECmGaBgy00r2ew9Zbqk6L/nQbub0wAAAA==",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-05-1280.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-05-640.webp 640w, /media/uloma-primary-school-2026/wa-uloma-05-1280.webp 1280w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-06",
+    "width": 1280,
+    "height": 960,
+    "blurDataURL": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAQCdASoQAAwAA4BaJZAC7AYua9YOAYAA/es0FCWjmuimD/dLvDt/fD2mLAq73JQnX6yj+0qY4WaJDbGMV2CDgN6H827I72Rq3Qp2xbG5n3sSUEFsbFxemkyRypPMA/dovbkhROQAAA==",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-06-1280.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-06-640.webp 640w, /media/uloma-primary-school-2026/wa-uloma-06-1280.webp 1280w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-07",
+    "width": 1280,
+    "height": 960,
+    "blurDataURL": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwAgCdASoQAAwAA4BaJQBWD+AQWZiiP/MQ/SWgAP6Y9PpJTohBxX38oxuOQlW9q6Yc65pQavBRVnHuBKVmOvSqlxx4ZIBNwg3HIBsJI8dtYHz/G/571lFPxUpgMkwFK29ya1KgAAA=",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-07-1280.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-07-640.webp 640w, /media/uloma-primary-school-2026/wa-uloma-07-1280.webp 1280w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-08",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAACQAgCdASoQABAAA4BaJbACdBHAH/ExXMY4Zdm04AD+SYmGEZQQSm80cVLgvqqpGIeIdmqV/op1EdWpMfKGHlh3qgwRqb/U4dUMHt8/roGxEd9ZjM1oLQhToojiHoD0tQJOq0unC/O+dsAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-08-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-08-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-09",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQAgCdASoQABAAA4BaJbACdAEUlYhOMXIAAP7T3pWxz68v6nQfd4Wm+qVVW1PEMf3WW/CVfX6QVCZGoSRYZP5gz/oTQsWt/FXkktMgXmiDLOAU5K7A+G70v87Vkvm9Bu9fDl/eVLY4AAAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-09-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-09-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-10",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAAAwAgCdASoQABAAA4BaJagCdADxC25bCNoGAAD+07Tdvt6U8HDiu1C4P3uw1Ma6vstbv8vxtY6xZA1wHagzSrd1JX8Wq+An5amlDFVU39YxkWIyblcqBJZ9nOeIpjZfvZIdOvQ9oBABChveKIAAAA==",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-10-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-10-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-uloma-11",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAACQAgCdASoQABAAA4BaJYgCdH8AgnSl7o+idfJyAAD+14GFCHV4RlbwxqfswFEEwc3GY/JUzr0t7Pl8WOpepxg78O9t9fwO2zsY82WnpST52yBeS8nUJbq/jMQl+UA/NhBg9GBxQqNLVmS7VrbaqGfI485FMAAA",
+    "src": "/media/uloma-primary-school-2026/wa-uloma-11-640.webp",
+    "srcSet": "/media/uloma-primary-school-2026/wa-uloma-11-640.webp 640w",
+    "date": null
+   }
+  ],
+  "bliss-garden-funday-2026": [
+   {
+    "id": "wa-bliss-01",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAAAwAgCdASoQABAAA4BaJbACsAYwnbVzkO5PrAD+sj7/oHZmfo5VQpTdptnqQN3QlbgA9XRnUnW7xzPke5gnSalNInDymU/xcjHXhP4EQiAHxNKqlsgDX+gpsre94Ue0QRYuJ7YexOIo10UYzJ9S8UNnEgx22a2HAAA=",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-01-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-01-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-02",
+    "width": 640,
+    "height": 641,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAwAgCdASoQABAAA4BaJbAC7AYvrvd++6CnAAD+8BqkCtWTVW6h7bNpM/+sOTVisgcrcweX70BwexJyM6u57WrYZhwJfBtw6FUxMdR5ObL/8gxyTgygH82xsgkC45Nx/9LvDN7EHalxoZQuEAA=",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-02-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-02-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-03",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAwAgCdASoQABAAA4BaJbACdH8AGDNaDyDawAD+Cnq8mYY1yhwJ9lQdS0e81tfpoQLH/UIilyjS9jlkrQTd7M7DMxHmVR/3bVRfwbzvcdJP2JR3dqwRsRord+GpJYO6MR6qZHiEgn5uEXQAAAA=",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-03-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-03-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-04",
+    "width": 640,
+    "height": 641,
+    "blurDataURL": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAABQAgCdASoQABAAA4BaJbACsH8AgriMt+yt5QAA/kkOz+V8I5gQvVgT+QjMI2jxCsfIU+Lu/II4LpeTLJQaLqaMLgVJwwqevk6hS6ELvZCsRcT2mSTBJ+Gku6idFIsVD+/SDAK7PyzMCu+QM5CYbrSTMVGUOXWc/xbrQ2gA",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-04-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-04-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-05",
+    "width": 640,
+    "height": 641,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAAAQAgCdASoQABAAA4BaJbACdAYxjj9ZngsAAPR3N1dUPmtHZ++5ggXlAO/96XNSRj6N7rdIPPK/a/HaEuzZBLV5/o5klneR52WyNlWsUfYYqpxJ/PcfJkYyxCA2NKSHDJdq+pZu3p8g177nZMAAAA==",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-05-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-05-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-06",
+    "width": 640,
+    "height": 641,
+    "blurDataURL": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAABQAgCdASoQABAAA4BaJYgCdAEfTpFYVTwnDAAA/VPpzojnv64RL57brWmVqZHpLegXuIikcse+nGjjPXVPxTUwp0x+TE3zlOfOrvwqzlLknZVGfEIyDHxy+J55CbUY6u2YBXOjhQrgbkAZ3ZOAAA==",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-06-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-06-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-07",
+    "width": 640,
+    "height": 641,
+    "blurDataURL": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACQAgCdASoQABAAA4BaJbAC06Ywxv6MMjz1jitUAAD+xgcqW7+f1fA78e6XAIGSvigr2kyKdaHUnEZYcADFsBee5JgTE5Pts4FAMun8EEyDOv/1TsnH9Cdr6DIMMjn81c6ehrEa8x09W54tcih25Y9iGhDqptaA3yD4xcAA",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-07-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-07-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-08",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQAQCdASoQABAAA4BaJbACdAC9b6VwAAD9PSb3xw/2X4YfzpglC5WZnNKssUBYxBnHK9RSU9qVe3T2E3hXyZeek9F3xwKz+rlHPM7oYB2jB/r1mLOIZLr948E7bD0U3OD6/E0Q23J38BGqgqJK1zHV2WoAAA==",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-08-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-08-640.webp 640w",
+    "date": null
+   },
+   {
+    "id": "wa-bliss-09",
+    "width": 640,
+    "height": 640,
+    "blurDataURL": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAAAQAgCdASoQABAAA4BaJbACdADdKxdBaX/0AP7MMvbua5SGO6DB1WDPYKxJKCXWyvBQ+ri+/URsKREfMjW1Ue879Y0U6fyxVHu1mdrop+AWMl+ozAROOxSlw8IFU1NApefjx8A6Hfpbw+tJWVxc9D/0bvJv/0dmRgAAAA==",
+    "src": "/media/bliss-garden-funday-2026/wa-bliss-09-640.webp",
+    "srcSet": "/media/bliss-garden-funday-2026/wa-bliss-09-640.webp 640w",
+    "date": null
+   }
   ]
  }
 }

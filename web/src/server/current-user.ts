@@ -109,6 +109,7 @@ let lastSync = 0
  * Super Admin if listed in SUPER_ADMIN_EMAILS). Rows are otherwise only created the
  * first time someone opens the site signed in, so without this, people who signed up
  * earlier (or on the old deployment) never appear in Users & roles.
+ * Also copies each person's last activity from Clerk into users.last_login.
  * Runs at most once a minute per server instance; failures are logged, never thrown.
  */
 export async function syncClerkUsers() {
@@ -117,16 +118,26 @@ export async function syncClerkUsers() {
   try {
     const { clerkClient } = await import("@clerk/nextjs/server")
     const client = await clerkClient()
-    const existing = new Set(
-      (await prisma.user.findMany({ select: { email: true } })).map((u) => u.email.toLowerCase())
+    const existing = new Map(
+      (await prisma.user.findMany({ select: { id: true, email: true, last_login: true } })).map((u) => [u.email.toLowerCase(), u])
     )
     for (let offset = 0; ; offset += 100) {
       const page = await client.users.getUserList({ limit: 100, offset, orderBy: "created_at" })
       for (const u of page.data) {
         const email = (u.primaryEmailAddress?.emailAddress ?? u.emailAddresses[0]?.emailAddress ?? "").toLowerCase()
-        if (email && !existing.has(email)) {
-          await getOrCreateDbUser(u)
-          existing.add(email)
+        if (!email) continue
+        let row = existing.get(email)
+        if (!row) {
+          const created = await getOrCreateDbUser(u)
+          if (created) {
+            row = { id: created.id, email, last_login: created.last_login }
+            existing.set(email, row)
+          }
+        }
+        // Last time this person used the site, per Clerk; drives the "Inactive" flag in Users & roles.
+        const seen = u.lastActiveAt ?? u.lastSignInAt
+        if (row && seen && Math.abs((row.last_login?.getTime() ?? 0) - seen) > 60_000) {
+          await prisma.user.update({ where: { id: row.id }, data: { last_login: new Date(seen) } })
         }
       }
       if (page.data.length < 100) break

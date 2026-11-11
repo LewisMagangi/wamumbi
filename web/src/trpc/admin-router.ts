@@ -11,6 +11,8 @@ import { optionalAuthProcedure, permissionProcedure, protectedProcedure, router 
 import { LEGAL_VERSION } from "@/lib/legal"
 
 const roleEnum = z.enum(ROLES)
+/** Accounts with no activity for this long are flagged as inactive in Users & roles. */
+const INACTIVE_DAYS = 365
 const kindEnum = z.enum(["campaign", "event", "blog"])
 
 const LIVE_STATUS: Record<z.infer<typeof kindEnum>, string> = {
@@ -88,6 +90,7 @@ export const adminRouter = router({
         orderBy: { created_at: "desc" },
         take: 200,
       })
+      const cutoff = Date.now() - INACTIVE_DAYS * 86_400_000
       return users.map((u) => ({
         id: u.id,
         email: u.email,
@@ -95,7 +98,33 @@ export const adminRouter = router({
         role: normalizeRole(u.role?.name),
         status: u.status?.name ?? "active",
         lastLogin: u.last_login,
+        /** No activity for INACTIVE_DAYS (or never signed in, on an account that old). */
+        inactive: (u.last_login ?? u.created_at).getTime() < cutoff,
       }))
+    }),
+
+  /** Archive (deactivate) or restore an account. Archived people can't sign in to the dashboard. */
+  setUserStatus: permissionProcedure("users:manage")
+    .input(z.object({ userId: z.number().int(), status: z.enum(["active", "inactive"]) }))
+    .mutation(async ({ input, ctx }) => {
+      if (input.userId === ctx.user.id) throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot archive your own account" })
+      const before = await prisma.user.findUnique({ where: { id: input.userId }, include: { status: true } })
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" })
+      const status = await prisma.userStatus.upsert({
+        where: { name: input.status },
+        update: {},
+        create: { name: input.status, description: input.status === "active" ? "Active user account" : "Archived after inactivity", is_active: input.status === "active" },
+      })
+      await prisma.user.update({ where: { id: input.userId }, data: { status_id: status.id } })
+      await audit({
+        userId: ctx.user.id,
+        action: input.status === "inactive" ? "user_archived" : "user_restored",
+        entity: "user",
+        entityId: input.userId,
+        oldValues: { status: before.status?.name },
+        newValues: { status: input.status },
+      })
+      return { ok: true }
     }),
 
   assignRole: permissionProcedure("roles:assign")
