@@ -1,6 +1,6 @@
 import type { ComponentType } from "react"
 import {
-  LayoutDashboard, Megaphone, HandHeart, UserCheck, FolderKanban, CalendarDays, BarChart3, Home, ImageUp, ShieldCheck, ClipboardCheck, Users, Inbox, History,
+  LayoutDashboard, Megaphone, HandHeart, UserCheck, FolderKanban, CalendarDays, BarChart3, Home, ImageUp, ShieldCheck, ClipboardCheck, Users, Inbox, History, UsersRound,
 } from "lucide-react"
 import type { Permission } from "@/lib/rbac/permissions"
 
@@ -13,6 +13,7 @@ export const navigationItems: NavItem[] = [
   { name: 'Campaigns', href: '/dashboard/campaigns', icon: Megaphone, description: 'Manage campaigns', anyOf: ['campaigns:create', 'campaigns:update', 'campaigns:publish'] },
   { name: 'Donations', href: '/donations', icon: HandHeart, description: 'Donations and donors', anyOf: ['donations:view_all', 'donations:view_aggregate', 'donations:view_own'] },
   { name: 'Volunteers', href: '/volunteers', icon: UserCheck, description: 'Volunteer management', anyOf: ['volunteers:view', 'volunteers:view_team', 'volunteers:view_anonymized'] },
+  { name: 'Teams', href: '/teams', icon: UsersRound, description: 'Teams and their members', anyOf: ['teams:view'] },
   { name: 'Projects', href: '/projects', icon: FolderKanban, description: 'Project tracking', anyOf: ['dashboard:view'] },
   { name: 'Events', href: '/events', icon: CalendarDays, description: 'Upcoming and past events' },
   { name: 'Manage events', href: '/dashboard/events', icon: CalendarDays, description: 'Create events, registrations', anyOf: ['events:create', 'events:update', 'registrations:manage', 'registrations:manage_team'] },
