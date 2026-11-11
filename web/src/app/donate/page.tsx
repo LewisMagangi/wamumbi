@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Check, Copy } from "lucide-react"
 import { PageShell } from "@/components/page-shell"
 import { photosFor } from "@/data/gallery"
+import { PhotoStrip } from "@/components/photo-strip"
 
 const TILL = "8392352"
 
@@ -89,6 +90,18 @@ export default function DonatePage() {
             <ul className="mt-4 divide-y border-y">
               {uses.map((u) => <li key={u} className="py-3 text-muted-foreground">{u}</li>)}
             </ul>
+          </div>
+          <div>
+            <h2 className="font-display text-xl">Your support in action</h2>
+            <PhotoStrip
+              className="mt-4 grid-cols-3 md:grid-cols-3"
+              aspect="aspect-square"
+              picks={[
+                { slug: "uloma-primary-school-2026", index: 4, alt: "Preparing a meal for pupils at Uloma Primary School" },
+                { slug: "familia-moja-2024", index: 0, alt: "Children at a meal during the Familia Moja outreach" },
+                { slug: "uloma-primary-school-2026", index: 1, alt: "A mentoring session at Uloma Primary School" },
+              ]}
+            />
           </div>
           <p className="text-muted-foreground">
             Prefer to give time? <Link href="/volunteer-signup" className="text-foreground underline underline-offset-4">Volunteer with us</Link>.
