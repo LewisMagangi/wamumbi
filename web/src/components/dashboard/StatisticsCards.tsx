@@ -17,9 +17,9 @@ export const StatisticsCards = () => {
       change: '+12.5%',
       isPositive: true,
       icon: DollarSign,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-600',
-      borderColor: 'border-green-500',
+      bgColor: 'bg-success/15',
+      iconColor: 'text-success',
+      borderColor: 'border-success/40',
     },
     {
       title: 'Total Donors',
@@ -27,9 +27,9 @@ export const StatisticsCards = () => {
       change: '+8.2%',
       isPositive: true,
       icon: Users,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-blue-500',
+      bgColor: 'bg-info/15',
+      iconColor: 'text-info',
+      borderColor: 'border-info/40',
     },
     {
       title: 'Active Campaigns',
@@ -37,9 +37,9 @@ export const StatisticsCards = () => {
       change: 'Live now',
       isPositive: true,
       icon: Target,
-      bgColor: 'bg-rose-100',
-      iconColor: 'text-rose-600',
-      borderColor: 'border-rose-500',
+      bgColor: 'bg-brand/10',
+      iconColor: 'text-brand',
+      borderColor: 'border-brand',
     },
     {
       title: 'Average Donation',
@@ -47,9 +47,9 @@ export const StatisticsCards = () => {
       change: '+5.3%',
       isPositive: true,
       icon: Calendar,
-      bgColor: 'bg-amber-100',
-      iconColor: 'text-amber-600',
-      borderColor: 'border-amber-500',
+      bgColor: 'bg-warning/15',
+      iconColor: 'text-warning',
+      borderColor: 'border-warning/40',
     },
   ];
 
@@ -60,20 +60,20 @@ export const StatisticsCards = () => {
         return (
           <div 
             key={index} 
-            className={`bg-white rounded-lg shadow-sm border-l-4 ${card.borderColor} p-6 hover:shadow-md transition-shadow`}
+            className={`bg-card rounded-lg shadow-sm border-l-4 ${card.borderColor} p-6 hover:shadow-md transition-shadow`}
           >
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <p className="text-sm text-gray-500 font-medium mb-2">{card.title}</p>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{card.value}</h3>
+                <p className="text-sm text-muted-foreground font-medium mb-2">{card.title}</p>
+                <h3 className="text-2xl font-bold text-foreground mb-3">{card.value}</h3>
                 
                 <div className="flex items-center text-sm">
-                  {card.isPositive && <TrendingUp className="h-4 w-4 text-green-600 mr-1" />}
-                  <span className={`font-medium ${card.isPositive ? 'text-green-600' : 'text-gray-600'}`}>
+                  {card.isPositive && <TrendingUp className="h-4 w-4 text-success mr-1" />}
+                  <span className={`font-medium ${card.isPositive ? 'text-success' : 'text-muted-foreground'}`}>
                     {card.change}
                   </span>
                   {card.change.includes('%') && (
-                    <span className="text-gray-500 ml-1">from last month</span>
+                    <span className="text-muted-foreground ml-1">from last month</span>
                   )}
                 </div>
               </div>

@@ -1,25 +1,11 @@
 'use client';
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/footer';
-import Sidebar from '@/components/dashboard/Sidebar';
-import MenuButton from '@/components/dashboard/MenuButton';
+import { DashboardShell } from '@/components/dashboard/shell';
 import { VolunteersView } from '@/components/dashboard/views';
 
-export default function VolunteersPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+export default function Page() {
   return (
-    <>
-      <Navbar />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <MenuButton onClick={() => setSidebarOpen(true)} />
-      <div className="min-h-screen bg-gray-50 pt-16">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <VolunteersView />
-        </main>
-      </div>
-      <Footer />
-    </>
+    <DashboardShell anyOf={['volunteers:view', 'volunteers:view_team', 'volunteers:view_anonymized']}>
+      <VolunteersView />
+    </DashboardShell>
   );
 }

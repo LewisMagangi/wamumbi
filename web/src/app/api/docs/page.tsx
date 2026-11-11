@@ -50,7 +50,7 @@ export default function ApiDocs() {
           window.dispatchEvent(new Event('swagger-ui-loaded'))
         }}
       />
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-card">
         <div id="swagger-ui" ref={containerRef} />
       </div>
     </>

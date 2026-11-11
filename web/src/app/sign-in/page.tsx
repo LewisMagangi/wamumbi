@@ -33,7 +33,7 @@ export default function SignInPage() {
             Forgot your password?{' '}
             <Link 
               href="/forgot-password" 
-              className="font-medium text-rose-600 hover:text-rose-500"
+              className="font-medium text-brand hover:text-brand"
             >
               Reset it here
             </Link>

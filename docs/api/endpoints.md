@@ -13,6 +13,7 @@ in the Wamumbi Charity Management System.
 - [Events](#events)
 - [Volunteers](#volunteers)
 - [Blog Posts](#blog-posts)
+- [Partnership](#partnership)
 
 ---
 
@@ -641,3 +642,46 @@ All procedures throw `TRPCError` with appropriate codes:
 
 All inputs and outputs are fully typed with TypeScript.
 The tRPC client provides end-to-end type safety.
+
+---
+
+## Partnership
+
+### submitInquiry
+
+**Type:** Mutation
+
+**Description:** Submits a partnership inquiry from the website form.
+Sends an email notification to the configured partnership email address.
+
+**Input:**
+
+```typescript
+{
+  organizationName: string;
+  contactPerson: string;
+  email: string;
+  phone?: string;
+  organizationType?: string;
+  partnershipInterest?: string;
+  message?: string;
+  website?: string;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  success: boolean;
+  message: string;
+}
+```
+
+**Notes:**
+
+- Required fields: `organizationName`, `contactPerson`, `email`
+- Email is sent to the address configured in `PARTNERSHIP_EMAIL`
+  environment variable
+- Currently logs email content (TODO: integrate with email service
+  like Resend or SendGrid)

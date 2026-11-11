@@ -235,6 +235,9 @@ model User {
   notifications       Notification[]
   verified_activities VolunteerActivity[]
   audit_logs          AuditLog[]
+  media_uploads       MediaAsset[]        @relation("MediaUploader")
+  media_moderated     MediaAsset[]        @relation("MediaModerator")
+  inquiries_handled   Inquiry[]           @relation("InquiryHandler")
 
   @@map("users")
 }
@@ -537,6 +540,7 @@ model Event {
   registrations        EventRegistration[]
   volunteer_activities VolunteerActivity[]
   notifications        Notification[]
+  media                MediaAsset[]
 
   @@map("events")
 }
@@ -1032,4 +1036,81 @@ model AuditLog {
   @@index([action_id, created_at])
   @@index([created_at])
   @@map("audit_logs")
+}
+
+// =============================================================================
+// MEDIA & MODERATION
+// =============================================================================
+
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+}
+
+model MediaAsset {
+  id                Int              @id @default(autoincrement())
+  url               String           @db.VarChar(500)
+  kind              String           @default("image") @db.VarChar(10)
+  width             Int?
+  height            Int?
+  bytes             Int?
+  alt               String?          @db.VarChar(300)
+  caption           String?          @db.Text
+  album             String?          @db.VarChar(120)
+  event_id          Int?
+  uploaded_by       Int?
+  moderation_status ModerationStatus @default(pending)
+  moderated_by      Int?
+  moderated_at      DateTime?
+  rejection_reason  String?          @db.VarChar(300)
+  consent_confirmed Boolean          @default(false)
+  faces_blurred     Boolean          @default(false)
+  taken_at          DateTime?
+  created_at        DateTime         @default(now())
+
+  // Relations
+  event     Event? @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  uploader  User?  @relation("MediaUploader", fields: [uploaded_by], references: [id], onDelete: SetNull)
+  moderator User?  @relation("MediaModerator", fields: [moderated_by], references: [id], onDelete: SetNull)
+
+  @@index([moderation_status, created_at])
+  @@index([event_id])
+  @@index([uploaded_by, created_at])
+  @@map("media_assets")
+}
+
+// =============================================================================
+// WEBSITE FORM SUBMISSIONS (volunteer applications, partnership inquiries)
+// =============================================================================
+
+enum InquiryKind {
+  volunteer
+  partnership
+}
+
+enum InquiryStatus {
+  new
+  in_review
+  accepted
+  declined
+  archived
+}
+
+model Inquiry {
+  id          Int           @id @default(autoincrement())
+  kind        InquiryKind
+  name        String        @db.VarChar(200)
+  email       String        @db.VarChar(255)
+  phone       String?       @db.VarChar(40)
+  payload     Json
+  status      InquiryStatus @default(new)
+  handled_by  Int?
+  handled_at  DateTime?
+  created_at  DateTime      @default(now())
+
+  handler User? @relation("InquiryHandler", fields: [handled_by], references: [id], onDelete: SetNull)
+
+  @@index([kind, status, created_at])
+  @@map("inquiries")
 }

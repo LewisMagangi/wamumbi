@@ -1,9 +1,10 @@
-import { procedure, router } from "./trpc";
+import { publicProcedure, protectedProcedure, permissionProcedure, router } from "./trpc";
+import { reviewStatus } from "@/server/review";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 export const eventsRouter = router({
-  getUpcoming: procedure
+  getUpcoming: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -74,7 +75,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getAll: procedure
+  getAll: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -148,7 +149,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getById: procedure
+  getById: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -286,7 +287,7 @@ export const eventsRouter = router({
     }
   }),
 
-  create: procedure
+  create: permissionProcedure("events:create")
     .meta({
       openapi: {
         method: 'POST',
@@ -321,7 +322,7 @@ export const eventsRouter = router({
       category: z.string(),
       createdAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       // Get scheduled status (default for new events)
       const scheduledStatus = await prisma.eventStatus.findFirst({
@@ -349,11 +350,11 @@ export const eventsRouter = router({
           ticket_price: input.ticketPrice,
           currency_id: input.currencyId,
           category_id: input.categoryId,
-          status_id: scheduledStatus?.id || 1,
+          status_id: await reviewStatus("event", scheduledStatus?.id || 1, ctx.user),
           image_url: input.imageUrl,
           registration_deadline: input.registrationDeadline,
           address_id: addressId,
-          created_by: input.createdBy
+          created_by: ctx.user.id
         },
         include: {
           category: true,
@@ -380,7 +381,7 @@ export const eventsRouter = router({
     }
   }),
 
-  update: procedure
+  update: permissionProcedure("events:update")
     .meta({
       openapi: {
         method: 'PUT',
@@ -414,7 +415,7 @@ export const eventsRouter = router({
       category: z.string(),
       updatedAt: z.date()
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
     try {
       const { id, eventDate, ticketPrice, categoryId, statusId, imageUrl, registrationDeadline, ...rest } = input;
       
@@ -422,7 +423,7 @@ export const eventsRouter = router({
       if (eventDate !== undefined) dataToUpdate.event_date = eventDate;
       if (ticketPrice !== undefined) dataToUpdate.ticket_price = ticketPrice;
       if (categoryId !== undefined) dataToUpdate.category_id = categoryId;
-      if (statusId !== undefined) dataToUpdate.status_id = statusId;
+      if (statusId !== undefined) dataToUpdate.status_id = await reviewStatus("event", statusId, ctx.user);
       if (imageUrl !== undefined) dataToUpdate.image_url = imageUrl;
       if (registrationDeadline !== undefined) dataToUpdate.registration_deadline = registrationDeadline;
 
@@ -454,7 +455,7 @@ export const eventsRouter = router({
     }
   }),
 
-  delete: procedure
+  delete: permissionProcedure("events:delete")
     .meta({
       openapi: {
         method: 'DELETE',
@@ -479,7 +480,7 @@ export const eventsRouter = router({
   }),
 
   // Register user for an event
-  register: procedure
+  register: protectedProcedure
     .meta({
       openapi: {
         method: 'POST',
@@ -572,7 +573,7 @@ export const eventsRouter = router({
   }),
 
   // Cancel registration
-  cancelRegistration: procedure
+  cancelRegistration: protectedProcedure
     .meta({
       openapi: {
         method: 'DELETE',
@@ -606,7 +607,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getCategories: procedure
+  getCategories: publicProcedure
     .meta({
       openapi: {
         method: 'GET',
@@ -641,7 +642,7 @@ export const eventsRouter = router({
     }
   }),
 
-  getStatuses: procedure
+  getStatuses: publicProcedure
     .meta({
       openapi: {
         method: 'GET',

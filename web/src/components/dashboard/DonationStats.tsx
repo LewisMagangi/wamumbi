@@ -13,13 +13,13 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, trend, color }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-card rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          <p className="text-muted-foreground text-sm font-medium">{title}</p>
+          <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
           {trend && (
-            <p className={`text-sm mt-2 ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-sm mt-2 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}% vs last month
             </p>
           )}

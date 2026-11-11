@@ -1,51 +1,38 @@
-import { useAuth } from '../contexts/AuthContext';
+"use client"
 
-// Define permission actions
-export type PermissionAction = 'read' | 'create' | 'update' | 'delete';
+import { useAuth } from "../contexts/AuthContext"
+import type { Permission } from "@/lib/rbac/permissions"
 
-// Define resources in the system
-export type Resource = 
-  | 'campaigns'
-  | 'events'
-  | 'projects'
-  | 'teams'
-  | 'blog'
-  | 'donations'
-  | 'volunteers'
-  | 'discussions'
-  | 'comments'
-  | 'polls'
-  | 'profile'
-  | 'registrations';
+export type PermissionAction = "read" | "create" | "update" | "delete"
+
+export type Resource =
+  | "campaigns"
+  | "events"
+  | "projects"
+  | "teams"
+  | "blog"
+  | "donations"
+  | "volunteers"
+  | "discussions"
+  | "comments"
+  | "polls"
+  | "profile"
+  | "registrations"
 
 export function usePermissions() {
-  const { hasPermission, isAdmin } = useAuth();
-  
-  // Helper function to check if user can perform action on resource
-  const can = (action: PermissionAction, resource: Resource) => {
-    return hasPermission(action, resource);
-  };
-  
-  // Helper function to check if user can edit a resource
-  const canEdit = (resource: Resource) => {
-    return hasPermission('update', resource);
-  };
-  
-  // Helper function to check if user can create a resource
-  const canCreate = (resource: Resource) => {
-    return hasPermission('create', resource);
-  };
-  
-  // Helper function to check if user can delete a resource
-  const canDelete = (resource: Resource) => {
-    return hasPermission('delete', resource);
-  };
-  
+  const { hasPermission, has, hasAny, isAdmin, role, isLoading } = useAuth()
+
   return {
-    can,
-    canEdit,
-    canCreate,
-    canDelete,
-    isAdmin
-  };
+    /** Legacy check, e.g. can("create", "campaigns") */
+    can: (action: PermissionAction, resource: Resource) => hasPermission(action, resource),
+    canEdit: (resource: Resource) => hasPermission("update", resource),
+    canCreate: (resource: Resource) => hasPermission("create", resource),
+    canDelete: (resource: Resource) => hasPermission("delete", resource),
+    /** New, precise check, e.g. has("media:moderate") */
+    has: (p: Permission) => has(p),
+    hasAny: (ps: Permission[]) => hasAny(ps),
+    isAdmin,
+    role,
+    isLoading,
+  }
 }

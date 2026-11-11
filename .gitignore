@@ -38,3 +38,5 @@ build/
 .env.development
 .env
 .env.vercel
+
+.setup/
